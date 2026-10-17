@@ -81,6 +81,44 @@
       </div>
     </section>
 
+    <dialog class="room-schedule-dialog" id="room-schedule-dialog" aria-labelledby="schedule-modal-title">
+      <div class="schedule-modal-header">
+        <span class="schedule-modal-icon" aria-hidden="true"><i class="fa-regular fa-calendar-days"></i></span>
+        <div class="schedule-modal-heading">
+          <div class="schedule-modal-title-row">
+            <h2 id="schedule-modal-title">ตารางเวลาการใช้งานรายสัปดาห์ (จันทร์ - ศุกร์)</h2>
+            <span class="schedule-room-badge" id="schedule-room-label">ห้องที่ 1</span>
+          </div>
+          <p>ห้องเรียนและ Co-Working Space · อาคาร LC4 ชั้น 1</p>
+        </div>
+        <button class="schedule-modal-x" id="schedule-modal-x" type="button" aria-label="ปิดหน้าต่าง">×</button>
+      </div>
+      <div class="schedule-modal-body">
+        <div class="schedule-modal-legend">
+          <div class="schedule-legend-items">
+            <span><i class="legend-dot available"></i> ว่าง</span>
+            <span><i class="legend-dot booked"></i> ถูกจองแล้ว</span>
+          </div>
+          <span class="schedule-week-range" id="schedule-week-range"></span>
+        </div>
+        <div class="weekly-table-scroll">
+          <table class="weekly-schedule" aria-label="ตารางเวลารายสัปดาห์ของห้องที่เลือก">
+            <thead>
+              <tr>
+                <th scope="col">วัน / เวลา</th>
+                <th scope="col">09:00</th><th scope="col">10:00</th><th scope="col">11:00</th><th scope="col">12:00</th>
+                <th scope="col">13:00</th><th scope="col">14:00</th><th scope="col">15:00</th>
+              </tr>
+            </thead>
+            <tbody id="weekly-schedule-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="schedule-modal-footer">
+        <button class="schedule-modal-close" id="schedule-modal-close" type="button">ปิดหน้าต่าง</button>
+      </div>
+    </dialog>
+
     <section class="availability panel" id="availability">
       <div class="availability-heading">
         <h2><span class="red-icon">◷</span> ตารางสถานะห้องว่างแบบ Real-time</h2>
@@ -96,13 +134,13 @@
             <tr>
               <th>ห้อง/ช่วงเวลา (3 ห้อง)</th>
               <th>09:00</th><th>10:00</th><th>11:00</th><th>12:00</th>
-              <th>13:00</th><th>14:00</th><th>15:00</th><th>16:00</th>
+              <th>13:00</th><th>14:00</th><th>15:00</th>
             </tr>
           </thead>
           <tbody id="schedule-body">
-            <tr data-room-row="1"><th>ห้องที่ 1 <small>รอข้อมูล</small></th><td colspan="8"><span class="empty-status">รอข้อมูลจากระบบ</span></td></tr>
-            <tr data-room-row="2"><th>ห้องที่ 2 <small>รอข้อมูล</small></th><td colspan="8"><span class="empty-status">รอข้อมูลจากระบบ</span></td></tr>
-            <tr data-room-row="3"><th>ห้องที่ 3 <small>รอข้อมูล</small></th><td colspan="8"><span class="empty-status">รอข้อมูลจากระบบ</span></td></tr>
+            <tr data-room-row="1"><th>ห้องที่ 1 <small>รอข้อมูล</small></th><td colspan="7"><span class="empty-status">รอข้อมูลจากระบบ</span></td></tr>
+            <tr data-room-row="2"><th>ห้องที่ 2 <small>รอข้อมูล</small></th><td colspan="7"><span class="empty-status">รอข้อมูลจากระบบ</span></td></tr>
+            <tr data-room-row="3"><th>ห้องที่ 3 <small>รอข้อมูล</small></th><td colspan="7"><span class="empty-status">รอข้อมูลจากระบบ</span></td></tr>
           </tbody>
         </table>
       </div>

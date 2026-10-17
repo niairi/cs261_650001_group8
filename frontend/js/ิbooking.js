@@ -4,6 +4,35 @@ const roomSelect = document.querySelector("#room-select");
 const form = document.querySelector("#booking-form");
 const formMessage = document.querySelector("#form-message");
 const navigationLinks = document.querySelectorAll(".main-nav .nav-link[href^='#']");
+const roomScheduleDialog = document.querySelector("#room-schedule-dialog");
+const roomScheduleLabel = document.querySelector("#schedule-room-label");
+const roomScheduleRange = document.querySelector("#schedule-week-range");
+const weeklyScheduleBody = document.querySelector("#weekly-schedule-body");
+const weekDays = ["วันจันทร์", "วันอังคาร", "วันพุธ", "วันพฤหัสบดี", "วันศุกร์"];
+const timeSlots = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00"];
+const weeklyAvailability = {
+  "1": [
+    [true, false, false, true, true, true, true],
+    [true, true, true, false, false, true, true],
+    [false, false, true, true, true, true, false],
+    [true, true, true, true, true, false, false],
+    [true, true, false, false, true, true, true]
+  ],
+  "2": [
+    [true, true, false, false, true, true, true],
+    [false, true, true, true, false, false, true],
+    [true, false, false, true, true, true, true],
+    [true, true, true, false, true, false, true],
+    [false, false, true, true, true, true, false]
+  ],
+  "3": [
+    [true, false, true, true, false, true, true],
+    [true, true, false, true, false, true, true],
+    [false, true, true, true, true, false, false],
+    [true, false, true, true, true, false, true],
+    [true, true, false, true, true, true, false]
+  ]
+};
 
 function updateNavigationState() {
   const currentHash = window.location.hash;
@@ -25,6 +54,54 @@ function updateNavigationState() {
 window.addEventListener("hashchange", updateNavigationState);
 updateNavigationState();
 
+function updateScheduleWeekRange() {
+  const weekStart = new Date();
+  const currentDay = weekStart.getDay();
+  const daysUntilMonday = currentDay === 0 ? 1 : currentDay === 6 ? 2 : 1 - currentDay;
+  weekStart.setDate(weekStart.getDate() + daysUntilMonday);
+  weekStart.setHours(0, 0, 0, 0);
+
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 4);
+  roomScheduleRange.textContent = `ข้อมูลตัวอย่าง · ${thaiDate(weekStart)} - ${thaiDate(weekEnd)}`;
+}
+
+function renderWeeklySchedule(roomNumber) {
+  roomScheduleLabel.textContent = `ห้องที่ ${roomNumber}`;
+  weeklyScheduleBody.replaceChildren();
+
+  weeklyAvailability[roomNumber].forEach((dayAvailability, dayIndex) => {
+    const row = document.createElement("tr");
+    const dayHeader = document.createElement("th");
+    dayHeader.scope = "row";
+    dayHeader.textContent = weekDays[dayIndex];
+    row.append(dayHeader);
+
+    dayAvailability.forEach((isAvailable, slotIndex) => {
+      const cell = document.createElement("td");
+      const status = document.createElement("span");
+      status.className = `slot-status ${isAvailable ? "available" : "booked"}`;
+      status.textContent = isAvailable ? "ว่าง" : "ถูกจอง";
+      status.setAttribute("aria-label", `${timeSlots[slotIndex]} ${isAvailable ? "ว่าง" : "ถูกจองแล้ว"}`);
+      cell.append(status);
+      row.append(cell);
+    });
+
+    weeklyScheduleBody.append(row);
+  });
+
+  updateScheduleWeekRange();
+}
+
+document.querySelector("#schedule-modal-x").addEventListener("click", () => roomScheduleDialog.close());
+document.querySelector("#schedule-modal-close").addEventListener("click", () => roomScheduleDialog.close());
+roomScheduleDialog.addEventListener("click", (event) => {
+  if (event.target === roomScheduleDialog) roomScheduleDialog.close();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && roomScheduleDialog.open) roomScheduleDialog.close();
+});
+
 roomCards.forEach((card) => {
   card.addEventListener("click", () => {
     roomCards.forEach((item) => {
@@ -34,6 +111,8 @@ roomCards.forEach((card) => {
     card.classList.add("selected");
     card.setAttribute("aria-pressed", "true");
     roomSelect.value = card.dataset.room;
+    renderWeeklySchedule(card.dataset.room);
+    roomScheduleDialog.showModal();
   });
 });
 
