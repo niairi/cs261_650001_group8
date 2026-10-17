@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เข้าสู่ระบบ | TU CS Space</title>
+
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+
+    <header class="site-header">
+        <a href="./login.html" class="brand">
+            <img src="/cs261_650001_group8/frontend/images/Logo.png" alt="TU CS Space Logo" class="brand-logo">
+
+            <div class="brand-info">
+                <div class="brand-title">
+                    <h2>TU CS Space</h2>
+                    <span>THAMMASAT</span>
+                </div>
+
+                <p>
+                    ภาควิชาวิทยาการคอมพิวเตอร์ ·
+                    คณะวิทยาศาสตร์และเทคโนโลยี มธ.
+                </p>
+            </div>
+        </a>
+    </header>
+
+    <main class="login-container">
+
+        <section class="login-card">
+
+            <div class="login-banner">
+                <div class="book-icon">
+                    <i class="fa-solid fa-book-open" aria-hidden="true"></i>
+                </div>
+
+                <h1>จองห้อง Co-Working Space</h1>
+
+                <p>
+                    เข้าสู่ระบบด้วยบัญชี TU เพื่อเลือกห้อง
+                    ดูช่วงเวลาว่าง และติดตามประวัติการจองของคุณ
+                </p>
+            </div>
+
+            <form class="login-form">
+
+                <div class="form-group">
+                    <label for="account">
+                        เลขทะเบียนนักศึกษา หรือ อีเมล TU ACCOUNT
+                    </label>
+
+                    <input
+                        type="text"
+                        id="account"
+                        name="account"
+                        placeholder="เช่น 6609651234 หรือ student@dome.tu.ac.th"
+                        required
+                    >
+
+                    <small>
+                        รองรับรหัสนักศึกษา 10 หลัก หรืออีเมลโดเมน
+                        @dome.tu.ac.th / @tu.ac.th
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <div class="label-row">
+                        <label for="password">
+                            รหัสผ่าน (PASSWORD)
+                        </label>
+
+                        <a href="#" class="forgot-password">
+                            ลืมรหัสผ่าน?
+                        </a>
+                    </div>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="รหัสผ่านเดียวกับระบบลงทะเบียน TU"
+                        required
+                    >
+                </div>
+
+                <label class="remember-me">
+                    <input type="checkbox" checked>
+                    <span>จดจำการเข้าสู่ระบบในอุปกรณ์นี้</span>
+                </label>
+
+                <button type="submit" class="login-button">
+                    เข้าสู่ระบบเพื่อไปหน้าลงเวลาจอง
+                    <span class="arrow">→</span>
+                </button>
+
+            </form>
+        </section>
+
+        <div class="opening-info">
+            <span class="clock-icon">◷</span>
+
+            <p>
+                เปิดให้บริการทุกวัน 09:00 - 21:00 น.
+                · อาคารบรรยายรวม 4 (LC4) ชั้น 2 มธ.ศูนย์รังสิต
+            </p>
+        </div>
+
+
+
+    </main>
+
+</body>
+</html>
