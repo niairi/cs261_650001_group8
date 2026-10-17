@@ -3,6 +3,27 @@ const roomCards = document.querySelectorAll(".room-card");
 const roomSelect = document.querySelector("#room-select");
 const form = document.querySelector("#booking-form");
 const formMessage = document.querySelector("#form-message");
+const navigationLinks = document.querySelectorAll(".main-nav .nav-link[href^='#']");
+
+function updateNavigationState() {
+  const currentHash = window.location.hash;
+  const hasMatchingLink = [...navigationLinks].some((navigationLink) => navigationLink.hash === currentHash);
+  const activeHash = hasMatchingLink ? currentHash : "#rooms";
+
+  navigationLinks.forEach((navigationLink) => {
+    const isActive = navigationLink.hash === activeHash;
+    navigationLink.classList.toggle("active", isActive);
+
+    if (isActive) {
+      navigationLink.setAttribute("aria-current", "page");
+    } else {
+      navigationLink.removeAttribute("aria-current");
+    }
+  });
+}
+
+window.addEventListener("hashchange", updateNavigationState);
+updateNavigationState();
 
 roomCards.forEach((card) => {
   card.addEventListener("click", () => {
