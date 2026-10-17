@@ -264,27 +264,6 @@ input {
     text-decoration: underline;
 }
 
-
-.remember-me {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    margin: 2px 0 24px;
-    cursor: pointer;
-    font-size: 12px;
-    line-height: 1.7;
-    color: #615961;
-}
-
-.remember-me input {
-    width: 15px;
-    height: 15px;
-    flex-shrink: 0;
-    accent-color: var(--maroon);
-    cursor: pointer;
-}
-
-
 .login-button {
     display: flex;
     justify-content: center;
@@ -506,4 +485,101 @@ input {
         padding-right: 16px;
         padding-left: 16px;
     }
+}
+
+
+/* =========================
+   Password Visibility
+========================= */
+
+.password-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-input-wrapper input {
+    padding-right: 48px;
+}
+
+.toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 13px;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #77717A;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.toggle-password:hover {
+    color: var(--maroon);
+}
+
+.toggle-password:focus-visible {
+    outline: 2px solid var(--maroon);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* =========================
+   Form Feedback
+========================= */
+
+.form-message {
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+}
+
+.form-message[hidden] {
+    display: none;
+}
+
+.form-message.error {
+    color: #A51D32;
+    background: #FFF3F4;
+    border-color: #F0C9CF;
+}
+
+.form-message.info {
+    color: #654A13;
+    background: #FFF9E9;
+    border-color: #EAD9A8;
+}
+
+.form-message.success {
+    color: #24633D;
+    background: #F0FAF3;
+    border-color: #C8E7D1;
+}
+
+.form-group input[aria-invalid="true"] {
+    border-color: #B42336;
+}
+
+.form-group input[aria-invalid="true"]:focus {
+    box-shadow: 0 0 0 3px rgba(180, 35, 54, 0.10);
+}
+
+.login-button:focus-visible {
+    outline: 3px solid rgba(130, 0, 30, 0.25);
+    outline-offset: 3px;
+}
+
+.login-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
 }
