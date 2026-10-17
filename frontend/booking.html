@@ -37,7 +37,10 @@
         <p class="welcome">ยินดีต้อนรับคุณ <strong id="user-name">Name Surname (id number)</strong></p>
       </div>
       <aside class="notice">
-        <p><span class="pin">●</span> อาคารบรรยายรวม 4 (LC4) ชั้น 1 บริเวณชั้นล่าง</p>
+        <p>
+            <i class="fa-solid fa-location-dot pin"></i>
+            อาคารบรรยายรวม 4 (LC4) ชั้น 1 มธ.ศูนย์รังสิต
+        </p>
         <p><span class="clock">◷</span> เปิดให้บริการทุกวัน 09:00 - 16:00 น.</p>
       </aside>
     </div>
@@ -50,40 +53,96 @@
         <span class="muted small">คลิกเพื่อดูตารางเวลาเฉพาะห้อง</span>
       </div>
 
-      <div class="room-grid" id="room-list">
-        <button class="room-card" type="button" data-room="1" aria-pressed="false">
-          <div class="room-top"><span class="room-tag">ห้องที่ 1</span><span class="capacity">♧ <span data-capacity="1">รอข้อมูล</span></span></div>
-          <h3>ห้องที่ 1</h3>
-          <ul class="features">
-            <li>♧ <span data-feature="1-1">รอข้อมูลห้อง</span></li>
-            <li>▣ <span data-feature="1-2">รอข้อมูลห้อง</span></li>
-            <li>▣ <span data-feature="1-3">รอข้อมูลห้อง</span></li>
-          </ul>
-        </button>
-        <button class="room-card" type="button" data-room="2" aria-pressed="false">
-          <div class="room-top"><span class="room-tag">ห้องที่ 2</span><span class="capacity">♧ <span data-capacity="2">รอข้อมูล</span></span></div>
-          <h3>ห้องที่ 2</h3>
-          <ul class="features">
-            <li>♧ <span data-feature="2-1">รอข้อมูลห้อง</span></li>
-            <li>▣ <span data-feature="2-2">รอข้อมูลห้อง</span></li>
-            <li>▣ <span data-feature="2-3">รอข้อมูลห้อง</span></li>
-          </ul>
-        </button>
-        <button class="room-card" type="button" data-room="3" aria-pressed="false">
-          <div class="room-top"><span class="room-tag">ห้องที่ 3</span><span class="capacity">♧ <span data-capacity="3">รอข้อมูล</span></span></div>
-          <h3>ห้องที่ 3</h3>
-          <ul class="features">
-            <li>♧ <span data-feature="3-1">รอข้อมูลห้อง</span></li>
-            <li>▣ <span data-feature="3-2">รอข้อมูลห้อง</span></li>
-            <li>▣ <span data-feature="3-3">รอข้อมูลห้อง</span></li>
-          </ul>
-        </button>
-      </div>
+<div class="room-grid" id="room-list">
+  <!-- ห้องที่ 1 -->
+  <button class="room-card" type="button" data-room="1" aria-pressed="false">
+    <div class="room-top">
+      <span class="room-tag">ห้องที่ 1</span>
+      <span class="capacity">
+        <i class="fa-solid fa-users" aria-hidden="true"></i>
+        <span>8 ที่นั่ง</span>
+      </span>
+    </div>
+
+    <h3>ห้องที่ 1</h3>
+
+    <ul class="features">
+      <li>
+        <i class="fa-solid fa-plug" aria-hidden="true"></i>
+        <span>ปลั๊กพ่วงกำลังไฟสูง</span>
+      </li>
+      <li>
+        <i class="fa-solid fa-chalkboard" aria-hidden="true"></i>
+        <span>ไวท์บอร์ดกระจก</span>
+      </li>
+      <li>
+        <i class="fa-solid fa-tv" aria-hidden="true"></i>
+        <span>Smart TV</span>
+      </li>
+    </ul>
+  </button>
+
+  <!-- ห้องที่ 2 -->
+  <button class="room-card" type="button" data-room="2" aria-pressed="false">
+    <div class="room-top">
+      <span class="room-tag">ห้องที่ 2</span>
+      <span class="capacity">
+        <i class="fa-solid fa-users" aria-hidden="true"></i>
+        <span>8 ที่นั่ง</span>
+      </span>
+    </div>
+
+    <h3>ห้องที่ 2</h3>
+
+    <ul class="features">
+      <li>
+        <i class="fa-solid fa-plug" aria-hidden="true"></i>
+        <span>ปลั๊กพ่วงกำลังไฟสูง</span>
+      </li>
+      <li>
+        <i class="fa-solid fa-chalkboard" aria-hidden="true"></i>
+        <span>ไวท์บอร์ดกระจก</span>
+      </li>
+      <li>
+        <i class="fa-solid fa-tv" aria-hidden="true"></i>
+        <span>Smart TV</span>
+      </li>
+    </ul>
+  </button>
+
+  <!-- ห้องที่ 3 -->
+  <button class="room-card" type="button" data-room="3" aria-pressed="false">
+    <div class="room-top">
+      <span class="room-tag">ห้องที่ 3</span>
+      <span class="capacity">
+        <i class="fa-solid fa-users" aria-hidden="true"></i>
+        <span>8 ที่นั่ง</span>
+      </span>
+    </div>
+
+    <h3>ห้องที่ 3</h3>
+
+    <ul class="features">
+      <li>
+        <i class="fa-solid fa-plug" aria-hidden="true"></i>
+        <span>ปลั๊กพ่วงกำลังไฟสูง</span>
+      </li>
+      <li>
+        <i class="fa-solid fa-chalkboard" aria-hidden="true"></i>
+        <span>ไวท์บอร์ดกระจก</span>
+      </li>
+      <li>
+        <i class="fa-solid fa-tv" aria-hidden="true"></i>
+        <span>Smart TV</span>
+      </li>
+    </ul>
+  </button>
+</div>
     </section>
 
     <dialog class="room-schedule-dialog" id="room-schedule-dialog" aria-labelledby="schedule-modal-title">
       <div class="schedule-modal-header">
-        <span class="schedule-modal-icon" aria-hidden="true"><i class="fa-regular fa-calendar-days"></i></span>
+        <span class="schedule-modal-icon" aria-hidden="true"><i class="fa-solid fa-calendar-days"></i></span>
         <div class="schedule-modal-heading">
           <div class="schedule-modal-title-row">
             <h2 id="schedule-modal-title">ตารางเวลาการใช้งานรายสัปดาห์ (จันทร์ - ศุกร์)</h2>
@@ -138,9 +197,9 @@
             </tr>
           </thead>
           <tbody id="schedule-body">
-            <tr data-room-row="1"><th>ห้องที่ 1 <small>รอข้อมูล</small></th><td colspan="7"><span class="empty-status">รอข้อมูลจากระบบ</span></td></tr>
-            <tr data-room-row="2"><th>ห้องที่ 2 <small>รอข้อมูล</small></th><td colspan="7"><span class="empty-status">รอข้อมูลจากระบบ</span></td></tr>
-            <tr data-room-row="3"><th>ห้องที่ 3 <small>รอข้อมูล</small></th><td colspan="7"><span class="empty-status">รอข้อมูลจากระบบ</span></td></tr>
+            <tr data-room-row="1"><th>ห้องที่ 1 <small>จุ 8 ที่นั่ง</small></th><td colspan="7"><span class="empty-status">รอข้อมูลจากระบบ</span></td></tr>
+            <tr data-room-row="2"><th>ห้องที่ 2 <small>จุ 8 ที่นั่ง</small></th><td colspan="7"><span class="empty-status">รอข้อมูลจากระบบ</span></td></tr>
+            <tr data-room-row="3"><th>ห้องที่ 3 <small>จุ 8 ที่นั่ง</small></th><td colspan="7"><span class="empty-status">รอข้อมูลจากระบบ</span></td></tr>
           </tbody>
         </table>
       </div>
@@ -167,7 +226,7 @@
           <label class="field">
             <span>จำนวนผู้เข้าใช้งาน (คน)</span>
             <input type="number" id="people" name="people" min="1" max="99" value="2" required />
-            <small class="hint">รอข้อมูลความจุห้อง</small>
+            <small class="hint">ความจุสูงสุด 8 ที่นั่ง</small>
           </label>
           <label class="field">
             <span>วันที่ต้องการจอง</span>
