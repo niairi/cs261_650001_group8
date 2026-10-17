@@ -33,7 +33,6 @@ button,
 input {
     font: inherit;
 }
-
 .site-header {
     width: 100%;
     min-height: 100px;
@@ -101,6 +100,7 @@ input {
     margin: 54px auto 30px;
 }
 
+
 .login-card {
     overflow: hidden;
     background: var(--white);
@@ -108,6 +108,7 @@ input {
     border-radius: 18px;
     box-shadow: 0 14px 45px rgba(75, 0, 18, 0.10);
 }
+
 
 .login-banner {
     position: relative;
@@ -122,6 +123,7 @@ input {
         #3F000F 100%
     );
 }
+
 
 .login-banner::before {
     content: "";
@@ -146,6 +148,7 @@ input {
     background: rgba(214, 182, 109, 0.10);
     pointer-events: none;
 }
+
 
 .book-icon {
     position: relative;
@@ -183,7 +186,6 @@ input {
     line-height: 1.9;
     color: rgba(255, 255, 255, 0.88);
 }
-
 
 .login-form {
     padding: 30px 34px 34px;
@@ -275,6 +277,7 @@ input {
     accent-color: var(--maroon);
     cursor: pointer;
 }
+
 
 .login-button {
     display: flex;
