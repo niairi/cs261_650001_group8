@@ -8,8 +8,27 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 </head>
 <body>
+  <header class="top-nav" id="top">
+    <a class="top-nav-brand" href="#top" aria-label="TU CS Space หน้าหลัก">
+      <span class="top-nav-name">TU CS Space</span>
+      <span class="school-badge">THAMMASAT</span>
+      <span class="brand-divider" aria-hidden="true"></span>
+    </a>
+    <nav class="main-nav" aria-label="เมนูหลัก">
+      <a class="nav-link active" href="#rooms" aria-current="page">ห้องจอง</a>
+      <a class="nav-link" href="#availability">ตารางสถานะ Real-time</a>
+      <a class="nav-link" href="#booking">ฟอร์มจองล่วงหน้า</a>
+      <span class="nav-link is-disabled" aria-disabled="true">ประวัติการจอง</span>
+    </nav>
+    <div class="user-profile" aria-label="ผู้ใช้ username รหัสนักศึกษา id number">
+      <span class="profile-avatar" aria-hidden="true">U</span>
+      <span class="profile-details"><strong>username</strong><small>id number</small></span>
+    </div>
+  </header>
+
   <header class="hero">
     <div class="hero-inner">
       <div class="brand">
@@ -25,7 +44,7 @@
   </header>
 
   <main class="page">
-    <section class="section">
+    <section class="section" id="rooms">
       <div class="section-heading">
         <h2><span class="heading-mark"></span> ห้องจอง</h2>
         <span class="muted small">คลิกเลือกห้องที่ต้องการจอง</span>
@@ -62,7 +81,7 @@
       </div>
     </section>
 
-    <section class="availability panel">
+    <section class="availability panel" id="availability">
       <div class="availability-heading">
         <h2><span class="red-icon">◷</span> ตารางสถานะห้องว่างแบบ Real-time</h2>
         <div class="table-actions">
@@ -91,9 +110,9 @@
       <p class="table-footnote">ข้อมูลสถานะจะแสดงเมื่อเชื่อมต่อ Backend แล้ว</p>
     </section>
 
-    <section class="booking panel">
+    <section class="booking panel" id="booking">
       <div class="booking-title">
-        <h2><span class="calendar-icon">▦</span> แบบฟอร์มยืนยันการจองห้อง</h2>
+        <h2><i class="fa-regular fa-calendar-plus calendar-icon" aria-hidden="true"></i> แบบฟอร์มยืนยันการจองห้อง</h2>
         <span class="service-time">เปิด 09:00 - 16:00 น.</span>
       </div>
       <form id="booking-form">
@@ -138,7 +157,7 @@
           </label>
         </div>
         <div class="form-bottom">
-          <p class="user-note"><span>♙</span> ผู้จอง: <strong id="booking-user">Name Surname (id number)</strong></p>
+          <p class="user-note"><i class="fa-regular fa-user user-icon" aria-hidden="true"></i> ผู้จอง: <strong id="booking-user">Name Surname (id number)</strong></p>
           <button class="submit-button" type="submit">ยืนยันการจองห้องล่วงหน้า <span>➜</span></button>
         </div>
         <p class="backend-note" id="form-message" role="status">ระบบแสดงตัวอย่างหน้าจอเท่านั้น — รอเชื่อมต่อ Backend ก่อนส่งคำขอจองจริง</p>
@@ -146,9 +165,13 @@
     </section>
   </main>
 
-  <footer>
+  <footer class="site-footer">
     <p>© 2026 Department of Computer Science, Faculty of Science and Technology, Thammasat University.</p>
-    <nav><a href="#">นโยบายการใช้งาน</a><a href="#">ข้อตกลงและเงื่อนไข</a><a href="#">ติดต่อผู้ดูแลระบบ CS</a></nav>
+    <div class="footer-links">
+      <a href="#">ระเบียบการใช้งาน</a>
+      <span>·</span>
+      <a href="#">ติดต่อผู้ดูแลระบบ CS</a>
+    </div>
   </footer>
   <script src="script.js"></script>
 </body>

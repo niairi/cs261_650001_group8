@@ -18,6 +18,26 @@ body {
 }
 button, input, select { font: inherit; }
 button { cursor: pointer; }
+.top-nav {
+  position: sticky; top: 0; z-index: 10;
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center;
+  gap: 18px; min-height: 56px; padding: 8px 26px;
+  background: var(--surface); border-bottom: 1px solid var(--line);
+  box-shadow: 0 2px 10px rgba(75, 0, 18, 0.06);
+}
+.top-nav-brand { display: flex; align-items: center; gap: 8px; color: var(--ink); text-decoration: none; white-space: nowrap; }
+.top-nav-name { font-size: 15px; font-weight: 700; }
+.school-badge { padding: 2px 6px; border: 1px solid #E9D7DC; border-radius: 4px; color: var(--maroon); background: #FBF7F8; font-size: 8px; font-weight: 700; }
+.brand-divider { height: 20px; border-left: 1px solid var(--line); margin-left: 2px; }
+.main-nav { display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 0; }
+.nav-link { display: inline-flex; align-items: center; min-height: 38px; padding: 0 10px; border-bottom: 2px solid transparent; color: var(--muted); font-size: 10px; font-weight: 500; text-decoration: none; white-space: nowrap; }
+.nav-link.active { color: var(--maroon); border-bottom-color: var(--maroon); font-weight: 700; }
+.nav-link.is-disabled { color: #A29AA0; cursor: default; }
+.user-profile { display: flex; align-items: center; gap: 7px; padding: 4px 9px 4px 5px; border: 1px solid var(--line); border-radius: 20px; background: #FBF9FA; }
+.profile-avatar { display: grid; place-items: center; width: 26px; height: 26px; flex: 0 0 26px; border-radius: 50%; background: var(--maroon); color: white; font-size: 11px; font-weight: 600; }
+.profile-details { display: flex; flex-direction: column; line-height: 1.25; white-space: nowrap; }
+.profile-details strong { color: var(--ink); font-size: 9px; font-weight: 600; }
+.profile-details small { color: var(--muted); font-size: 8px; }
 .hero {
   background: var(--maroon); color: white; border-bottom: 4px solid var(--gold);
 }
@@ -71,11 +91,11 @@ h2 { font-size: 16px; margin: 0; font-weight: 600; }
 .legend { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 11px; margin-top: 13px; }
 .legend-dot { width: 7px; height: 7px; display: inline-block; border-radius: 50%; }
 .legend-dot.pending { background: var(--gold); }
-.table-footnote { text-align: right; color: var(--muted); font-size: 10px; margin: -13px 0 0; }
+.table-footnote { text-align: right; color: var(--muted); font-size: 10px; margin: 8px 0 0; }
 .booking { margin-bottom: 0; }
 .booking-title { background: var(--maroon); color: white; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .booking-title h2 { font-size: 16px; }
-.calendar-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.35); margin-right: 8px; color: #F0D99D; }
+.calendar-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin-right: 8px; color: #F0D99D; font-size: 18px; line-height: 1; }
 .service-time { border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 5px; padding: 5px 8px; font-size: 11px; color: rgba(255, 255, 255, 0.85); }
 #booking-form { padding: 20px 18px 15px; }
 .form-grid { display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 18px 14px; }
@@ -89,18 +109,22 @@ h2 { font-size: 16px; margin: 0; font-weight: 600; }
 .hint { color: var(--muted); text-align: right; font-size: 10px; margin-top: -4px; }
 .form-bottom { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 23px; padding-top: 4px; }
 .user-note { color: var(--muted); font-size: 11px; margin: 0; }
-.user-note span { color: var(--maroon); font-size: 16px; margin-right: 5px; }
+.user-note .user-icon { color: var(--maroon); font-size: 16px; margin-right: 5px; }
 .user-note strong { color: var(--ink); }
 .submit-button { border: 0; background: var(--maroon); color: white; border-radius: 8px; padding: 13px 20px; font-weight: 700; box-shadow: 0 3px 7px rgba(75, 0, 18, 0.14); }
 .submit-button:hover { background: var(--maroon-dark); }
 .submit-button span { margin-left: 8px; }
 .backend-note { text-align: right; color: var(--muted); font-size: 10px; margin: 12px 0 0; }
-footer { border-top: 1px solid var(--line); background: white; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 18px max(26px, calc((100% - 1188px) / 2)); color: var(--muted); font-size: 10px; }
-footer p { margin: 0; }
-footer nav { display: flex; gap: 20px; }
-footer a { color: var(--muted); text-decoration: none; }
-footer a:hover { color: var(--maroon); }
+.site-footer { padding: 18px 14px 22px; border-top: 1px solid #E8E0E3; text-align: center; }
+.site-footer p { margin: 0; font-size: 10px; line-height: 1.9; color: #8A8087; }
+.footer-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 8px; font-size: 11px; color: var(--maroon); }
+.footer-links a { color: inherit; text-decoration: none; }
+.footer-links a:hover { text-decoration: underline; }
 @media (max-width: 760px) {
+  .top-nav { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; gap: 4px 10px; padding: 8px 14px 0; }
+  .main-nav { grid-column: 1 / -1; justify-content: flex-start; gap: 4px; width: calc(100% + 28px); margin: 0 -14px; padding: 0 14px; overflow-x: auto; scrollbar-width: none; }
+  .main-nav::-webkit-scrollbar { display: none; }
+  .nav-link { padding: 0 8px; }
   .hero-inner { align-items: flex-start; flex-direction: column; padding: 20px 18px; gap: 15px; }
   .notice { min-width: 0; width: 100%; }
   .desktop-break { display: none; }
@@ -110,16 +134,17 @@ footer a:hover { color: var(--maroon); }
   .availability { padding: 14px 12px; }
   .availability-heading { align-items: flex-start; flex-direction: column; }
   .table-actions { flex-wrap: wrap; }
+  .table-footnote { text-align: left; line-height: 1.6; }
   .form-grid { grid-template-columns: 1fr; gap: 14px; }
   .span-2, .full { grid-column: auto; }
   .form-bottom { align-items: stretch; flex-direction: column; }
   .submit-button { width: 100%; }
   .backend-note { text-align: left; line-height: 1.7; }
-  footer { align-items: flex-start; flex-direction: column; padding: 17px 14px; }
-  footer nav { flex-wrap: wrap; gap: 10px 16px; }
+  .site-footer { padding: 17px 14px; }
 }
 @media (max-width: 480px) {
   h1 { font-size: 21px; }
+  .booking-title { align-items: flex-start; flex-direction: column; }
 }
 @media (max-width: 360px) {
   h1 { font-size: 19px; }
