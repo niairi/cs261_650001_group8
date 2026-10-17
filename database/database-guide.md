@@ -330,7 +330,7 @@ confirmed_at
 
 ### การค้นหาด้วย Student ID
 
-เมื่อ Admin ค้นหาด้วย Student ID ให้ใช้:
+เมื่อเจ้าหน้าที่ค้นหาด้วย Student ID ให้ใช้:
 
 ```text
 BOOKING.student_id
@@ -368,7 +368,7 @@ Booking ที่เป็น `BOOKED` ยังคง Block ช่วงเว�
 - ข้อมูลยังคงอยู่ใน Database
 - ไม่ถือว่าห้องถูกจอง
 - ไม่ Block Room Availability
-- Admin ยังสามารถดูข้อมูลย้อนหลังได้
+- เจ้าหน้าที่ยังสามารถดูข้อมูลย้อนหลังได้
 
 ### EXPIRED
 
@@ -377,7 +377,7 @@ Booking ที่เป็น `BOOKED` ยังคง Block ช่วงเว�
 - ข้อมูลยังคงอยู่ใน Database
 - ไม่ถือว่าห้องถูกจอง
 - ไม่ Block Room Availability
-- Admin สามารถดูข้อมูลย้อนหลังได้
+- เจ้าหน้าที่สามารถดูข้อมูลย้อนหลังได้
 
 ---
 
@@ -617,7 +617,7 @@ EXPIRED
 ### เจ้าหน้าที่ดูข้อมูล (US5)
 
 ```text
-Admin
+เจ้าหน้าที่
    ↓
 Backend
    ↓
