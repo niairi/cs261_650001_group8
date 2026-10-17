@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>เลือกจองเวลาและห้อง Co-Working Space</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="brand">
+        <p class="eyebrow">ภาควิชาวิทยาการคอมพิวเตอร์ · DEPARTMENT OF COMPUTER SCIENCE, TU</p>
+        <h1>เลือกจองเวลาและห้อง Co-Working<br class="desktop-break"> Space</h1>
+        <p class="welcome">ยินดีต้อนรับคุณ <strong id="user-name">Name Surname (id number)</strong></p>
+      </div>
+      <aside class="notice">
+        <p><span class="pin">●</span> อาคารบรรยายรวม 4 (LC4) ชั้น 1 บริเวณชั้นล่าง</p>
+        <p><span class="clock">◷</span> เปิดให้บริการทุกวัน 09:00 - 16:00 น.</p>
+      </aside>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="section">
+      <div class="section-heading">
+        <h2><span class="heading-mark"></span> ห้องจอง</h2>
+        <span class="muted small">คลิกเลือกห้องที่ต้องการจอง</span>
+      </div>
+
+      <div class="room-grid" id="room-list">
+        <button class="room-card" type="button" data-room="1" aria-pressed="false">
+          <div class="room-top"><span class="room-tag">ห้องที่ 1</span><span class="capacity">♧ <span data-capacity="1">รอข้อมูล</span></span></div>
+          <h3>ห้องที่ 1</h3>
+          <ul class="features">
+            <li>♧ <span data-feature="1-1">รอข้อมูลห้อง</span></li>
+            <li>▣ <span data-feature="1-2">รอข้อมูลห้อง</span></li>
+            <li>▣ <span data-feature="1-3">รอข้อมูลห้อง</span></li>
+          </ul>
+        </button>
+        <button class="room-card" type="button" data-room="2" aria-pressed="false">
+          <div class="room-top"><span class="room-tag">ห้องที่ 2</span><span class="capacity">♧ <span data-capacity="2">รอข้อมูล</span></span></div>
+          <h3>ห้องที่ 2</h3>
+          <ul class="features">
+            <li>♧ <span data-feature="2-1">รอข้อมูลห้อง</span></li>
+            <li>▣ <span data-feature="2-2">รอข้อมูลห้อง</span></li>
+            <li>▣ <span data-feature="2-3">รอข้อมูลห้อง</span></li>
+          </ul>
+        </button>
+        <button class="room-card" type="button" data-room="3" aria-pressed="false">
+          <div class="room-top"><span class="room-tag">ห้องที่ 3</span><span class="capacity">♧ <span data-capacity="3">รอข้อมูล</span></span></div>
+          <h3>ห้องที่ 3</h3>
+          <ul class="features">
+            <li>♧ <span data-feature="3-1">รอข้อมูลห้อง</span></li>
+            <li>▣ <span data-feature="3-2">รอข้อมูลห้อง</span></li>
+            <li>▣ <span data-feature="3-3">รอข้อมูลห้อง</span></li>
+          </ul>
+        </button>
+      </div>
+    </section>
+
+    <section class="availability panel">
+      <div class="availability-heading">
+        <h2><span class="red-icon">◷</span> ตารางสถานะห้องว่างแบบ Real-time</h2>
+        <div class="table-actions">
+          <button class="date-chip active" id="today-button" type="button">วันนี้ (<span id="today-label">17 ต.ค. 2569</span>)</button>
+          <button class="date-chip" id="tomorrow-button" type="button">พรุ่งนี้ (<span id="tomorrow-label">18 ต.ค. 2569</span>)</button>
+          <button class="refresh" id="refresh-button" type="button" aria-label="รีเฟรชสถานะ">↻</button>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="schedule" aria-label="ตารางสถานะห้อง">
+          <thead>
+            <tr>
+              <th>ห้อง/ช่วงเวลา (3 ห้อง)</th>
+              <th>09:00</th><th>10:00</th><th>11:00</th><th>12:00</th>
+              <th>13:00</th><th>14:00</th><th>15:00</th><th>16:00</th>
+            </tr>
+          </thead>
+          <tbody id="schedule-body">
+            <tr data-room-row="1"><th>ห้องที่ 1 <small>รอข้อมูล</small></th><td colspan="8"><span class="empty-status">รอข้อมูลจากระบบ</span></td></tr>
+            <tr data-room-row="2"><th>ห้องที่ 2 <small>รอข้อมูล</small></th><td colspan="8"><span class="empty-status">รอข้อมูลจากระบบ</span></td></tr>
+            <tr data-room-row="3"><th>ห้องที่ 3 <small>รอข้อมูล</small></th><td colspan="8"><span class="empty-status">รอข้อมูลจากระบบ</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="legend"><span class="legend-dot pending"></span> รอข้อมูลสถานะห้องจากระบบ Backend</div>
+      <p class="table-footnote">ข้อมูลสถานะจะแสดงเมื่อเชื่อมต่อ Backend แล้ว</p>
+    </section>
+
+    <section class="booking panel">
+      <div class="booking-title">
+        <h2><span class="calendar-icon">▦</span> แบบฟอร์มยืนยันการจองห้อง</h2>
+        <span class="service-time">เปิด 09:00 - 16:00 น.</span>
+      </div>
+      <form id="booking-form">
+        <div class="form-grid">
+          <label class="field span-2">
+            <span>เลือกห้อง CO-WORKING SPACE (3 ห้อง)</span>
+            <select id="room-select" name="room" required>
+              <option value="" selected disabled>กรุณาเลือกห้อง</option>
+              <option value="1">ห้องที่ 1</option>
+              <option value="2">ห้องที่ 2</option>
+              <option value="3">ห้องที่ 3</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>จำนวนผู้เข้าใช้งาน (คน)</span>
+            <input type="number" id="people" name="people" min="1" max="99" value="2" required />
+            <small class="hint">รอข้อมูลความจุห้อง</small>
+          </label>
+          <label class="field">
+            <span>วันที่ต้องการจอง</span>
+            <input type="date" id="booking-date" name="date" required />
+          </label>
+          <label class="field">
+            <span>เวลาเริ่มต้น (START TIME)</span>
+            <select id="start-time" name="startTime" required>
+              <option value="" selected disabled>เลือกเวลาเริ่มต้น</option>
+              <option>09:00</option><option>10:00</option><option>11:00</option>
+              <option>12:00</option><option>13:00</option><option>14:00</option><option>15:00</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>เวลาสิ้นสุด (END TIME)</span>
+            <select id="end-time" name="endTime" required>
+              <option value="" selected disabled>เลือกเวลาสิ้นสุด</option>
+              <option>10:00</option><option>11:00</option><option>12:00</option>
+              <option>13:00</option><option>14:00</option><option>15:00</option><option>16:00</option>
+            </select>
+          </label>
+          <label class="field full">
+            <span>วัตถุประสงค์การใช้ห้อง / รายละเอียดเพิ่มเติม</span>
+            <input type="text" id="purpose" name="purpose" placeholder="ระบุวัตถุประสงค์การใช้ห้อง" />
+          </label>
+        </div>
+        <div class="form-bottom">
+          <p class="user-note"><span>♙</span> ผู้จอง: <strong id="booking-user">Name Surname (id number)</strong></p>
+          <button class="submit-button" type="submit">ยืนยันการจองห้องล่วงหน้า <span>➜</span></button>
+        </div>
+        <p class="backend-note" id="form-message" role="status">ระบบแสดงตัวอย่างหน้าจอเท่านั้น — รอเชื่อมต่อ Backend ก่อนส่งคำขอจองจริง</p>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2026 Department of Computer Science, Faculty of Science and Technology, Thammasat University.</p>
+    <nav><a href="#">นโยบายการใช้งาน</a><a href="#">ข้อตกลงและเงื่อนไข</a><a href="#">ติดต่อผู้ดูแลระบบ CS</a></nav>
+  </footer>
+  <script src="script.js"></script>
+</body>
+</html>
