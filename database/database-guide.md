@@ -405,49 +405,67 @@ CONFIRMED
 
 ---
 
-## 7. การแสดงข้อมูลสำหรับเจ้าหน้าที่ (US5)
+## 7. การส่งอีเมลแจ้งเตือนยืนยันการจอง (*** US5 ***)
 
-เจ้าหน้าที่สามารถดูข้อมูล Booking ได้ทั้ง:
+### Requirement
 
-- Booking ที่ยังไม่เกิดขึ้น
-- Booking ที่เกิดขึ้นแล้ว
-- Booking ที่ถูกยกเลิก
-- Booking ที่หมดอายุ
-- Booking ที่ได้รับการยืนยันแล้ว
+เมื่อระบบสร้าง Booking สำเร็จ ระบบจะส่ง Email ยืนยันการจองไปยัง Email ของนักศึกษา โดย Email ของนักศึกษาจะได้รับจาก TU Authentication API
 
-ข้อมูลที่ควรแสดง เช่น:
+### Database Responsibility
+
+Database มีหน้าที่เก็บข้อมูล Booking ที่สร้างขึ้น เช่น
+
+- `booking_id`
+- `student_id`
+- `room_id`
+- `booking_date`
+- `start_time`
+- `end_time`
+- `status`
+- `created_at`
+- `confirmed_at`
+
+Database **ไม่เก็บ Password และไม่จำเป็นต้องเก็บ Email ของนักศึกษา** สำหรับ Requirement ปัจจุบัน
+
+### Email Source
+
+หลังจาก Student Login สำเร็จ Backend จะได้รับข้อมูลจาก TU Authentication API ซึ่ง Response ของ Student มีข้อมูล เช่น
+
+- `username`
+- `email`
+- `displayname_th`
+- `displayname_en`
+- `type`
+- `department`
+- `faculty`
+
+Backend สามารถนำ `email` ที่ได้รับจาก TU Authentication API ไปใช้ในการส่ง Email ยืนยันการจองได้
+
+### Flow
 
 ```text
-booking_id
-student_id
-room_name
-booking_date
-start_time
-end_time
-status
-created_at
-confirmed_at
+Student Login
+    ↓
+Backend ส่ง Username/Password ไปยัง TU Authentication API
+    ↓
+TU API ตรวจสอบ Authentication
+    ↓
+Login สำเร็จและได้รับ Student information รวมถึง Email
+    ↓
+Student creates Booking
+    ↓
+Backend บันทึก Booking ลง Database
+    ↓
+Backend ใช้ Email ที่ได้รับจาก TU Authentication API
+    ↓
+ส่ง Email ยืนยันการจองให้ Student
 ```
 
-### การค้นหาด้วย Student ID
+### Database Design Decision
 
-เมื่อเจ้าหน้าที่ค้นหาด้วย Student ID ให้ใช้:
+สำหรับ US5 ปัจจุบัน **ไม่เพิ่ม `student_email` ใน BOOKING และไม่สร้าง STUDENT table** เนื่องจาก TU Authentication API เป็นแหล่งข้อมูล Account ของนักศึกษา และสามารถส่ง Email ของนักศึกษากลับมาให้ Backend ได้
 
-```text
-BOOKING.student_id
-```
-
-เป็นเงื่อนไขในการค้นหา
-
-ตัวอย่าง:
-
-```text
-ค้นหา Student ID = 650001
-
-→ แสดง Booking ทั้งหมดของ Student 650001
-```
-
----
+ดังนั้น Database Schema และ ER Diagram ปัจจุบันยังคงเดิม
 
 ## 8. สถานะของ Booking
 
@@ -730,20 +748,25 @@ EXPIRED
 ไม่ Block Availability
 ```
 
-### เจ้าหน้าที่ดูข้อมูล (US5)
+
+### ส่ง Email ยืนยันการจอง (*** US5 ***)
 
 ```text
-เจ้าหน้าที่
-   ↓
-Frontend
-   ↓
+Student
+    ↓
+สร้าง Booking
+    ↓
 Backend
-   ↓
-Query BOOKING
-   ↓
-แสดงข้อมูล Booking
-   ↓
-BOOKED / CONFIRMED / CANCELLED / EXPIRED
+    ↓
+บันทึก Booking ลง Database
+    ↓
+Booking สร้างสำเร็จ
+    ↓
+ใช้ Email จาก TU Authentication API
+    ↓
+ส่ง Email ยืนยันการจอง
+    ↓
+Student ได้รับ Email
 ```
 
 ---
@@ -761,4 +784,5 @@ BOOKED / CONFIRMED / CANCELLED / EXPIRED
 7. เมื่อ Student ยืนยันการเข้าใช้งานภายในระยะ 5 เมตร ให้เปลี่ยนเป็น `CONFIRMED` และบันทึก `confirmed_at`
 8. เมื่อเป็น `CONFIRMED` แล้ว ไม่สามารถยกเลิกได้
 9. ถ้าไม่ Confirm ภายในเวลาที่กำหนด ให้เปลี่ยนเป็น `EXPIRED`
-10. ไม่ควรลบ Booking ที่ยกเลิก เพราะต้องเก็บประวัติไว้สำหรับเจ้าหน้าที่
+10. หลังจากสร้าง Booking สำเร็จ Backend สามารถใช้ข้อมูล Email ที่ได้รับจาก TU Authentication API เพื่อส่ง Email ยืนยันการจอง โดยไม่จำเป็นต้องเก็บ Email ใน Database
+11. ไม่ควรลบ Booking ที่ยกเลิก เพราะต้องเก็บประวัติไว้สำหรับเจ้าหน้าที่
