@@ -1,3 +1,4 @@
+const { sendBookingConfirmation } = require('../services/emailService');
 const express = require('express');
 const pool = require('../db');
 const { requireAuth } = require('../middleware/auth');
@@ -104,6 +105,8 @@ router.post('/', requireAuth, async (req, res, next) => {
     await client.query('COMMIT');
 
     const row = inserted.rows[0];
+        sendBookingConfirmation(req.user.email, { ...row, room_name: room.room_name })
+      .catch((err) => console.error('ส่งอีเมลยืนยันไม่สำเร็จ:', err.message));
     res.status(201).json({
       ...row,
       booking_id: Number(row.booking_id),
