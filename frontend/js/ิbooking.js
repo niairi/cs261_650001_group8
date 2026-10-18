@@ -3,6 +3,7 @@ const roomCards = document.querySelectorAll(".room-card");
 const roomSelect = document.querySelector("#room-select");
 const form = document.querySelector("#booking-form");
 const formMessage = document.querySelector("#form-message");
+const bookingConfirmationDialog = document.querySelector("#booking-confirmation-dialog");
 const navigationLinks = document.querySelectorAll(".main-nav .nav-link[href^='#']");
 const roomScheduleDialog = document.querySelector("#room-schedule-dialog");
 const roomScheduleLabel = document.querySelector("#schedule-room-label");
@@ -143,8 +144,53 @@ document.querySelector("#refresh-button").addEventListener("click", () => {
   formMessage.textContent = "ยังไม่มีข้อมูลสถานะห้อง — เมื่อเชื่อมต่อ Backend แล้ว ปุ่มนี้จะดึงข้อมูลล่าสุด";
 });
 
-// Prevent fake bookings before backend integration.
+function formatConfirmationDate(dateValue) {
+  const [year, month, day] = dateValue.split("-").map(Number);
+  return new Intl.DateTimeFormat("th-TH", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  }).format(new Date(year, month - 1, day));
+}
+
+function showBookingConfirmation() {
+  const selectedRoom = roomSelect.options[roomSelect.selectedIndex].textContent;
+  const purpose = document.querySelector("#purpose").value.trim();
+  const booker = document.querySelector("#booking-user").textContent.trim();
+
+  document.querySelector("#confirmation-room").textContent = `${selectedRoom} (จุ 8 ที่นั่ง)`;
+  document.querySelector("#confirmation-date").textContent = formatConfirmationDate(
+    document.querySelector("#booking-date").value
+  );
+  document.querySelector("#confirmation-time").textContent =
+    `${document.querySelector("#start-time").value} - ${document.querySelector("#end-time").value} น.`;
+  document.querySelector("#confirmation-people").textContent =
+    `${document.querySelector("#people").value} คน`;
+  document.querySelector("#confirmation-purpose").textContent = purpose || "ไม่ได้ระบุ";
+  document.querySelector("#confirmation-booker").textContent = booker;
+  bookingConfirmationDialog.showModal();
+}
+
 form.addEventListener("submit", (event) => {
   event.preventDefault();
-  formMessage.textContent = "ยังไม่ได้ส่งคำขอจองจริง: หน้านี้รอเชื่อมต่อ Backend ก่อน";
+
+  const startTime = document.querySelector("#start-time").value;
+  const endTime = document.querySelector("#end-time").value;
+  if (endTime <= startTime) {
+    formMessage.textContent = "เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้น";
+    document.querySelector("#end-time").focus();
+    return;
+  }
+
+  formMessage.textContent = "ตรวจสอบข้อมูลเรียบร้อย — ระบบยังไม่ได้บันทึกการจองจริง เนื่องจากรอเชื่อมต่อ Backend";
+  showBookingConfirmation();
+});
+
+document.querySelector("#confirmation-home-button").addEventListener("click", () => {
+  bookingConfirmationDialog.close();
+  document.querySelector("#top").scrollIntoView({ behavior: "smooth" });
+});
+
+bookingConfirmationDialog.addEventListener("click", (event) => {
+  if (event.target === bookingConfirmationDialog) bookingConfirmationDialog.close();
 });

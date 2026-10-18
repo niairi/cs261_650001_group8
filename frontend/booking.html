@@ -259,6 +259,54 @@
     </section>
   </main>
 
+  <dialog class="booking-confirmation-dialog" id="booking-confirmation-dialog" aria-labelledby="confirmation-title" aria-describedby="confirmation-message">
+    <div class="confirmation-content">
+      <div class="confirmation-icon" aria-hidden="true">
+        <i class="fa-solid fa-check"></i>
+      </div>
+      <p class="confirmation-status"><span aria-hidden="true"></span> ตรวจสอบข้อมูลเรียบร้อย</p>
+      <h2 id="confirmation-title">ตรวจสอบข้อมูลการจองแล้ว!</h2>
+      <p class="confirmation-message" id="confirmation-message">
+        รายละเอียดการจองของคุณพร้อมแล้ว แต่ขณะนี้ยังไม่ได้บันทึกการจองหรือส่งอีเมล เนื่องจากระบบรอเชื่อมต่อ Backend
+      </p>
+
+      <div class="confirmation-details">
+        <div class="confirmation-detail">
+          <span class="confirmation-label">ห้องที่จอง</span>
+          <strong id="confirmation-room"></strong>
+        </div>
+        <div class="confirmation-detail">
+          <span class="confirmation-label">สถานที่</span>
+          <strong>อาคาร LC4 ชั้น 1</strong>
+        </div>
+        <div class="confirmation-detail">
+          <span class="confirmation-label">วันที่ใช้บริการ</span>
+          <strong id="confirmation-date"></strong>
+        </div>
+        <div class="confirmation-detail">
+          <span class="confirmation-label">ช่วงเวลา</span>
+          <strong class="confirmation-time" id="confirmation-time"></strong>
+        </div>
+        <div class="confirmation-detail confirmation-detail-wide">
+          <span class="confirmation-label">จำนวนผู้เข้าใช้งาน</span>
+          <strong id="confirmation-people"></strong>
+        </div>
+        <div class="confirmation-detail confirmation-detail-wide confirmation-purpose">
+          <span class="confirmation-label">วัตถุประสงค์</span>
+          <strong id="confirmation-purpose"></strong>
+        </div>
+        <div class="confirmation-detail confirmation-detail-wide confirmation-booker">
+          <span class="confirmation-label">ผู้จอง</span>
+          <strong id="confirmation-booker"></strong>
+        </div>
+      </div>
+
+      <button class="confirmation-home-button" id="confirmation-home-button" type="button">
+        กลับสู่หน้าหลัก <span aria-hidden="true">➜</span>
+      </button>
+    </div>
+  </dialog>
+
   <footer class="site-footer">
     <p>© 2026 Department of Computer Science, Faculty of Science and Technology, Thammasat University.</p>
     <div class="footer-links">
