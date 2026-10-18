@@ -2,7 +2,8 @@ const jwt = require('jsonwebtoken');
 const { HttpError } = require('../errors');
 
 // ต้องส่ง header: Authorization: Bearer <token>
-// token มี payload { student_id } (ระบบ login ใน US1 เป็นคนออก token)
+// token มี payload { student_id, email } (ระบบ login ใน US1 เป็นคนออก token)
+// email ใช้ส่งอีเมลยืนยันการจอง (US7)
 function requireAuth(req, res, next) {
   const header = req.headers.authorization || '';
   const [scheme, token] = header.split(' ');
@@ -16,7 +17,10 @@ function requireAuth(req, res, next) {
     throw new HttpError(401, 'Token ไม่ถูกต้องหรือหมดอายุ');
   }
   if (!payload.student_id) throw new HttpError(401, 'Token ไม่มีรหัสนักศึกษา');
-  req.user = { student_id: String(payload.student_id) };
+  req.user = {
+    student_id: String(payload.student_id),
+    email: payload.email || null,
+  };
   next();
 }
 
