@@ -6,7 +6,7 @@ const { HttpError } = require('../errors');
 const router = express.Router();
 
 const OPEN = '09:00';   
-const CLOSE = '16:00';  
+const CLOSE = '17:00';  
 const MAX_HOURS = 3;    
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
