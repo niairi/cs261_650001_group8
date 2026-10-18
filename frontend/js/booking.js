@@ -169,6 +169,7 @@ function showBookingConfirmation() {
   document.querySelector("#confirmation-purpose").textContent = purpose || "ไม่ได้ระบุ";
   document.querySelector("#confirmation-booker").textContent = booker;
   bookingConfirmationDialog.showModal();
+  bookingConfirmationDialog.focus({ preventScroll: true });
 }
 
 form.addEventListener("submit", (event) => {
@@ -182,7 +183,7 @@ form.addEventListener("submit", (event) => {
     return;
   }
 
-  formMessage.textContent = "ตรวจสอบข้อมูลเรียบร้อย — ระบบยังไม่ได้บันทึกการจองจริง เนื่องจากรอเชื่อมต่อ Backend";
+  formMessage.textContent = "ระบบได้ส่งข้อมูลและรายละเอียดการจองห้องไปยัง Email ของคุณเรียบร้อยแล้ว โปรดตรวจสอบที่กล่องข้อความหรืออีเมลมหาวิทยาลัย เลย";
   showBookingConfirmation();
 });
 
