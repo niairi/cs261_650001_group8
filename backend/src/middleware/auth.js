@@ -2,8 +2,9 @@ const jwt = require('jsonwebtoken');
 const { HttpError } = require('../errors');
 
 // ต้องส่ง header: Authorization: Bearer <token>
-// token มี payload { student_id, email } (ระบบ login ใน US1 เป็นคนออก token)
-// email ใช้ส่งอีเมลยืนยันการจอง (US7)
+// token ออกโดย POST /login มี payload { student_id, email, name, role }
+// - email ใช้ส่งอีเมลยืนยันการจอง (US7)
+// - role ใช้แยก admin (US5)
 function requireAuth(req, res, next) {
   const header = req.headers.authorization || '';
   const [scheme, token] = header.split(' ');
@@ -20,6 +21,8 @@ function requireAuth(req, res, next) {
   req.user = {
     student_id: String(payload.student_id),
     email: payload.email || null,
+    name: payload.name || null,
+    role: payload.role || 'student',
   };
   next();
 }
