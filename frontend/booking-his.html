@@ -35,30 +35,29 @@
       <div class="history-hero-copy">
         <p class="history-location"><span aria-hidden="true"></span> LC4 ชั้น 1 มธ.ศูนย์รังสิต · Co-Working Space</p>
         <h1 id="history-title">ประวัติการจองห้อง</h1>
-        <p class="history-intro">ตรวจสอบ จัดการช่วงเวลา หรือยกเลิกการจองห้อง Co-Working Space (เปิดบริการ 09:00 - 16:00 น.)</p>
+        <p class="history-intro">ตรวจสอบสถานะและยกเลิกการจองห้อง Co-Working Space (เปิดบริการ 09:00 - 16:00 น.)</p>
       </div>
-      <div class="history-total" aria-label="รายการทั้งหมด 0 รายการ">
+      <div class="history-total" id="history-total" aria-label="รายการทั้งหมด 0 รายการ">
         <span>รายการทั้งหมด</span>
-        <strong>0 <small>รายการ</small></strong>
+        <strong><span id="total-count">0</span> <small>รายการ</small></strong>
       </div>
     </section>
 
     <nav class="history-filters" aria-label="กรองประวัติการจอง">
-      <button class="history-filter active" type="button" aria-pressed="true">ทั้งหมด (0)</button>
-      <button class="history-filter" type="button" aria-pressed="false">รอเข้าใช้งาน (0)</button>
-      <button class="history-filter" type="button" aria-pressed="false">ใช้งานเสร็จสิ้น (0)</button>
-      <button class="history-filter" type="button" aria-pressed="false">ยกเลิกแล้ว (0)</button>
+      <button class="history-filter active" type="button" data-filter="all" aria-pressed="true">ทั้งหมด (<span data-count="all">0</span>)</button>
+      <button class="history-filter" type="button" data-filter="upcoming" aria-pressed="false">รอเข้าใช้งาน (Upcoming) (<span data-count="upcoming">0</span>)</button>
+      <button class="history-filter" type="button" data-filter="completed" aria-pressed="false">ใช้งานเสร็จสิ้น (Completed) (<span data-count="completed">0</span>)</button>
+      <button class="history-filter" type="button" data-filter="cancelled" aria-pressed="false">ยกเลิกแล้ว (Cancelled) (<span data-count="cancelled">0</span>)</button>
     </nav>
 
-    <section class="history-empty panel" aria-labelledby="history-empty-title">
+    <p class="history-data-note" role="status">กำลังรอเชื่อมต่อ Backend เพื่อโหลดประวัติการจอง</p>
+    <section class="history-list" id="history-list" aria-label="รายการประวัติการจอง" hidden></section>
+    <section class="history-empty panel" id="history-empty" aria-labelledby="history-empty-title">
       <div class="history-empty-icon" aria-hidden="true">
         <i class="fa-regular fa-calendar-days"></i>
       </div>
-      <h2 id="history-empty-title">ยังไม่มีประวัติการจองห้อง</h2>
-      <p>
-        คุณยังไม่มีรายการจองห้องอ่านหนังสือหรือห้องติวในระบบ Co-Working Space<br class="history-desktop-break" />
-        ในขณะนี้ เริ่มต้นค้นหาห้องว่างและลงเวลาจองได้ทันที
-      </p>
+      <h2 id="history-empty-title">รอข้อมูลประวัติการจอง</h2>
+      <p>รายการจองและสถานะจะแสดงที่นี่เมื่อเชื่อมต่อระบบ Backend แล้ว</p>
     </section>
   </main>
 
