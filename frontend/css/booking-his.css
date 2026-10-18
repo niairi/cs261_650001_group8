@@ -406,3 +406,177 @@
   }
 
 }
+
+
+/* ===== TU CS Space - Booking History Dialog ===== */
+
+.history-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(35, 0, 12, 0.62);
+  backdrop-filter: blur(5px);
+  animation: dialog-fade-in 0.2s ease;
+}
+
+.history-dialog {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 430px;
+  padding: 36px 30px 28px;
+  overflow: hidden;
+  border: 1px solid rgba(214, 182, 109, 0.65);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(40, 0, 12, 0.28);
+  text-align: center;
+  animation: dialog-slide-up 0.25s ease;
+}
+
+.history-dialog-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 22px;
+  border: 1px solid #ead8ad;
+  border-radius: 50%;
+  background: #fff8e9;
+  color: #82001e;
+  font-size: 36px;
+  font-weight: 700;
+  box-shadow: 0 5px 18px rgba(130, 0, 30, 0.08);
+}
+
+.history-dialog-icon.success {
+  border-color: #b9dfc5;
+  background: #edf8f0;
+  color: #25834b;
+}
+
+.history-dialog-title {
+  margin: 0 0 12px;
+  color: #4b0012;
+  font-family: inherit;
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.history-dialog-message {
+  max-width: 330px;
+  margin: 0 auto;
+  color: #6b5b60;
+  font-size: 15px;
+  line-height: 1.9;
+}
+
+.history-dialog-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.history-dialog-button {
+  min-width: 125px;
+  min-height: 46px;
+  padding: 12px 20px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.history-dialog-button:hover {
+  transform: translateY(-2px);
+}
+
+.history-dialog-button.secondary {
+  border-color: #e4dadd;
+  background: #fff;
+  color: #650019;
+}
+
+.history-dialog-button.secondary:hover {
+  border-color: #82001e;
+  background: #fff8fa;
+}
+
+.history-dialog-button.danger,
+.history-dialog-button.primary {
+  background: #82001e;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(130, 0, 30, 0.17);
+}
+
+.history-dialog-button.danger:hover,
+.history-dialog-button.primary:hover {
+  background: #4b0012;
+  box-shadow: 0 6px 16px rgba(130, 0, 30, 0.24);
+}
+
+.history-dialog-button:focus-visible {
+  outline: 3px solid #d6b66d;
+  outline-offset: 3px;
+}
+
+.history-dialog-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+@keyframes dialog-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes dialog-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 480px) {
+  .history-dialog {
+    padding: 30px 20px 22px;
+    border-radius: 18px;
+  }
+
+  .history-dialog-icon {
+    width: 66px;
+    height: 66px;
+    font-size: 31px;
+  }
+
+  .history-dialog-title {
+    font-size: 20px;
+  }
+
+  .history-dialog-actions {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .history-dialog-button {
+    width: 100%;
+  }
+}
