@@ -192,6 +192,10 @@ document.querySelector("#confirmation-home-button").addEventListener("click", ()
   document.querySelector("#top").scrollIntoView({ behavior: "smooth" });
 });
 
+document.querySelector("#confirmation-history-button").addEventListener("click", () => {
+  window.location.href = "./booking-his.html";
+});
+
 bookingConfirmationDialog.addEventListener("click", (event) => {
   if (event.target === bookingConfirmationDialog) bookingConfirmationDialog.close();
 });

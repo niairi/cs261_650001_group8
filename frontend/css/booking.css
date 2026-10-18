@@ -485,25 +485,47 @@ h2 {
   border-top: 1px solid #dfe7f1;
 }
 
-.confirmation-home-button {
+.confirmation-actions {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  margin-top: 18px;
+}
+
+.confirmation-home-button,
+.confirmation-history-button {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 9px;
-  width: 100%;
   min-height: 48px;
-  margin-top: 18px;
-  border: 0;
+  padding: 0 18px;
   border-radius: 10px;
-  color: #ffffff;
-  background: var(--maroon);
-  box-shadow: 0 3px 7px rgba(75, 0, 18, 0.18);
   font-size: 13px;
   font-weight: 600;
 }
 
+.confirmation-home-button {
+  border: 0;
+  color: #ffffff;
+  background: var(--maroon);
+  box-shadow: 0 3px 7px rgba(75, 0, 18, 0.18);
+}
+
 .confirmation-home-button:hover {
   background: var(--maroon-dark);
+}
+
+.confirmation-history-button {
+  border: 1px solid #e2e8f0;
+  color: var(--maroon);
+  background: #ffffff;
+}
+
+.confirmation-history-button:hover {
+  border-color: var(--maroon);
+  background: #fbf7f8;
 }
 
 .schedule-modal-header {
@@ -1164,6 +1186,16 @@ h2 {
   .confirmation-details {
     gap: 12px;
     padding: 15px 12px;
+  }
+
+  .confirmation-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .confirmation-home-button,
+  .confirmation-history-button {
+    width: 100%;
   }
 
   .schedule-modal-header {
