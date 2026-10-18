@@ -1,5 +1,6 @@
 const express = require('express');
 const roomsRouter = require('./routes/rooms');
+const loginRouter = require('./routes/login');
 const bookingsRouter = require('./routes/bookings'); 
 
 const { requireAuth } = require('./middleware/auth');
@@ -25,6 +26,7 @@ app.use(express.json());
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 app.use('/rooms', roomsRouter);
+app.use('/login', loginRouter);                     // US1 เข้าสู่ระบบ
 app.use('/booking', bookingsRouter); // เพิ่ม
 
 app.use((req, res) => res.status(404).json({ error: 'ไม่พบ endpoint นี้' }));
