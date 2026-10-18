@@ -6,7 +6,7 @@ const { HttpError } = require('../errors');
 const router = express.Router();
 
 const OPEN = '09:00';   
-const CLOSE = '16:00';  
+const CLOSE = '17:00';  
 const MAX_HOURS = 3;    
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -141,5 +141,95 @@ router.get('/', async (req, res, next) => {
     next(err);
   }
 });
+
+
+// GET /booking/me — การจองทั้งหมดของผู้ใช้ที่ login อยู่ (ใช้ทำหน้าประวัติ / ปุ่มยกเลิก)
+router.get('/me', requireAuth, async (req, res, next) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT b.booking_id, b.room_id, r.room_name,
+              to_char(b.booking_date, 'YYYY-MM-DD') AS booking_date,
+              to_char(b.start_time, 'HH24:MI') AS start_time,
+              to_char(b.end_time, 'HH24:MI') AS end_time,
+              b.status, b.created_at
+         FROM booking b
+         JOIN room r ON r.room_id = b.room_id
+        WHERE b.student_id = $1
+        ORDER BY b.booking_date DESC, b.start_time DESC`,
+      [req.user.student_id]
+    );
+    res.json(rows.map((r) => ({ ...r, booking_id: Number(r.booking_id), room_id: Number(r.room_id) })));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PATCH /booking/:id/cancel — ยกเลิกการจอง (US4) ต้อง login
+router.patch('/:id/cancel', requireAuth, async (req, res, next) => {
+  let client;
+  try {
+    const bookingId = Number(req.params.id);
+    if (!Number.isInteger(bookingId) || bookingId <= 0) {
+      throw new HttpError(400, 'รหัสการจองไม่ถูกต้อง');
+    }
+
+    client = await pool.connect();
+    await client.query('BEGIN');
+
+    // FOR UPDATE กันการยกเลิกซ้อนกันพร้อมกัน
+    const found = await client.query(
+      `SELECT booking_id, student_id, status,
+              to_char(booking_date, 'YYYY-MM-DD') AS booking_date,
+              to_char(start_time, 'HH24:MI') AS start_time
+         FROM booking
+        WHERE booking_id = $1
+        FOR UPDATE`,
+      [bookingId]
+    );
+    if (found.rows.length === 0) throw new HttpError(404, 'ไม่พบการจองนี้');
+
+    const booking = found.rows[0];
+    if (booking.student_id !== req.user.student_id) {
+      throw new HttpError(403, 'ยกเลิกได้เฉพาะการจองของตัวเองเท่านั้น');
+    }
+    if (booking.status === 'CANCELLED') throw new HttpError(409, 'การจองนี้ถูกยกเลิกไปแล้ว');
+    if (booking.status === 'EXPIRED') throw new HttpError(409, 'การจองนี้หมดอายุแล้ว');
+
+    // ห้ามยกเลิกการจองที่ถึงเวลาเริ่มแล้ว
+    const now = new Date();
+    const today = now.toLocaleDateString('sv-SE');
+    const nowTime = now.toTimeString().slice(0, 5);
+    if (booking.booking_date < today || (booking.booking_date === today && booking.start_time <= nowTime)) {
+      throw new HttpError(400, 'ไม่สามารถยกเลิกการจองที่ถึงเวลาเริ่มแล้ว');
+    }
+
+    // เปลี่ยนสถานะแทนการลบ เพื่อเก็บประวัติไว้
+    const updated = await client.query(
+      `UPDATE booking
+          SET status = 'CANCELLED'
+        WHERE booking_id = $1
+        RETURNING booking_id, room_id,
+                  to_char(booking_date, 'YYYY-MM-DD') AS booking_date,
+                  to_char(start_time, 'HH24:MI') AS start_time,
+                  to_char(end_time, 'HH24:MI') AS end_time,
+                  status`,
+      [bookingId]
+    );
+
+    await client.query('COMMIT');
+
+    const row = updated.rows[0];
+    res.json({
+      message: 'ยกเลิกการจองสำเร็จ',
+      booking: { ...row, booking_id: Number(row.booking_id), room_id: Number(row.room_id) },
+    });
+  } catch (err) {
+    if (client) await client.query('ROLLBACK').catch(() => {});
+    next(err);
+  } finally {
+    if (client) client.release();
+  }
+});
+
 
 module.exports = router;
