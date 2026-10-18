@@ -1,6 +1,23 @@
 // ===== ตั้งค่าการเชื่อมต่อ Backend =====
 const API_URL = "http://localhost:3000";
 const TOKEN_KEY = "token"; // ต้องตรงกับชื่อที่ login.js ใช้เก็บ token ใน localStorage
+const USER_KEY = "user";   // ข้อมูลผู้ใช้จาก login (name, student_id)
+
+// ===== ต้อง login ก่อนเข้าหน้านี้ =====
+function goToLogin() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+  window.location.href = "./login.html";
+}
+if (!localStorage.getItem(TOKEN_KEY)) goToLogin();
+
+function getUser() {
+  try {
+    return JSON.parse(localStorage.getItem(USER_KEY)) || null;
+  } catch {
+    return null;
+  }
+}
 
 const roomCards = document.querySelectorAll(".room-card");
 const roomSelect = document.querySelector("#room-select");
@@ -114,7 +131,7 @@ roomCards.forEach((card) => {
     });
     card.classList.add("selected");
     card.setAttribute("aria-pressed", "true");
-    roomSelect.value = card.dataset.room;
+    roomSelect.value = card.dataset.roomId || card.dataset.room;
     renderWeeklySchedule(card.dataset.room);
     roomScheduleDialog.showModal();
   });
@@ -160,6 +177,47 @@ function showMessage(text, ok) {
   formMessage.style.color = ok ? "#1a7f37" : "#c62828";
 }
 
+// ===== แสดงชื่อผู้ใช้จากผล login =====
+function renderUser() {
+  const user = getUser();
+  if (!user) return;
+  const name = user.name || user.student_id;
+  const label = `${name} (${user.student_id})`;
+  document.querySelector(".profile-details strong").textContent = name;
+  document.querySelector(".profile-details small").textContent = user.student_id;
+  document.querySelector(".profile-avatar").textContent = name.trim().charAt(0) || "U";
+  document.querySelector(".user-profile").setAttribute("aria-label", `ผู้ใช้ ${name} รหัสนักศึกษา ${user.student_id}`);
+  document.querySelector("#user-name").textContent = label;
+  document.querySelector("#booking-user").textContent = label;
+}
+renderUser();
+
+// ===== ดึงรายการห้องจาก Backend (GET /rooms) ใส่ใน dropdown =====
+// รหัสห้องจะตรงกับฐานข้อมูลเสมอ ไม่ต้องเขียนตายตัวใน HTML
+async function loadRooms() {
+  try {
+    const res = await fetch(`${API_URL}/rooms`);
+    if (!res.ok) throw new Error(`GET /rooms ${res.status}`);
+    const rooms = await res.json();
+
+    const placeholder = new Option("กรุณาเลือกห้อง", "", true, true);
+    placeholder.disabled = true;
+    roomSelect.replaceChildren(placeholder);
+    rooms.forEach((room) => {
+      roomSelect.append(new Option(`${room.room_name} (จุได้ ${room.capacity} คน)`, room.room_id));
+    });
+
+    // การ์ดผังห้องใบที่ 1, 2, 3 จับคู่กับห้องตามลำดับที่ได้จาก Backend
+    roomCards.forEach((card, index) => {
+      if (rooms[index]) card.dataset.roomId = rooms[index].room_id;
+    });
+  } catch (error) {
+    console.error(error);
+    showMessage("โหลดรายการห้องไม่ได้ ตรวจว่า Backend รันอยู่หรือไม่", false);
+  }
+}
+loadRooms();
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
@@ -190,6 +248,13 @@ form.addEventListener("submit", async (event) => {
       body: JSON.stringify(payload)
     });
     const data = await res.json().catch(() => ({}));
+
+    if (res.status === 401) {
+      // token หมดอายุหรือไม่ถูกต้อง ให้ login ใหม่
+      showMessage("กรุณาเข้าสู่ระบบใหม่อีกครั้ง", false);
+      setTimeout(goToLogin, 1500);
+      return;
+    }
 
     if (!res.ok) {
       const details = data.details ? ` (${data.details.join(", ")})` : "";
