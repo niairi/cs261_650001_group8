@@ -163,39 +163,6 @@
   line-height: 1.7;
 }
 
-.history-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 58px;
-  padding: 12px max(26px, calc((100% - 1240px) / 2));
-  border-top: 1px solid #E3EAF2;
-  color: #94A3B8;
-  background: #FFFFFF;
-  font-size: 10px;
-}
-
-.history-footer p {
-  margin: 0;
-}
-
-.history-footer-links {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  white-space: nowrap;
-}
-
-.history-footer-links a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.history-footer-links a:hover {
-  color: var(--maroon);
-}
-
 @media (max-width: 760px) {
   .booking-history-main {
     width: calc(100% - 28px);
@@ -230,12 +197,6 @@
     display: none;
   }
 
-  .history-footer {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 6px;
-    padding: 13px 14px;
-  }
 }
 
 @media (max-width: 480px) {
