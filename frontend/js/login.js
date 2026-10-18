@@ -1,4 +1,9 @@
 
+// ===== ตั้งค่าการเชื่อมต่อ Backend =====
+const API_URL = "http://localhost:3000";
+const TOKEN_KEY = "token"; // ต้องตรงกับที่ booking.js อ่าน
+const USER_KEY = "user";   // ข้อมูลผู้ใช้ (ชื่อ, รหัสนักศึกษา) ไว้แสดงในหน้าจอง
+
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.querySelector(".login-form");
     const accountInput = document.getElementById("account");
@@ -7,6 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const rememberCheckbox = document.getElementById("rememberMe");
     const forgotPasswordLink = document.getElementById("forgotPassword");
     const messageBox = document.getElementById("formMessage");
+    const submitButton = form ? form.querySelector(".login-button") : null;
 
     if (
         !form ||
@@ -75,8 +81,8 @@ document.addEventListener("DOMContentLoaded", () => {
         hideMessage();
     });
 
-    // ตรวจสอบข้อมูลก่อนส่งฟอร์ม
-    form.addEventListener("submit", (event) => {
+    // ตรวจสอบข้อมูล แล้วส่งไปเข้าสู่ระบบที่ Backend (POST /login)
+    form.addEventListener("submit", async (event) => {
         event.preventDefault();
         hideMessage();
 
@@ -110,12 +116,37 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // รอเชื่อมต่อ backend
-        showMessage(
-            "ข้อมูลถูกต้องแล้ว แต่ระบบยังไม่ได้เชื่อมต่อ Backend",
-            "info"
-        );
+        if (submitButton) submitButton.disabled = true;
+        showMessage("กำลังเข้าสู่ระบบ...", "info");
 
-        console.log("Frontend validation passed.");
+        try {
+            const res = await fetch(`${API_URL}/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: account,
+                    password,
+                    remember: Boolean(rememberCheckbox && rememberCheckbox.checked)
+                })
+            });
+            const data = await res.json().catch(() => ({}));
+
+            if (!res.ok) {
+                // 400 ไม่กรอก / 401 รหัสผิด / 502 ระบบ TU ล่ม — backend ส่งข้อความภาษาไทยมาให้
+                showMessage(data.error || "เข้าสู่ระบบไม่สำเร็จ", "error");
+                passwordInput.value = "";
+                passwordInput.focus();
+                return;
+            }
+
+            localStorage.setItem(TOKEN_KEY, data.token);
+            localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+            showMessage("เข้าสู่ระบบสำเร็จ กำลังไปหน้าจองห้อง...", "success");
+            window.location.href = "./booking.html";
+        } catch {
+            showMessage("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจว่า Backend รันอยู่หรือไม่", "error");
+        } finally {
+            if (submitButton) submitButton.disabled = false;
+        }
     });
 });
