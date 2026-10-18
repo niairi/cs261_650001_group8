@@ -1,8 +1,12 @@
-// Frontend placeholder: room and availability data will be supplied by the backend later.
+// ===== ตั้งค่าการเชื่อมต่อ Backend =====
+const API_URL = "http://localhost:3000";
+const TOKEN_KEY = "token"; // ต้องตรงกับชื่อที่ login.js ใช้เก็บ token ใน localStorage
+
 const roomCards = document.querySelectorAll(".room-card");
 const roomSelect = document.querySelector("#room-select");
 const form = document.querySelector("#booking-form");
 const formMessage = document.querySelector("#form-message");
+const submitButton = form.querySelector(".submit-button");
 const navigationLinks = document.querySelectorAll(".main-nav .nav-link[href^='#']");
 const roomScheduleDialog = document.querySelector("#room-schedule-dialog");
 const roomScheduleLabel = document.querySelector("#schedule-room-label");
@@ -116,35 +120,92 @@ roomCards.forEach((card) => {
   });
 });
 
-// Dates are placeholders for display only; backend integration can replace this logic.
 function thaiDate(date) {
   return new Intl.DateTimeFormat("th-TH", {
     day: "numeric", month: "short", year: "numeric"
   }).format(date);
 }
+
+// วันที่ตามเวลาเครื่อง (YYYY-MM-DD) — toISOString() ใช้เวลา UTC ทำให้ช่วงเช้าในไทยได้วันที่ของเมื่อวาน
+function localDate(date) {
+  return date.toLocaleDateString("sv-SE");
+}
+
 const today = new Date();
 const tomorrow = new Date(today);
 tomorrow.setDate(today.getDate() + 1);
+const bookingDateInput = document.querySelector("#booking-date");
 document.querySelector("#today-label").textContent = thaiDate(today);
 document.querySelector("#tomorrow-label").textContent = thaiDate(tomorrow);
-document.querySelector("#booking-date").value = today.toISOString().slice(0, 10);
+bookingDateInput.value = localDate(today);
+bookingDateInput.min = localDate(today); // ห้ามเลือกวันย้อนหลัง
 
 document.querySelector("#today-button").addEventListener("click", () => {
   document.querySelector("#today-button").classList.add("active");
   document.querySelector("#tomorrow-button").classList.remove("active");
-  document.querySelector("#booking-date").value = today.toISOString().slice(0, 10);
+  bookingDateInput.value = localDate(today);
 });
 document.querySelector("#tomorrow-button").addEventListener("click", () => {
   document.querySelector("#tomorrow-button").classList.add("active");
   document.querySelector("#today-button").classList.remove("active");
-  document.querySelector("#booking-date").value = tomorrow.toISOString().slice(0, 10);
+  bookingDateInput.value = localDate(tomorrow);
 });
 document.querySelector("#refresh-button").addEventListener("click", () => {
   formMessage.textContent = "ยังไม่มีข้อมูลสถานะห้อง — เมื่อเชื่อมต่อ Backend แล้ว ปุ่มนี้จะดึงข้อมูลล่าสุด";
 });
 
-// Prevent fake bookings before backend integration.
-form.addEventListener("submit", (event) => {
+// ===== ส่งคำขอจองไปที่ Backend (POST /booking) =====
+function showMessage(text, ok) {
+  formMessage.textContent = text;
+  formMessage.style.color = ok ? "#1a7f37" : "#c62828";
+}
+
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  formMessage.textContent = "ยังไม่ได้ส่งคำขอจองจริง: หน้านี้รอเชื่อมต่อ Backend ก่อน";
+
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) {
+    showMessage("กรุณาเข้าสู่ระบบก่อนจองห้อง", false);
+    return;
+  }
+
+  const payload = {
+    room_id: Number(form.elements.room.value),
+    people: Number(form.elements.people.value),
+    booking_date: form.elements.date.value,
+    start_time: form.elements.startTime.value,
+    end_time: form.elements.endTime.value
+  };
+
+  submitButton.disabled = true;
+  showMessage("กำลังส่งคำขอจอง...", true);
+
+  try {
+    const res = await fetch(`${API_URL}/booking`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      const details = data.details ? ` (${data.details.join(", ")})` : "";
+      showMessage(`${data.error || "จองไม่สำเร็จ"}${details}`, false);
+      return;
+    }
+
+    showMessage(
+      `จองสำเร็จ! ${data.room_name} วันที่ ${data.booking_date} เวลา ${data.start_time} - ${data.end_time} น.`,
+      true
+    );
+    form.reset();
+    bookingDateInput.value = localDate(today);
+  } catch {
+    showMessage("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจว่า Backend รันอยู่หรือไม่", false);
+  } finally {
+    submitButton.disabled = false;
+  }
 });
