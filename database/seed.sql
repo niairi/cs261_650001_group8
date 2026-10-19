@@ -13,6 +13,21 @@ INSERT INTO room (
 SELECT setval('room_room_id_seq', (SELECT MAX(room_id) FROM room));
 
 
+-- Seed data for USERS
+INSERT INTO users (
+    student_id,
+    name_th,
+    name_en,
+    email,
+    type,
+    role
+) VALUES
+    ('650001', 'นักศึกษา 1', 'Student 1', '650001@example.com', 'student', 'student'),
+    ('650002', 'นักศึกษา 2', 'Student 2', '650002@example.com', 'student', 'student'),
+    ('650003', 'นักศึกษา 3', 'Student 3', '650003@example.com', 'student', 'student'),
+    ('650004', 'นักศึกษา 4', 'Student 4', '650004@example.com', 'student', 'student');
+
+
 -- Seed data for BOOKING
 INSERT INTO booking (
     booking_id,

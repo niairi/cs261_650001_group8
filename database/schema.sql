@@ -23,5 +23,23 @@ CREATE TABLE booking (
 
     CHECK (end_time > start_time),
     CHECK (end_time - start_time <= INTERVAL '3 hours'),
+    CHECK (end_time <= TIME '17:00'),
     CHECK (status IN ('BOOKED', 'CONFIRMED', 'CANCELLED', 'EXPIRED'))
 );
+
+-- Booking can be made up to 7 days in advance
+CREATE OR REPLACE FUNCTION check_booking_day_ahead()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.booking_date > CURRENT_DATE + 7 THEN
+        RAISE EXCEPTION 'Booking date cannot be more than 7 days in advance';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_check_booking_day_ahead
+BEFORE INSERT OR UPDATE OF booking_date ON booking
+FOR EACH ROW
+EXECUTE FUNCTION check_booking_day_ahead();
