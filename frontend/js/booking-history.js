@@ -78,8 +78,9 @@ document.addEventListener("DOMContentLoaded", () => {
       startTime: row.start_time,
       endTime: row.end_time,
       apiStatus: row.status, // BOOKED | CONFIRMED | CANCELLED | EXPIRED
-      people: extra.people,
-      purpose: extra.purpose
+      // ใช้ค่าจากฐานข้อมูลก่อน ถ้าเป็นการจองเก่าที่ยังไม่มีคอลัมน์นี้ ใช้ค่าที่เก็บไว้ในเครื่อง
+      people: row.people ?? extra.people,
+      purpose: row.purpose ?? extra.purpose
     };
   }
 
