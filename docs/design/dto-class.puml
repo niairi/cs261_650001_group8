@@ -1,0 +1,58 @@
+@startuml
+skinparam defaultFontName Loma
+skinparam defaultFontSize 12
+skinparam classAttributeIconSize 0
+hide methods
+title DTO Class : ข้อมูล JSON ที่รับ/ส่งระหว่าง Frontend กับ Backend
+package "DTO (JSON request / response)" {
+  class LoginRequest <<DTO>> {
+    username : string
+    password : string
+    remember : boolean
+  }
+  class LoginResponse <<DTO>> {
+    token : string [JWT]
+    user : TokenPayload
+  }
+  class TokenPayload <<DTO>> {
+    student_id : string
+    email : string
+    name : string
+    role : "student" | "admin"
+  }
+  class Room <<DTO>> {
+    room_id : number
+    room_name : string
+    capacity : number
+    location : string
+  }
+  class BookingRequest <<DTO>> {
+    room_id : number
+    booking_date : "YYYY-MM-DD"
+    start_time : "HH:00"
+    end_time : "HH:00"
+    people : number
+    purpose : string
+  }
+  class Booking <<DTO>> {
+    booking_id : number
+    student_id : string
+    room_id : number
+    room_name : string
+    booking_date : string
+    start_time : string
+    end_time : string
+    people : number
+    purpose : string
+    status : BOOKED | CONFIRMED | CANCELLED | EXPIRED
+  }
+  class ErrorResponse <<DTO>> {
+    error : string
+    details : string[]
+  }
+}
+
+LoginResponse *-- TokenPayload
+LoginRequest -[hidden]> LoginResponse
+BookingRequest -[hidden]> Booking
+@enduml
