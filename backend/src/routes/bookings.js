@@ -1,4 +1,4 @@
-const { sendBookingConfirmation } = require('../services/emailService');
+const { sendBookingConfirmation, sendBookingCancellation } = require('../services/emailService');
 const express = require('express');
 const pool = require('../db');
 const { requireAuth } = require('../middleware/auth');
@@ -207,21 +207,27 @@ router.patch('/:id/cancel', requireAuth, async (req, res, next) => {
     }
 
     // เปลี่ยนสถานะแทนการลบ เพื่อเก็บประวัติไว้
+    // JOIN room เพื่อได้ชื่อห้องไปใส่ในอีเมล
     const updated = await client.query(
-      `UPDATE booking
+      `UPDATE booking b
           SET status = 'CANCELLED'
-        WHERE booking_id = $1
-        RETURNING booking_id, room_id,
-                  to_char(booking_date, 'YYYY-MM-DD') AS booking_date,
-                  to_char(start_time, 'HH24:MI') AS start_time,
-                  to_char(end_time, 'HH24:MI') AS end_time,
-                  status`,
+         FROM room r
+        WHERE b.booking_id = $1
+          AND r.room_id = b.room_id
+        RETURNING b.booking_id, b.student_id, b.room_id, r.room_name,
+                  to_char(b.booking_date, 'YYYY-MM-DD') AS booking_date,
+                  to_char(b.start_time, 'HH24:MI') AS start_time,
+                  to_char(b.end_time, 'HH24:MI') AS end_time,
+                  b.status`,
       [bookingId]
     );
 
     await client.query('COMMIT');
 
     const row = updated.rows[0];
+    // ส่งอีเมลยืนยันการยกเลิก (US7) — ไม่รอ และถ้าส่งไม่ได้ก็ไม่ทำให้การยกเลิกล้มเหลว
+    sendBookingCancellation(req.user.email, row)
+      .catch((err) => console.error('ส่งอีเมลยืนยันการยกเลิกไม่สำเร็จ:', err.message));
     res.json({
       message: 'ยกเลิกการจองสำเร็จ',
       booking: { ...row, booking_id: Number(row.booking_id), room_id: Number(row.room_id) },

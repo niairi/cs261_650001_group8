@@ -40,11 +40,13 @@ test('TU API: รหัสถูก ได้ข้อมูลผู้ใช�
   const f = fakeFetch(200, {
     status: true, type: 'student', username: '6609651234',
     displayname_th: 'สมชาย ใจดี', displayname_en: 'Somchai Jaidee', email: 'somchai.jai@dome.tu.ac.th',
+    department: 'วิทยาการคอมพิวเตอร์', faculty: 'คณะวิทยาศาสตร์และเทคโนโลยี',
   });
   const user = await verifyWithTU('6609651234', 'secret', f);
   assert.deepEqual(user, {
     student_id: '6609651234', email: 'somchai.jai@dome.tu.ac.th',
     name_th: 'สมชาย ใจดี', name_en: 'Somchai Jaidee', type: 'student',
+    department: 'วิทยาการคอมพิวเตอร์', faculty: 'คณะวิทยาศาสตร์และเทคโนโลยี',
   });
   assert.equal(f.calls[0].opts.headers['Application-Key'], 'KEY123');
   assert.deepEqual(JSON.parse(f.calls[0].opts.body), { UserName: '6609651234', PassWord: 'secret' });

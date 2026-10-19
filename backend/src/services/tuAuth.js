@@ -25,6 +25,8 @@ function mockVerify(username, password) {
     name_th: 'ผู้ใช้ทดสอบ',
     name_en: 'Test User',
     type: 'student',
+    department: 'วิทยาการคอมพิวเตอร์',
+    faculty: 'คณะวิทยาศาสตร์และเทคโนโลยี',
   };
 }
 
@@ -57,6 +59,8 @@ async function verifyWithTU(username, password, fetchImpl = globalThis.fetch) {
     name_th: data.displayname_th || null,
     name_en: data.displayname_en || null,
     type: data.type || null,
+    department: data.department || null,
+    faculty: data.faculty || null,
   };
 }
 
