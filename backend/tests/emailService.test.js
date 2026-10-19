@@ -6,7 +6,7 @@ const {
 } = require('../src/services/emailService');
 
 const booking = {
-  booking_id: 15, room_name: 'Room A', booking_date: '2026-10-20',
+   booking_id: 15, room_id: 101, room_name: 'Room A', booking_date: '2026-10-20',
   start_time: '13:00', end_time: '15:00', student_id: '6609651234',
 };
 
@@ -24,8 +24,8 @@ test('แปลงวันที่เป็นภาษาไทย พ.ศ.',
 
 test('อีเมลมีรายละเอียดการจองครบ', () => {
   const { subject, text, html } = buildBookingConfirmationEmail(booking);
-  assert.match(subject, /Room A/);
-  assert.match(subject, /13:00 - 15:00/);
+    // US5 TC1: รูปแบบหัวข้ออีเมลตาม Test Case
+  assert.equal(subject, '[CS Co-Working] ยืนยันการจอง Room A (101) 20/10/2569 13:00–15:00');
   for (const s of ['#15', 'Room A', '20 ตุลาคม 2569', '13:00 - 15:00', '6609651234']) {
     assert.ok(text.includes(s), `text ต้องมี ${s}`);
     assert.ok(html.includes(s), `html ต้องมี ${s}`);
@@ -44,7 +44,7 @@ test('ส่งอีเมลไปที่ผู้จอง', async () => {
   assert.deepEqual(result, { sent: true });
   assert.equal(t.sent.length, 1);
   assert.equal(t.sent[0].to, 'student@dome.tu.ac.th');
-  assert.match(t.sent[0].subject, /ยืนยันการจองห้อง/);
+    assert.match(t.sent[0].subject, /^\[CS Co-Working\] ยืนยันการจอง/);
 });
 
 test('ไม่มีอีเมลผู้จอง = ไม่ส่ง และไม่ error', async () => {

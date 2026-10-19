@@ -41,7 +41,15 @@ const escapeHtml = (s) =>
 function buildBookingConfirmationEmail(booking) {
   const date = formatThaiDate(booking.booking_date);
   const time = `${booking.start_time} - ${booking.end_time} น.`;
-  const subject = `ยืนยันการจองห้อง ${booking.room_name} ${date} ${time}`;
+       // US5 TC1: [CS Co-Working] ยืนยันการจอง Room A (101) 22/10/2569 10:00–12:00
+  const shortDate = new Date(`${booking.booking_date}T00:00:00+07:00`).toLocaleDateString('th-TH', {
+    timeZone: 'Asia/Bangkok',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+     });
+       const roomLabel = booking.room_id ? `${booking.room_name} (${booking.room_id})` : booking.room_name;
+  const subject = `[CS Co-Working] ยืนยันการจอง ${roomLabel} ${shortDate} ${booking.start_time}–${booking.end_time}`;
 
   const rows = [
     ['หมายเลขการจอง', `#${booking.booking_id}`],
