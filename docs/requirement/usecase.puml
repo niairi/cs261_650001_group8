@@ -1,0 +1,66 @@
+@startuml
+skinparam defaultFontName Loma
+skinparam defaultFontSize 14
+skinparam actorStyle awesome
+left to right direction
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #1F4E79
+}
+skinparam rectangle {
+  BorderColor #1F4E79
+  FontSize 16
+}
+title Use Case Diagram : ระบบจองห้อง CS Co-Working Space (กลุ่ม 8)
+
+actor "นักศึกษาสาขา\nวิทยาการคอมพิวเตอร์" as Student
+actor "เจ้าหน้าที่ภาควิชาฯ\n(Admin)" as Admin
+
+rectangle "ระบบจองห้อง CS Co-Working Space" {
+  usecase "UC1 Login ด้วย TU Account" as UC1 #D6EAF8
+  usecase "UC1 Logout" as UC1b
+  usecase "UC2 ดูตารางห้องว่าง\nแบบ Real-time" as UC2a #D6EAF8
+  usecase "UC2 จองห้องล่วงหน้า" as UC2b #D6EAF8
+  usecase "ตรวจเวลา 09:00–17:00\nครั้งละไม่เกิน 3 ชม.\nและจองล่วงหน้าไม่เกิน 7 วัน" as CHK
+  usecase "UC3 ดูรายการจองของฉัน\n/ ยกเลิกการจอง" as UC3a #D6EAF8
+  usecase "UC3 แก้ไขเวลาการจอง" as UC3b
+  usecase "UC4 แจ้งเตือนทางอีเมล" as UC4 #D6EAF8
+  usecase "UC5 Check-in เมื่ออยู่ภายใน\nระยะ 5 เมตรจากห้อง" as UC5a
+  usecase "UC5 บันทึก No-show\nและ Blacklist อัตโนมัติ" as UC5b
+  usecase "UC6 ดูรายงานการจองทั้งหมด" as UC6
+  usecase "UC7 จัดการข้อมูลห้อง" as UC7
+  usecase "UC8 จัดการรายชื่อ Blacklist" as UC8
+}
+
+actor "TU REST API" as TUAPI <<System>>
+actor "ระบบอีเมล\n(SMTP)" as MAIL <<System>>
+actor "Scheduler\n(ตัวตั้งเวลาของระบบ)" as SCH <<System>>
+
+Student --> UC1
+Student --> UC1b
+Student --> UC2a
+Student --> UC2b
+Student --> UC3a
+Student --> UC3b
+Student --> UC5a
+
+Admin --> UC1
+Admin --> UC1b
+Admin --> UC6
+Admin --> UC7
+Admin --> UC8
+
+UC2b ..> CHK : <<include>>
+UC3b ..> CHK : <<include>>
+UC2b ..> UC4 : <<include>>
+UC3a ..> UC4 : <<include>>
+
+UC1 --> TUAPI
+UC4 --> MAIL
+SCH --> UC5b
+
+legend right
+  สีฟ้า = Use Case ที่ทำใน Sprint 1 (US1–US5)
+  สีขาว = Sprint 2 / Product Backlog
+endlegend
+@enduml
