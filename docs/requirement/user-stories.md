@@ -2,7 +2,7 @@
 
 ระบบจองห้อง CS Co-Working Space ภาควิชาวิทยาการคอมพิวเตอร์ มหาวิทยาลัยธรรมศาสตร์ (กลุ่ม 8 ภาคพิเศษ sec 650001)
 
-ที่มา: การ์ด User Story บน Trello บอร์ด Sprint Planning_G8 (ข้อมูล ณ 20 ต.ค. 2569)
+ที่มา: การ์ด User Story บน Trello บอร์ด Sprint Planning_G8 (อัปเดต 20 ต.ค. 2569 หลัง PO ปรับ Test Case)
 หน่วย Estimate: 1 point = 1 man-hour · Capacity ต่อ Sprint ≈ 42 points
 
 | US | ชื่อ | Priority | Estimate | Use Case |
@@ -38,9 +38,11 @@
 **Definition of Done (Test Cases)**
 - **TC1 (สำเร็จ) :** Given บัญชี 6809650069 ที่ Active สาขาวิทยาการคอมพิวเตอร์ → When กรอก Username/Password ถูกต้องแล้วกด Login → Then เข้าหน้าตารางห้อง และมุมขวาบนแสดงชื่อ-นามสกุลของผู้ใช้
 - **TC2 (รหัสผ่านผิด) :** Given บัญชี 6809650069 → When กรอก Password ผิด → Then แสดง "Username หรือ Password ไม่ถูกต้อง" และไม่สร้าง session
-- **TC3 (ไม่ใช่สาขา CS) :** Given TU Account ที่ Active แต่เป็นนักศึกษาสาขาอื่น → When Login → Then แสดง "ระบบนี้สำหรับนักศึกษาสาขาวิทยาการคอมพิวเตอร์เท่านั้น"
-- **TC4 (กรอกไม่ครบ) :** Given หน้า Login → When เว้นช่อง Password ว่างแล้วกด Login → Then แสดงข้อความให้กรอกให้ครบ และไม่ส่งคำขอไป Backend
-- **TC5 (สิทธิ์ Admin) :** Given บัญชีเจ้าหน้าที่ที่อยู่ในรายชื่อ Admin → When Login สำเร็จ → Then แสดงเมนู "จัดการการจอง" เพิ่มจากเมนูนักศึกษา
+- **TC3 (กรอกไม่ครบ) :** Given หน้า Login → When เว้นช่อง Password ว่างแล้วกด Login → Then แสดงข้อความให้กรอกให้ครบ และไม่ส่งคำขอไป Backend
+
+> **การเปลี่ยนแปลง (20 ต.ค. 2569, ตัดสินโดย PO):**
+> - TC3 เดิม "ไม่ใช่สาขา CS" ย้ายไป Sprint 2 เป็นการ์ด "US1: ตรวจสาขาวิทยาการคอมพิวเตอร์ตอน login" (TU API ตรวจแค่ username/password ไม่ได้กรองสาขา)
+> - TC5 เดิม "สิทธิ์ Admin เห็นเมนูจัดการการจอง" ย้ายไปเป็น TC5 ของ US7 (Sprint 2)
 
 Sequence Diagram: [US1-login.png](../design/sequence/US1-login.png)
 
@@ -151,6 +153,8 @@ Sequence Diagram: [US4-cancel.png](../design/sequence/US4-cancel.png)
 **Definition of Done (Test Cases)**
 - **TC1 (ยืนยันการจอง) :** Given ผู้ใช้จอง Room A (101) วันที่ 22 ต.ค. 10:00–12:00 สำเร็จ → When ระบบบันทึกเสร็จ → Then ภายใน 1 นาที อีเมล @dome.tu.ac.th ของผู้ใช้ได้รับหัวข้อ "[CS Co-Working] ยืนยันการจอง Room A (101) 22/10/2569 10:00–12:00"
 - **TC2 (แจ้งการยกเลิก) :** Given ผู้ใช้ยกเลิกการจองข้างต้น → When ยกเลิกสำเร็จ → Then ได้รับอีเมลหัวข้อ "[CS Co-Working] ยกเลิกการจอง…" พร้อมรายละเอียดเดียวกัน
-- **TC3 (ส่งไม่ได้) :** Given เซิร์ฟเวอร์อีเมลใช้งานไม่ได้ → When จองสำเร็จ → Then การจองยังถูกบันทึก หน้าจอแสดง "จองสำเร็จ แต่ส่งอีเมลยืนยันไม่สำเร็จ" และบันทึกผลว่าส่งล้มเหลว
+- **TC3 (ส่งไม่ได้) :** Given เซิร์ฟเวอร์อีเมลใช้งานไม่ได้ → When จองสำเร็จ → Then การจองยังถูกบันทึก และบันทึกผลว่าส่งล้มเหลว (status = FAILED ใน email_logs)
+
+> **การเปลี่ยนแปลง (20 ต.ค. 2569, ตัดสินโดย PO):** ข้อความแจ้งบนหน้าจอ "จองสำเร็จ แต่ส่งอีเมลยืนยันไม่สำเร็จ" ย้ายไป Sprint 2
 
 Sequence Diagram: [US5-email.png](../design/sequence/US5-email.png)
