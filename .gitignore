@@ -1,0 +1,9 @@
+# ไฟล์ที่ห้ามขึ้น Git (ค่าลับของ docker compose เช่น TU_API_KEY, SMTP_PASS)
+.env
+.env.*
+!.env.docker.example
+!.env.example
+
+# อื่นๆ
+node_modules/
+*.log
