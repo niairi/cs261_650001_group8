@@ -1,0 +1,47 @@
+@startuml
+skinparam defaultFontName Loma
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+autonumber
+title US3 : กดจองพื้นที่และระบุช่วงเวลาล่วงหน้า
+actor "นักศึกษา" as U
+participant "Frontend\nbooking.js" as FE
+participant "Backend\nPOST /booking\n(routes/bookings.js)" as R
+participant "middleware\nrequireAuth" as A
+participant "emailService" as E
+database "PostgreSQL\nroom, booking" as DB
+
+U -> FE : เลือกห้อง วันที่ (ไม่เกิน 7 วัน)\nเวลาเริ่ม-สิ้นสุด จำนวนคน วัตถุประสงค์
+FE -> FE : ตรวจข้อมูลในฟอร์ม
+FE -> R : POST /booking\nAuthorization: Bearer token
+R -> A : ตรวจ token
+alt ไม่มี token / หมดอายุ
+  A --> FE : 401 กรุณาเข้าสู่ระบบ
+else token ถูกต้อง
+  A -> R : req.user
+  R -> R : validateBooking()\n09:00–17:00, ไม่เกิน 3 ชม.,\nไม่ใช่เวลาที่ผ่านมา, ไม่เกิน 7 วัน
+  alt ไม่ผ่านเงื่อนไข
+    R --> FE : 400 ข้อมูลการจองไม่ถูกต้อง + details
+  else ผ่าน
+    R -> DB : BEGIN\nSELECT room ... FOR UPDATE
+    alt ไม่พบห้อง / ปิดใช้งาน
+      R --> FE : 404
+    else จำนวนคนเกินความจุ
+      R --> FE : 400 ห้องรองรับได้สูงสุด N คน
+    else
+      R -> DB : ตรวจเวลาทับซ้อน\n(BOOKED / CONFIRMED)
+      alt ทับซ้อน
+        R -> DB : ROLLBACK
+        R --> FE : 409 ช่วงเวลานี้มีผู้จองแล้ว
+      else ว่าง
+        R -> DB : INSERT booking (status = BOOKED)\nCOMMIT
+        DB --> R : booking
+        R ->> E : sendBookingConfirmation() (ไม่รอ)
+        R --> FE : 201 booking
+        FE --> U : Pop-up ยืนยันการจอง
+      end
+    end
+  end
+end
+@enduml
