@@ -96,7 +96,8 @@ test('บันทึก log ไม่ได้ ไม่กระทบกา�
 // ---------- อีเมลยืนยันการยกเลิกการจอง ----------
 test('อีเมลยกเลิกมีรายละเอียดการจองครบ และบอกว่ายกเลิกแล้ว', () => {
   const { subject, text, html } = buildBookingCancellationEmail(booking);
-  assert.match(subject, /^ยกเลิกการจองห้อง Room A/);
+  // US5 TC2: หัวข้ออีเมลยกเลิกรูปแบบเดียวกับอีเมลยืนยัน
+  assert.equal(subject, '[CS Co-Working] ยกเลิกการจอง Room A (101) 20/10/2569 13:00–15:00');
   for (const s of ['#15', 'Room A', '20 ตุลาคม 2569', '13:00 - 15:00', '6609651234', 'ยกเลิกแล้ว']) {
     assert.ok(text.includes(s), `text ต้องมี ${s}`);
     assert.ok(html.includes(s), `html ต้องมี ${s}`);
@@ -109,7 +110,7 @@ test('ส่งอีเมลยกเลิกไปที่ผู้จอ�
   const result = await sendBookingCancellation('s@dome.tu.ac.th', booking, t, log);
   assert.deepEqual(result, { sent: true });
   assert.equal(t.sent[0].to, 's@dome.tu.ac.th');
-  assert.match(t.sent[0].subject, /ยกเลิกการจองห้อง/);
+  assert.match(t.sent[0].subject, /^\[CS Co-Working\] ยกเลิกการจอง/);
   assert.deepEqual(log.logs, [{ booking_id: 15, to_email: 's@dome.tu.ac.th', email_type: 'BOOKING_CANCELLED', status: 'SENT' }]);
 });
 

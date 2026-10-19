@@ -111,6 +111,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const nowHHMM = () => new Date().toTimeString().slice(0, 5);
 
   // ถึงเวลาเริ่มแล้วหรือยัง (Backend ไม่ให้ยกเลิกหลังถึงเวลาเริ่ม)
+  // ยกเลิกได้ก่อนเวลาเริ่มอย่างน้อย 30 นาที (US4 TC4) ต้องตรงกับ backend
+  const CANCEL_BEFORE_MIN = 30;
+  function canCancel(booking) {
+    const startAt = new Date(`${booking.date}T${booking.startTime}:00`);
+    return startAt.getTime() - Date.now() >= CANCEL_BEFORE_MIN * 60 * 1000;
+  }
+
   function hasStarted(booking) {
     const today = localDate(new Date());
     return booking.date < today || (booking.date === today && booking.startTime <= nowHHMM());
@@ -217,9 +224,14 @@ document.addEventListener("DOMContentLoaded", () => {
       cancelButton.type = "button";
       cancelButton.className = "history-cancel-button";
       cancelButton.textContent = "ยกเลิกการจอง";
-      cancelButton.addEventListener("click", () => showConfirmDialog(booking));
 
       actions.append(cancelButton);
+      if (canCancel(booking)) {
+        cancelButton.addEventListener("click", () => showConfirmDialog(booking));
+      } else {
+        cancelButton.disabled = true;
+        actions.append(createText("p", "history-cancel-note", `ยกเลิกได้ก่อนเวลาเริ่มอย่างน้อย ${CANCEL_BEFORE_MIN} นาที`));
+      }
       card.append(actions);
     }
 

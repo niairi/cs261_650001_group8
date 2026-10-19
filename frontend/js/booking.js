@@ -32,7 +32,7 @@ const roomScheduleRange = document.querySelector("#schedule-week-range");
 const weeklyScheduleBody = document.querySelector("#weekly-schedule-body");
 const weekDays = ["วันจันทร์", "วันอังคาร", "วันพุธ", "วันพฤหัสบดี", "วันศุกร์"];
 const timeSlots = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00"];
-const AUTO_REFRESH_MS = 30000; // ตาราง Real-time รีเฟรชเองทุก 30 วินาที
+const AUTO_REFRESH_MS = 5000; // ตาราง Real-time รีเฟรชเองทุก 5 วินาที (US2 TC2)
 let rooms = [];               // รายการห้องจาก GET /rooms
 let selectedDayOffset = 0;    // 0 = วันนี้, 1 = พรุ่งนี้
 
