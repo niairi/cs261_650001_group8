@@ -27,12 +27,14 @@ function validateBooking(body) {
   const roomId = Number(body.room_id);
   const people = Number(body.people);
   const { booking_date, start_time, end_time } = body;
+  const purpose = typeof body.purpose === 'string' && body.purpose.trim() ? body.purpose.trim() : null;
 
   if (!Number.isInteger(roomId) || roomId <= 0) errors.push('room_id ต้องเป็นตัวเลข');
   if (!Number.isInteger(people) || people < 1) errors.push('จำนวนผู้เข้าใช้ต้องเป็นจำนวนเต็มตั้งแต่ 1 คนขึ้นไป');
   if (typeof booking_date !== 'string' || !isRealDate(booking_date)) errors.push('วันที่ต้องอยู่ในรูปแบบ YYYY-MM-DD');
   if (typeof start_time !== 'string' || !TIME_RE.test(start_time)) errors.push('เวลาเริ่มต้องเป็นเวลาเต็มชั่วโมง เช่น 09:00');
   if (typeof end_time !== 'string' || !TIME_RE.test(end_time)) errors.push('เวลาสิ้นสุดต้องเป็นเวลาเต็มชั่วโมง เช่น 12:00');
+  if (purpose && purpose.length > 255) errors.push('วัตถุประสงค์ยาวได้ไม่เกิน 255 ตัวอักษร');
   if (errors.length) throw new HttpError(400, 'ข้อมูลการจองไม่ถูกต้อง', errors);
 
   const start = toMinutes(start_time);
@@ -48,9 +50,17 @@ function validateBooking(body) {
   if (booking_date < today || (booking_date === today && start_time <= nowTime)) {
     errors.push('ไม่สามารถจองเวลาที่ผ่านมาแล้ว');
   }
+
+  // จองล่วงหน้าได้ไม่เกิน BOOKING_DAYS_AHEAD วัน (ค่าเริ่มต้น 7 วัน นับวันนี้เป็นวันที่ 0)
+  const MAX_DAYS_AHEAD = Number(process.env.BOOKING_DAYS_AHEAD || 7);
+  const last = new Date(now);
+  last.setDate(last.getDate() + MAX_DAYS_AHEAD);
+  if (booking_date > last.toLocaleDateString('sv-SE')) {
+    errors.push(`จองล่วงหน้าได้ไม่เกิน ${MAX_DAYS_AHEAD} วัน`);
+  }
   if (errors.length) throw new HttpError(400, 'ข้อมูลการจองไม่ถูกต้อง', errors);
 
-  return { roomId, people, booking_date, start_time, end_time };
+  return { roomId, people, purpose, booking_date, start_time, end_time };
 }
 
 
@@ -92,14 +102,14 @@ router.post('/', requireAuth, async (req, res, next) => {
     if (clash.rows.length > 0) throw new HttpError(409, 'ช่วงเวลานี้มีผู้จองห้องนี้แล้ว');
 
     const inserted = await client.query(
-      `INSERT INTO booking (student_id, room_id, booking_date, start_time, end_time)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO booking (student_id, room_id, booking_date, start_time, end_time, people, purpose)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING booking_id, student_id, room_id,
                  to_char(booking_date, 'YYYY-MM-DD') AS booking_date,
                  to_char(start_time, 'HH24:MI') AS start_time,
                  to_char(end_time, 'HH24:MI') AS end_time,
-                 status, created_at`,
-      [req.user.student_id, b.roomId, b.booking_date, b.start_time, b.end_time]
+                 people, purpose, status, created_at`,
+      [req.user.student_id, b.roomId, b.booking_date, b.start_time, b.end_time, b.people, b.purpose]
     );
 
     await client.query('COMMIT');
@@ -154,7 +164,7 @@ router.get('/me', requireAuth, async (req, res, next) => {
               to_char(b.booking_date, 'YYYY-MM-DD') AS booking_date,
               to_char(b.start_time, 'HH24:MI') AS start_time,
               to_char(b.end_time, 'HH24:MI') AS end_time,
-              b.status, b.created_at
+              b.people, b.purpose, b.status, b.created_at
          FROM booking b
          JOIN room r ON r.room_id = b.room_id
         WHERE b.student_id = $1
