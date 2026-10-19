@@ -11,7 +11,7 @@ services:
       POSTGRES_PASSWORD: postgres
       TZ: Asia/Bangkok
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
       # สร้างตารางและใส่ข้อมูลตัวอย่างตอนสร้างฐานข้อมูลครั้งแรก (รันตามลำดับชื่อไฟล์)
