@@ -199,8 +199,6 @@ document.querySelector("#tomorrow-button").addEventListener("click", () => {
 });
 document.querySelector("#refresh-button").addEventListener("click", () => loadAvailability());
 
-<<<<<<< HEAD
-=======
 // ===== ส่งคำขอจองไปที่ Backend (POST /booking) =====
 function showMessage(text, ok) {
   formMessage.textContent = text;
@@ -208,7 +206,6 @@ function showMessage(text, ok) {
 }
 
 // ===== pop-up ยืนยันการจอง (หน้าตาจากงานของทีม frontend) =====
->>>>>>> b9d3b2ff3aae3b742a08bb2ce0b8ea87cd4a6ae9
 function formatConfirmationDate(dateValue) {
   const [year, month, day] = dateValue.split("-").map(Number);
   return new Intl.DateTimeFormat("th-TH", {
@@ -233,25 +230,6 @@ function showBookingConfirmation(booking, extra) {
   bookingConfirmationDialog.focus({ preventScroll: true });
 }
 
-<<<<<<< HEAD
-document.querySelector("#confirmation-home-button").addEventListener("click", () => {
-  bookingConfirmationDialog.close();
-  document.querySelector("#top").scrollIntoView({ behavior: "smooth" });
-});
-
-document.querySelector("#confirmation-history-button").addEventListener("click", () => {
-  window.location.href = "./booking-his.html";
-});
-
-bookingConfirmationDialog.addEventListener("click", (event) => {
-  if (event.target === bookingConfirmationDialog) bookingConfirmationDialog.close();
-});
-
-// ===== ส่งคำขอจองไปที่ Backend (POST /booking) =====
-function showMessage(text, ok) {
-  formMessage.textContent = text;
-  formMessage.style.color = ok ? "#1a7f37" : "#c62828";
-=======
 if (bookingConfirmationDialog) {
   document.querySelector("#confirmation-home-button")?.addEventListener("click", () => {
     bookingConfirmationDialog.close();
@@ -263,7 +241,6 @@ if (bookingConfirmationDialog) {
   bookingConfirmationDialog.addEventListener("click", (event) => {
     if (event.target === bookingConfirmationDialog) bookingConfirmationDialog.close();
   });
->>>>>>> b9d3b2ff3aae3b742a08bb2ce0b8ea87cd4a6ae9
 }
 
 // ===== แสดงชื่อผู้ใช้จากผล login =====
@@ -415,12 +392,8 @@ form.addEventListener("submit", async (event) => {
         "ระบบได้ส่งรายละเอียดการจองไปยังอีเมลมหาวิทยาลัยของคุณแล้ว",
       true
     );
-<<<<<<< HEAD
-    showBookingConfirmation();
-=======
     saveBookingExtra(data.booking_id, { people: payload.people, purpose });
     showBookingConfirmation(data, { people: payload.people, purpose });
->>>>>>> b9d3b2ff3aae3b742a08bb2ce0b8ea87cd4a6ae9
     form.reset();
     bookingDateInput.value = localDate(today);
     loadAvailability();
