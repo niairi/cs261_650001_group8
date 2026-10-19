@@ -181,7 +181,10 @@ const bookingDateInput = document.querySelector("#booking-date");
 document.querySelector("#today-label").textContent = thaiDate(today);
 document.querySelector("#tomorrow-label").textContent = thaiDate(tomorrow);
 bookingDateInput.value = localDate(today);
-bookingDateInput.min = localDate(today); // ห้ามเลือกวันย้อนหลัง
+bookingDateInput.min = localDate(today);
+const lastDay = new Date(today);
+lastDay.setDate(today.getDate() + 7);
+bookingDateInput.max = localDate(lastDay); // ปฏิทินเลือกเกิน 7 วันไม่ได้ // ห้ามเลือกวันย้อนหลัง
 
 document.querySelector("#today-button").addEventListener("click", () => {
   document.querySelector("#today-button").classList.add("active");
