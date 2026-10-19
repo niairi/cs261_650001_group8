@@ -1,0 +1,62 @@
+# รวมระบบจองห้อง CS Co-Working Space: frontend + backend + PostgreSQL (Task10)
+# วิธีรัน: docker compose up --build  แล้วเปิด http://localhost:5500
+# ค่าที่เป็นความลับ (TU_API_KEY, SMTP) ใส่ในไฟล์ .env ที่ root (ดูตัวอย่างใน .env.docker.example)
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: room_booking
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      TZ: Asia/Bangkok
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      # สร้างตารางและใส่ข้อมูลตัวอย่างตอนสร้างฐานข้อมูลครั้งแรก (รันตามลำดับชื่อไฟล์)
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./database/002_users_and_email_logs.sql:/docker-entrypoint-initdb.d/02_users_and_email_logs.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/03_seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d room_booking"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgres://postgres:postgres@db:5432/room_booking
+      JWT_SECRET: ${JWT_SECRET:-change-me}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      CORS_ORIGIN: http://localhost:5500,http://127.0.0.1:5500
+      TZ: Asia/Bangkok
+      BOOKING_DAYS_AHEAD: ${BOOKING_DAYS_AHEAD:-7}
+      # ว่าง = โหมดจำลอง login (รหัสผ่านอะไรก็ได้)
+      TU_API_KEY: ${TU_API_KEY:-}
+      TU_API_URL: ${TU_API_URL:-https://restapi.tu.ac.th/api/v1/auth/Ad/verify}
+      ADMIN_IDS: ${ADMIN_IDS:-}
+      MOCK_EMAIL: ${MOCK_EMAIL:-}
+      # ว่าง = แสดงอีเมลใน log ของ backend แทนการส่งจริง
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-TU CS Space <no-reply@example.com>}
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5500:80"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
