@@ -23,11 +23,8 @@ const roomCards = document.querySelectorAll(".room-card");
 const roomSelect = document.querySelector("#room-select");
 const form = document.querySelector("#booking-form");
 const formMessage = document.querySelector("#form-message");
-<<<<<<< HEAD
 const bookingConfirmationDialog = document.querySelector("#booking-confirmation-dialog");
-=======
 const submitButton = form.querySelector(".submit-button");
->>>>>>> 8e1a5bda18a3c8f997a101b4e6bd9c870a9d4cf5
 const navigationLinks = document.querySelectorAll(".main-nav .nav-link[href^='#']");
 const roomScheduleDialog = document.querySelector("#room-schedule-dialog");
 const roomScheduleLabel = document.querySelector("#schedule-room-label");
@@ -175,7 +172,6 @@ document.querySelector("#refresh-button").addEventListener("click", () => {
   formMessage.textContent = "ยังไม่มีข้อมูลสถานะห้อง — เมื่อเชื่อมต่อ Backend แล้ว ปุ่มนี้จะดึงข้อมูลล่าสุด";
 });
 
-<<<<<<< HEAD
 function formatConfirmationDate(dateValue) {
   const [year, month, day] = dateValue.split("-").map(Number);
   return new Intl.DateTimeFormat("th-TH", {
@@ -204,21 +200,6 @@ function showBookingConfirmation() {
   bookingConfirmationDialog.focus({ preventScroll: true });
 }
 
-form.addEventListener("submit", (event) => {
-  event.preventDefault();
-
-  const startTime = document.querySelector("#start-time").value;
-  const endTime = document.querySelector("#end-time").value;
-  if (endTime <= startTime) {
-    formMessage.textContent = "เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้น";
-    document.querySelector("#end-time").focus();
-    return;
-  }
-
-  formMessage.textContent = "ระบบได้ส่งข้อมูลและรายละเอียดการจองห้องไปยัง Email ของคุณเรียบร้อยแล้ว โปรดตรวจสอบที่กล่องข้อความหรืออีเมลมหาวิทยาลัย เลย";
-  showBookingConfirmation();
-});
-
 document.querySelector("#confirmation-home-button").addEventListener("click", () => {
   bookingConfirmationDialog.close();
   document.querySelector("#top").scrollIntoView({ behavior: "smooth" });
@@ -231,7 +212,7 @@ document.querySelector("#confirmation-history-button").addEventListener("click",
 bookingConfirmationDialog.addEventListener("click", (event) => {
   if (event.target === bookingConfirmationDialog) bookingConfirmationDialog.close();
 });
-=======
+
 // ===== ส่งคำขอจองไปที่ Backend (POST /booking) =====
 function showMessage(text, ok) {
   formMessage.textContent = text;
@@ -327,6 +308,7 @@ form.addEventListener("submit", async (event) => {
       `จองสำเร็จ! ${data.room_name} วันที่ ${data.booking_date} เวลา ${data.start_time} - ${data.end_time} น.`,
       true
     );
+    showBookingConfirmation();
     form.reset();
     bookingDateInput.value = localDate(today);
   } catch {
@@ -335,4 +317,3 @@ form.addEventListener("submit", async (event) => {
     submitButton.disabled = false;
   }
 });
->>>>>>> 8e1a5bda18a3c8f997a101b4e6bd9c870a9d4cf5
