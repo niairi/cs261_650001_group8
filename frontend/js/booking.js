@@ -23,7 +23,6 @@ const roomCards = document.querySelectorAll(".room-card");
 const roomSelect = document.querySelector("#room-select");
 const form = document.querySelector("#booking-form");
 const formMessage = document.querySelector("#form-message");
-const bookingConfirmationDialog = document.querySelector("#booking-confirmation-dialog");
 const submitButton = form.querySelector(".submit-button");
 const navigationLinks = document.querySelectorAll(".main-nav .nav-link[href^='#']");
 const roomScheduleDialog = document.querySelector("#room-schedule-dialog");
@@ -181,10 +180,7 @@ const bookingDateInput = document.querySelector("#booking-date");
 document.querySelector("#today-label").textContent = thaiDate(today);
 document.querySelector("#tomorrow-label").textContent = thaiDate(tomorrow);
 bookingDateInput.value = localDate(today);
-bookingDateInput.min = localDate(today);
-const lastDay = new Date(today);
-lastDay.setDate(today.getDate() + 7);
-bookingDateInput.max = localDate(lastDay); // ปฏิทินเลือกเกิน 7 วันไม่ได้ // ห้ามเลือกวันย้อนหลัง
+bookingDateInput.min = localDate(today); // ห้ามเลือกวันย้อนหลัง
 
 document.querySelector("#today-button").addEventListener("click", () => {
   document.querySelector("#today-button").classList.add("active");
@@ -206,44 +202,6 @@ document.querySelector("#refresh-button").addEventListener("click", () => loadAv
 function showMessage(text, ok) {
   formMessage.textContent = text;
   formMessage.style.color = ok ? "#1a7f37" : "#c62828";
-}
-
-// ===== pop-up ยืนยันการจอง (หน้าตาจากงานของทีม frontend) =====
-function formatConfirmationDate(dateValue) {
-  const [year, month, day] = dateValue.split("-").map(Number);
-  return new Intl.DateTimeFormat("th-TH", {
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  }).format(new Date(year, month - 1, day));
-}
-
-// booking = ข้อมูลที่ Backend ตอบกลับหลังจองสำเร็จ, extra = ข้อมูลจากฟอร์มที่ Backend ไม่ได้ส่งกลับ
-function showBookingConfirmation(booking, extra) {
-  if (!bookingConfirmationDialog) return;
-  const room = rooms.find((r) => r.room_id === booking.room_id);
-  const capacity = room ? room.capacity : 8;
-  document.querySelector("#confirmation-room").textContent = `${booking.room_name} (จุ ${capacity} ที่นั่ง)`;
-  document.querySelector("#confirmation-date").textContent = formatConfirmationDate(booking.booking_date);
-  document.querySelector("#confirmation-time").textContent = `${booking.start_time} - ${booking.end_time} น.`;
-  document.querySelector("#confirmation-people").textContent = `${extra.people} คน`;
-  document.querySelector("#confirmation-purpose").textContent = extra.purpose || "ไม่ได้ระบุ";
-  document.querySelector("#confirmation-booker").textContent = document.querySelector("#booking-user").textContent.trim();
-  bookingConfirmationDialog.showModal();
-  bookingConfirmationDialog.focus({ preventScroll: true });
-}
-
-if (bookingConfirmationDialog) {
-  document.querySelector("#confirmation-home-button")?.addEventListener("click", () => {
-    bookingConfirmationDialog.close();
-    document.querySelector("#top").scrollIntoView({ behavior: "smooth" });
-  });
-  document.querySelector("#confirmation-history-button")?.addEventListener("click", () => {
-    window.location.href = "./booking-his.html";
-  });
-  bookingConfirmationDialog.addEventListener("click", (event) => {
-    if (event.target === bookingConfirmationDialog) bookingConfirmationDialog.close();
-  });
 }
 
 // ===== แสดงชื่อผู้ใช้จากผล login =====
@@ -327,18 +285,6 @@ async function loadAvailability() {
 loadRooms().then(loadAvailability);
 setInterval(loadAvailability, AUTO_REFRESH_MS);
 
-// ฐานข้อมูลไม่มีคอลัมน์ จำนวนคน / วัตถุประสงค์ จึงเก็บไว้ในเครื่องเพื่อให้หน้าประวัติการจองแสดงได้
-const EXTRAS_KEY = "tuCsSpaceBookingExtras";
-function saveBookingExtra(bookingId, extra) {
-  try {
-    const all = JSON.parse(localStorage.getItem(EXTRAS_KEY)) || {};
-    all[bookingId] = extra;
-    localStorage.setItem(EXTRAS_KEY, JSON.stringify(all));
-  } catch (error) {
-    console.error("บันทึกข้อมูลเพิ่มเติมของการจองไม่สำเร็จ:", error);
-  }
-}
-
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
@@ -348,13 +294,6 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
-  if (form.elements.endTime.value <= form.elements.startTime.value) {
-    showMessage("เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้น", false);
-    form.elements.endTime.focus();
-    return;
-  }
-
-  const purpose = form.elements.purpose ? form.elements.purpose.value.trim() : "";
   const payload = {
     room_id: Number(form.elements.room.value),
     people: Number(form.elements.people.value),
@@ -391,12 +330,9 @@ form.addEventListener("submit", async (event) => {
     }
 
     showMessage(
-      `จองสำเร็จ! ${data.room_name} วันที่ ${data.booking_date} เวลา ${data.start_time} - ${data.end_time} น. ` +
-        "ระบบได้ส่งรายละเอียดการจองไปยังอีเมลมหาวิทยาลัยของคุณแล้ว",
+      `จองสำเร็จ! ${data.room_name} วันที่ ${data.booking_date} เวลา ${data.start_time} - ${data.end_time} น.`,
       true
     );
-    saveBookingExtra(data.booking_id, { people: payload.people, purpose });
-    showBookingConfirmation(data, { people: payload.people, purpose });
     form.reset();
     bookingDateInput.value = localDate(today);
     loadAvailability();

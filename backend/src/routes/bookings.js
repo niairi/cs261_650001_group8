@@ -47,13 +47,6 @@ function validateBooking(body) {
   const nowTime = now.toTimeString().slice(0, 5); // HH:MM
   if (booking_date < today || (booking_date === today && start_time <= nowTime)) {
     errors.push('ไม่สามารถจองเวลาที่ผ่านมาแล้ว');
-      // จองล่วงหน้าได้ไม่เกิน 7 วัน (นับวันนี้เป็นวันที่ 0)
-  const MAX_DAYS_AHEAD = Number(process.env.BOOKING_DAYS_AHEAD || 7);
-  const last = new Date(now);
-  last.setDate(last.getDate() + MAX_DAYS_AHEAD);
-  if (booking_date > last.toLocaleDateString('sv-SE')) {
-    errors.push(`จองล่วงหน้าได้ไม่เกิน ${MAX_DAYS_AHEAD} วัน`);
-  }
   }
   if (errors.length) throw new HttpError(400, 'ข้อมูลการจองไม่ถูกต้อง', errors);
 
