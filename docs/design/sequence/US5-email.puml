@@ -13,7 +13,7 @@ database "PostgreSQL\nemail_logs" as DB
 actor "นักศึกษา\n(กล่องอีเมล)" as U
 
 R ->> E : sendBookingConfirmation(email, booking)\nหรือ sendBookingCancellation(...)
-E -> E : build...Email()\n(หัวเรื่อง, ห้อง, วันที่ไทย, เวลา)
+E -> E : emailSubject()\n"[CS Co-Working] ยืนยันการจอง / ยกเลิกการจอง\nRoom A (101) 22/10/2569 10:00–12:00"\n(US5 TC1, TC2)
 alt ไม่มีอีเมลผู้จอง
   E -> L : insertEmailLog(SKIPPED, no-recipient)
 else ไม่ได้ตั้ง SMTP_HOST (โหมดทดสอบ)
@@ -27,7 +27,7 @@ else ตั้ง SMTP แล้ว
   else ส่งไม่ได้
     SMTP --> E : error
     E -> L : insertEmailLog(FAILED, error)
-    note right of R : การจอง/ยกเลิกยังสำเร็จ\n(เขียนแค่ error ใน log)
+    note right of R : การจอง/ยกเลิกยังสำเร็จ\nบันทึก FAILED ใน email_logs (US5 TC3)
   end
 end
 L -> DB : INSERT INTO email_logs

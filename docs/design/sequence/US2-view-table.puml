@@ -26,7 +26,7 @@ else ถูกต้อง
   RB --> FE : 200 [room_id, start_time, end_time, status]
   FE --> U : แสดงตาราง 09:00–17:00\nว่าง = เขียว / ไม่ว่าง = แดง
 end
-loop ทุก 30 วินาที (AUTO_REFRESH_MS)
+loop ทุก 5 วินาที (AUTO_REFRESH_MS = 5000, US2 TC2)
   FE -> RB : GET /booking?date=...
   RB --> FE : สถานะล่าสุด
   FE --> U : อัปเดตตาราง
