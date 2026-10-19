@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // ===== ตั้งค่าการเชื่อมต่อ Backend =====
 const API_URL = "http://localhost:3000";
 const TOKEN_KEY = "token"; // ต้องตรงกับชื่อที่ login.js ใช้เก็บ token ใน localStorage
@@ -19,11 +20,18 @@ function getUser() {
   }
 }
 
+=======
+// Frontend placeholder: room and availability data will be supplied by the backend later.
+>>>>>>> origin/frontend
 const roomCards = document.querySelectorAll(".room-card");
 const roomSelect = document.querySelector("#room-select");
 const form = document.querySelector("#booking-form");
 const formMessage = document.querySelector("#form-message");
+<<<<<<< HEAD
 const submitButton = form.querySelector(".submit-button");
+=======
+const bookingConfirmationDialog = document.querySelector("#booking-confirmation-dialog");
+>>>>>>> origin/frontend
 const navigationLinks = document.querySelectorAll(".main-nav .nav-link[href^='#']");
 const roomScheduleDialog = document.querySelector("#room-schedule-dialog");
 const roomScheduleLabel = document.querySelector("#schedule-room-label");
@@ -31,9 +39,35 @@ const roomScheduleRange = document.querySelector("#schedule-week-range");
 const weeklyScheduleBody = document.querySelector("#weekly-schedule-body");
 const weekDays = ["วันจันทร์", "วันอังคาร", "วันพุธ", "วันพฤหัสบดี", "วันศุกร์"];
 const timeSlots = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00"];
+<<<<<<< HEAD
 const AUTO_REFRESH_MS = 30000; // ตาราง Real-time รีเฟรชเองทุก 30 วินาที
 let rooms = [];               // รายการห้องจาก GET /rooms
 let selectedDayOffset = 0;    // 0 = วันนี้, 1 = พรุ่งนี้
+=======
+const weeklyAvailability = {
+  "1": [
+    [true, false, false, true, true, true, true],
+    [true, true, true, false, false, true, true],
+    [false, false, true, true, true, true, false],
+    [true, true, true, true, true, false, false],
+    [true, true, false, false, true, true, true]
+  ],
+  "2": [
+    [true, true, false, false, true, true, true],
+    [false, true, true, true, false, false, true],
+    [true, false, false, true, true, true, true],
+    [true, true, true, false, true, false, true],
+    [false, false, true, true, true, true, false]
+  ],
+  "3": [
+    [true, false, true, true, false, true, true],
+    [true, true, false, true, false, true, true],
+    [false, true, true, true, true, false, false],
+    [true, false, true, true, true, false, true],
+    [true, true, false, true, true, true, false]
+  ]
+};
+>>>>>>> origin/frontend
 
 function updateNavigationState() {
   const currentHash = window.location.hash;
@@ -55,13 +89,18 @@ function updateNavigationState() {
 window.addEventListener("hashchange", updateNavigationState);
 updateNavigationState();
 
+<<<<<<< HEAD
 // วันจันทร์ของสัปดาห์นี้ (ถ้าเป็นเสาร์-อาทิตย์ใช้สัปดาห์ถัดไป)
 function mondayOfThisWeek() {
+=======
+function updateScheduleWeekRange() {
+>>>>>>> origin/frontend
   const weekStart = new Date();
   const currentDay = weekStart.getDay();
   const daysUntilMonday = currentDay === 0 ? 1 : currentDay === 6 ? 2 : 1 - currentDay;
   weekStart.setDate(weekStart.getDate() + daysUntilMonday);
   weekStart.setHours(0, 0, 0, 0);
+<<<<<<< HEAD
   return weekStart;
 }
 
@@ -137,6 +176,39 @@ async function renderWeeklySchedule(cardIndex) {
     console.error(error);
     roomScheduleRange.textContent = "โหลดข้อมูลรายสัปดาห์ไม่ได้ ตรวจว่า Backend รันอยู่หรือไม่";
   }
+=======
+
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 4);
+  roomScheduleRange.textContent = `ข้อมูลตัวอย่าง · ${thaiDate(weekStart)} - ${thaiDate(weekEnd)}`;
+}
+
+function renderWeeklySchedule(roomNumber) {
+  roomScheduleLabel.textContent = `ห้องที่ ${roomNumber}`;
+  weeklyScheduleBody.replaceChildren();
+
+  weeklyAvailability[roomNumber].forEach((dayAvailability, dayIndex) => {
+    const row = document.createElement("tr");
+    const dayHeader = document.createElement("th");
+    dayHeader.scope = "row";
+    dayHeader.textContent = weekDays[dayIndex];
+    row.append(dayHeader);
+
+    dayAvailability.forEach((isAvailable, slotIndex) => {
+      const cell = document.createElement("td");
+      const status = document.createElement("span");
+      status.className = `slot-status ${isAvailable ? "available" : "booked"}`;
+      status.textContent = isAvailable ? "ว่าง" : "ถูกจอง";
+      status.setAttribute("aria-label", `${timeSlots[slotIndex]} ${isAvailable ? "ว่าง" : "ถูกจองแล้ว"}`);
+      cell.append(status);
+      row.append(cell);
+    });
+
+    weeklyScheduleBody.append(row);
+  });
+
+  updateScheduleWeekRange();
+>>>>>>> origin/frontend
 }
 
 document.querySelector("#schedule-modal-x").addEventListener("click", () => roomScheduleDialog.close());
@@ -148,7 +220,11 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && roomScheduleDialog.open) roomScheduleDialog.close();
 });
 
+<<<<<<< HEAD
 roomCards.forEach((card, cardIndex) => {
+=======
+roomCards.forEach((card) => {
+>>>>>>> origin/frontend
   card.addEventListener("click", () => {
     roomCards.forEach((item) => {
       item.classList.remove("selected");
@@ -156,17 +232,27 @@ roomCards.forEach((card, cardIndex) => {
     });
     card.classList.add("selected");
     card.setAttribute("aria-pressed", "true");
+<<<<<<< HEAD
     roomSelect.value = card.dataset.roomId || card.dataset.room;
     renderWeeklySchedule(cardIndex);
+=======
+    roomSelect.value = card.dataset.room;
+    renderWeeklySchedule(card.dataset.room);
+>>>>>>> origin/frontend
     roomScheduleDialog.showModal();
   });
 });
 
+<<<<<<< HEAD
+=======
+// Dates are placeholders for display only; backend integration can replace this logic.
+>>>>>>> origin/frontend
 function thaiDate(date) {
   return new Intl.DateTimeFormat("th-TH", {
     day: "numeric", month: "short", year: "numeric"
   }).format(date);
 }
+<<<<<<< HEAD
 
 // วันที่ตามเวลาเครื่อง (YYYY-MM-DD) — toISOString() ใช้เวลา UTC ทำให้ช่วงเช้าในไทยได้วันที่ของเมื่อวาน
 function localDate(date) {
@@ -181,17 +267,30 @@ document.querySelector("#today-label").textContent = thaiDate(today);
 document.querySelector("#tomorrow-label").textContent = thaiDate(tomorrow);
 bookingDateInput.value = localDate(today);
 bookingDateInput.min = localDate(today); // ห้ามเลือกวันย้อนหลัง
+=======
+const today = new Date();
+const tomorrow = new Date(today);
+tomorrow.setDate(today.getDate() + 1);
+document.querySelector("#today-label").textContent = thaiDate(today);
+document.querySelector("#tomorrow-label").textContent = thaiDate(tomorrow);
+document.querySelector("#booking-date").value = today.toISOString().slice(0, 10);
+>>>>>>> origin/frontend
 
 document.querySelector("#today-button").addEventListener("click", () => {
   document.querySelector("#today-button").classList.add("active");
   document.querySelector("#tomorrow-button").classList.remove("active");
+<<<<<<< HEAD
   bookingDateInput.value = localDate(today);
   selectedDayOffset = 0;
   loadAvailability();
+=======
+  document.querySelector("#booking-date").value = today.toISOString().slice(0, 10);
+>>>>>>> origin/frontend
 });
 document.querySelector("#tomorrow-button").addEventListener("click", () => {
   document.querySelector("#tomorrow-button").classList.add("active");
   document.querySelector("#today-button").classList.remove("active");
+<<<<<<< HEAD
   bookingDateInput.value = localDate(tomorrow);
   selectedDayOffset = 1;
   loadAvailability();
@@ -342,3 +441,66 @@ form.addEventListener("submit", async (event) => {
     submitButton.disabled = false;
   }
 });
+=======
+  document.querySelector("#booking-date").value = tomorrow.toISOString().slice(0, 10);
+});
+document.querySelector("#refresh-button").addEventListener("click", () => {
+  formMessage.textContent = "ยังไม่มีข้อมูลสถานะห้อง — เมื่อเชื่อมต่อ Backend แล้ว ปุ่มนี้จะดึงข้อมูลล่าสุด";
+});
+
+function formatConfirmationDate(dateValue) {
+  const [year, month, day] = dateValue.split("-").map(Number);
+  return new Intl.DateTimeFormat("th-TH", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  }).format(new Date(year, month - 1, day));
+}
+
+function showBookingConfirmation() {
+  const selectedRoom = roomSelect.options[roomSelect.selectedIndex].textContent;
+  const purpose = document.querySelector("#purpose").value.trim();
+  const booker = document.querySelector("#booking-user").textContent.trim();
+
+  document.querySelector("#confirmation-room").textContent = `${selectedRoom} (จุ 8 ที่นั่ง)`;
+  document.querySelector("#confirmation-date").textContent = formatConfirmationDate(
+    document.querySelector("#booking-date").value
+  );
+  document.querySelector("#confirmation-time").textContent =
+    `${document.querySelector("#start-time").value} - ${document.querySelector("#end-time").value} น.`;
+  document.querySelector("#confirmation-people").textContent =
+    `${document.querySelector("#people").value} คน`;
+  document.querySelector("#confirmation-purpose").textContent = purpose || "ไม่ได้ระบุ";
+  document.querySelector("#confirmation-booker").textContent = booker;
+  bookingConfirmationDialog.showModal();
+  bookingConfirmationDialog.focus({ preventScroll: true });
+}
+
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const startTime = document.querySelector("#start-time").value;
+  const endTime = document.querySelector("#end-time").value;
+  if (endTime <= startTime) {
+    formMessage.textContent = "เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้น";
+    document.querySelector("#end-time").focus();
+    return;
+  }
+
+  formMessage.textContent = "ระบบได้ส่งข้อมูลและรายละเอียดการจองห้องไปยัง Email ของคุณเรียบร้อยแล้ว โปรดตรวจสอบที่กล่องข้อความหรืออีเมลมหาวิทยาลัย เลย";
+  showBookingConfirmation();
+});
+
+document.querySelector("#confirmation-home-button").addEventListener("click", () => {
+  bookingConfirmationDialog.close();
+  document.querySelector("#top").scrollIntoView({ behavior: "smooth" });
+});
+
+document.querySelector("#confirmation-history-button").addEventListener("click", () => {
+  window.location.href = "./booking-his.html";
+});
+
+bookingConfirmationDialog.addEventListener("click", (event) => {
+  if (event.target === bookingConfirmationDialog) bookingConfirmationDialog.close();
+});
+>>>>>>> origin/frontend
