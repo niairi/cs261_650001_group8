@@ -325,6 +325,22 @@
   background: #FFF1F2;
 }
 
+/* US4 TC4: เหลือไม่ถึง 30 นาทีก่อนเริ่ม ปุ่มยกเลิกกดไม่ได้ */
+.history-cancel-button:disabled {
+  color: #94A3B8;
+  background: #F1F5F9;
+  border-color: #E2E8F0;
+  cursor: not-allowed;
+}
+
+.history-cancel-note {
+  margin: 0;
+  color: #64748B;
+  font-size: 9px;
+  line-height: 1.4;
+  text-align: center;
+}
+
 .history-completed-note {
   color: #64748B;
   background: #F8FAFC;

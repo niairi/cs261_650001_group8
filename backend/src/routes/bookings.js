@@ -208,13 +208,12 @@ router.patch('/:id/cancel', requireAuth, async (req, res, next) => {
     if (booking.status === 'CANCELLED') throw new HttpError(409, 'การจองนี้ถูกยกเลิกไปแล้ว');
     if (booking.status === 'EXPIRED') throw new HttpError(409, 'การจองนี้หมดอายุแล้ว');
 
-    // ห้ามยกเลิกการจองที่ถึงเวลาเริ่มแล้ว
-    const now = new Date();
-    const today = now.toLocaleDateString('sv-SE');
-    const nowTime = now.toTimeString().slice(0, 5);
-    if (booking.booking_date < today || (booking.booking_date === today && booking.start_time <= nowTime)) {
-      throw new HttpError(400, 'ไม่สามารถยกเลิกการจองที่ถึงเวลาเริ่มแล้ว');
-    }
+    // ยกเลิกได้ก่อนเวลาเริ่มอย่างน้อย 30 นาที (US4 TC4)
+       const CANCEL_BEFORE_MIN = 30;
+       const startAt = new Date(`${booking.booking_date}T${booking.start_time}:00`);
+       if (startAt.getTime() - Date.now() < CANCEL_BEFORE_MIN * 60 * 1000) {
+         throw new HttpError(400, `ยกเลิกได้ก่อนเวลาเริ่มอย่างน้อย ${CANCEL_BEFORE_MIN} นาที`);
+       }
 
     // เปลี่ยนสถานะแทนการลบ เพื่อเก็บประวัติไว้
     // JOIN room เพื่อได้ชื่อห้องไปใส่ในอีเมล

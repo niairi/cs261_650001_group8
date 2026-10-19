@@ -37,11 +37,23 @@ function formatThaiDate(date) {
 const escapeHtml = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+// หัวข้ออีเมลตาม US5 TC1/TC2 เช่น "[CS Co-Working] ยืนยันการจอง Room A (101) 22/10/2569 10:00–12:00"
+function emailSubject(action, booking) {
+  const shortDate = new Date(`${booking.booking_date}T00:00:00+07:00`).toLocaleDateString('th-TH', {
+    timeZone: 'Asia/Bangkok',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+  const roomLabel = booking.room_id ? `${booking.room_name} (${booking.room_id})` : booking.room_name;
+  return `[CS Co-Working] ${action} ${roomLabel} ${shortDate} ${booking.start_time}–${booking.end_time}`;
+}
+
 // booking: { booking_id, room_name, booking_date, start_time, end_time, student_id }
 function buildBookingConfirmationEmail(booking) {
   const date = formatThaiDate(booking.booking_date);
   const time = `${booking.start_time} - ${booking.end_time} น.`;
-  const subject = `ยืนยันการจองห้อง ${booking.room_name} ${date} ${time}`;
+  const subject = emailSubject('ยืนยันการจอง', booking);
 
   const rows = [
     ['หมายเลขการจอง', `#${booking.booking_id}`],
@@ -80,7 +92,7 @@ function buildBookingConfirmationEmail(booking) {
 function buildBookingCancellationEmail(booking) {
   const date = formatThaiDate(booking.booking_date);
   const time = `${booking.start_time} - ${booking.end_time} น.`;
-  const subject = `ยกเลิกการจองห้อง ${booking.room_name} ${date} ${time} เรียบร้อยแล้ว`;
+  const subject = emailSubject('ยกเลิกการจอง', booking);
 
   const rows = [
     ['หมายเลขการจอง', `#${booking.booking_id}`],
