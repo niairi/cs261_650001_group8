@@ -1,0 +1,34 @@
+@startuml
+skinparam defaultFontName Loma
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+autonumber
+title US5 : ส่งอีเมลแจ้งเตือนยืนยันการจอง / การยกเลิก
+participant "routes/bookings.js\n(POST /booking,\nPATCH /:id/cancel)" as R
+participant "emailService\nsendBookingEmail()" as E
+participant "SMTP Server\n(nodemailer)" as SMTP
+participant "emailLogRepo" as L
+database "PostgreSQL\nemail_logs" as DB
+actor "นักศึกษา\n(กล่องอีเมล)" as U
+
+R ->> E : sendBookingConfirmation(email, booking)\nหรือ sendBookingCancellation(...)
+E -> E : build...Email()\n(หัวเรื่อง, ห้อง, วันที่ไทย, เวลา)
+alt ไม่มีอีเมลผู้จอง
+  E -> L : insertEmailLog(SKIPPED, no-recipient)
+else ไม่ได้ตั้ง SMTP_HOST (โหมดทดสอบ)
+  E -> E : แสดงเนื้อหาอีเมลใน log ของ backend
+  E -> L : insertEmailLog(SKIPPED, smtp-not-configured)
+else ตั้ง SMTP แล้ว
+  E -> SMTP : sendMail(to, subject, text, html)
+  alt ส่งสำเร็จ
+    SMTP --> U : อีเมลยืนยัน
+    E -> L : insertEmailLog(SENT)
+  else ส่งไม่ได้
+    SMTP --> E : error
+    E -> L : insertEmailLog(FAILED, error)
+    note right of R : การจอง/ยกเลิกยังสำเร็จ\n(เขียนแค่ error ใน log)
+  end
+end
+L -> DB : INSERT INTO email_logs
+@enduml

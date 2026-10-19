@@ -1,0 +1,93 @@
+@startuml
+skinparam defaultFontName Loma
+skinparam defaultFontSize 12
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+title Class Diagram : Backend (Node.js + Express)
+
+package "routes (Express Router)" {
+  class LoginRouter <<router>> {
+    + POST /login
+  }
+  class RoomsRouter <<router>> {
+    + GET /rooms
+  }
+  class BookingsRouter <<router>> {
+    + POST /booking
+    + GET /booking?date=
+    + GET /booking/me
+    + PATCH /booking/:id/cancel
+    - validateBooking(body)
+  }
+  class AdminRouter <<router>> {
+    + GET /admin/bookings
+  }
+}
+
+package "middleware" {
+  class Auth <<module>> {
+    + requireAuth(req, res, next)
+    + requireAdmin(req, res, next)
+  }
+}
+
+package "services" {
+  class LoginService <<module>> {
+    + login(body) : LoginResponse
+    + roleOf(studentId) : string
+  }
+  class TuAuth <<module>> {
+    + verifyWithTU(username, password) : TuUser
+    + isMockMode() : boolean
+    - mockVerify(username, password)
+  }
+  class EmailService <<module>> {
+    + sendBookingConfirmation(to, booking)
+    + sendBookingCancellation(to, booking)
+    + buildBookingConfirmationEmail(booking)
+    + buildBookingCancellationEmail(booking)
+    + formatThaiDate(date) : string
+  }
+  class AdminService <<module>> {
+    + listBookings(db, filters)
+    + buildBookingQuery(filters)
+  }
+}
+
+package "repositories" {
+  class UserRepo <<module>> {
+    + upsertUser(db, user)
+  }
+  class EmailLogRepo <<module>> {
+    + insertEmailLog(db, log)
+  }
+}
+
+package "infrastructure" {
+  class Db <<pg.Pool>> {
+    + query(sql, params)
+    + connect()
+  }
+  class HttpError {
+    + status : number
+    + message : string
+    + details : string[]
+  }
+  class TuApiError
+}
+
+LoginRouter --> LoginService
+LoginService --> TuAuth
+LoginService --> UserRepo
+BookingsRouter --> Auth
+BookingsRouter --> EmailService
+BookingsRouter --> Db
+RoomsRouter --> Db
+AdminRouter --> Auth
+AdminRouter --> AdminService
+AdminService --> Db
+EmailService --> EmailLogRepo
+UserRepo --> Db
+EmailLogRepo --> Db
+HttpError -[hidden]- TuApiError
+@enduml
