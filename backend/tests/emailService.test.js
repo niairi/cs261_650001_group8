@@ -8,6 +8,8 @@ const booking = {
 };
 
 // transport ปลอม: จำว่าถูกสั่งส่งอะไรไปบ้าง
+const noLog = async () => {};
+
 function fakeTransport() {
   const sent = [];
   return { sent, sendMail: async (mail) => { sent.push(mail); } };
@@ -35,7 +37,7 @@ test('ชื่อห้องที่มีอักขระพิเศษ�
 
 test('ส่งอีเมลไปที่ผู้จอง', async () => {
   const t = fakeTransport();
-  const result = await sendBookingConfirmation('student@dome.tu.ac.th', booking, t);
+  const result = await sendBookingConfirmation('student@dome.tu.ac.th', booking, t, noLog);
   assert.deepEqual(result, { sent: true });
   assert.equal(t.sent.length, 1);
   assert.equal(t.sent[0].to, 'student@dome.tu.ac.th');
@@ -44,17 +46,46 @@ test('ส่งอีเมลไปที่ผู้จอง', async () => {
 
 test('ไม่มีอีเมลผู้จอง = ไม่ส่ง และไม่ error', async () => {
   const t = fakeTransport();
-  const result = await sendBookingConfirmation(null, booking, t);
+  const result = await sendBookingConfirmation(null, booking, t, noLog);
   assert.deepEqual(result, { sent: false, reason: 'no-recipient' });
   assert.equal(t.sent.length, 0);
 });
 
 test('ยังไม่ตั้ง SMTP = แสดงใน Terminal แทน และไม่ error', async () => {
-  const result = await sendBookingConfirmation('student@dome.tu.ac.th', booking, null);
+  const result = await sendBookingConfirmation('student@dome.tu.ac.th', booking, null, noLog);
   assert.deepEqual(result, { sent: false, reason: 'smtp-not-configured' });
 });
 
 test('SMTP ส่งไม่สำเร็จ = โยน error ให้คนเรียกจัดการ', async () => {
   const broken = { sendMail: async () => { throw new Error('SMTP down'); } };
-  await assert.rejects(sendBookingConfirmation('a@b.c', booking, broken), /SMTP down/);
+  await assert.rejects(sendBookingConfirmation('a@b.c', booking, broken, noLog), /SMTP down/);
+});
+
+// ---------- email_logs (Task32) ----------
+function recorder() { const logs = []; const fn = async (e) => { logs.push(e); }; fn.logs = logs; return fn; }
+
+test('ส่งสำเร็จ = บันทึก log SENT', async () => {
+  const log = recorder();
+  await sendBookingConfirmation('s@dome.tu.ac.th', booking, fakeTransport(), log);
+  assert.deepEqual(log.logs, [{ booking_id: 15, to_email: 's@dome.tu.ac.th', email_type: 'BOOKING_CONFIRMED', status: 'SENT' }]);
+});
+
+test('ส่งไม่สำเร็จ = บันทึก log FAILED พร้อมข้อความ error', async () => {
+  const log = recorder();
+  const broken = { sendMail: async () => { throw new Error('SMTP down'); } };
+  await assert.rejects(sendBookingConfirmation('s@dome.tu.ac.th', booking, broken, log));
+  assert.equal(log.logs[0].status, 'FAILED');
+  assert.equal(log.logs[0].error_message, 'SMTP down');
+});
+
+test('ไม่มีผู้รับ / ไม่ได้ตั้ง SMTP = บันทึก log SKIPPED', async () => {
+  const log = recorder();
+  await sendBookingConfirmation(null, booking, fakeTransport(), log);
+  await sendBookingConfirmation('s@dome.tu.ac.th', booking, null, log);
+  assert.deepEqual(log.logs.map((l) => [l.status, l.error_message]), [['SKIPPED', 'no-recipient'], ['SKIPPED', 'smtp-not-configured']]);
+});
+
+test('บันทึก log ไม่ได้ ไม่กระทบการส่งอีเมล', async () => {
+  const result = await sendBookingConfirmation('s@dome.tu.ac.th', booking, fakeTransport(), async () => { throw new Error('db down'); });
+  assert.deepEqual(result, { sent: true });
 });

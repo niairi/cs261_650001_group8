@@ -9,8 +9,15 @@ function roleOf(studentId) {
   return admins.includes(studentId) ? 'admin' : 'student';
 }
 
+// บันทึกผู้ใช้ลงตาราง users (Task28) — ถ้าบันทึกไม่ได้ login ยังผ่าน แค่เขียน log ไว้
+async function defaultSaveUser(user) {
+  const pool = require('../db');
+  const { upsertUser } = require('../repositories/userRepo');
+  await upsertUser(pool, user);
+}
+
 // body: { username, password, remember }
-async function login(body, verify = verifyWithTU) {
+async function login(body, verify = verifyWithTU, saveUser = defaultSaveUser) {
   const username = typeof body?.username === 'string' ? body.username.trim() : '';
   const password = typeof body?.password === 'string' ? body.password : '';
 
@@ -33,6 +40,13 @@ async function login(body, verify = verifyWithTU) {
   if (!user) throw new HttpError(401, 'เลขทะเบียนนักศึกษาหรือรหัสผ่านไม่ถูกต้อง');
 
   const role = roleOf(user.student_id);
+
+  try {
+    await saveUser({ ...user, role });
+  } catch (err) {
+    console.error('[login] บันทึกผู้ใช้ลงตาราง users ไม่สำเร็จ:', err.message);
+  }
+
   const payload = { student_id: user.student_id, email: user.email, name: user.name_th || user.name_en, role };
   // ติ๊ก "จดจำการเข้าสู่ระบบ" = token อยู่ได้นานขึ้น
   const expiresIn = body.remember ? '7d' : process.env.JWT_EXPIRES_IN || '8h';

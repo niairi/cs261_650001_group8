@@ -76,25 +76,50 @@ function buildBookingConfirmationEmail(booking) {
   return { subject, text, html };
 }
 
+// บันทึกผลการส่งลงตาราง email_logs (Task32) — ถ้าบันทึกไม่ได้ไม่ให้กระทบการส่งอีเมล
+async function defaultLog(entry) {
+  const pool = require('../db');
+  const { insertEmailLog } = require('../repositories/emailLogRepo');
+  await insertEmailLog(pool, entry);
+}
+
+async function safeLog(log, entry) {
+  try {
+    await log(entry);
+  } catch (err) {
+    console.error('[อีเมล] บันทึก email_logs ไม่สำเร็จ:', err.message);
+  }
+}
+
 // ส่งอีเมลยืนยัน — คืนค่า { sent: true/false, reason }
-// transport ส่งเข้ามาเองได้ (ใช้ตอน test)
-async function sendBookingConfirmation(to, booking, transport = getTransporter()) {
+// transport และ log ส่งเข้ามาเองได้ (ใช้ตอน test)
+async function sendBookingConfirmation(to, booking, transport = getTransporter(), log = defaultLog) {
+  const base = { booking_id: booking.booking_id, to_email: to || null, email_type: 'BOOKING_CONFIRMED' };
+
   if (!to) {
     console.warn(`[อีเมล] ไม่มีอีเมลของผู้จอง (booking #${booking.booking_id}) จึงไม่ได้ส่ง`);
+    await safeLog(log, { ...base, status: 'SKIPPED', error_message: 'no-recipient' });
     return { sent: false, reason: 'no-recipient' };
   }
   const mail = buildBookingConfirmationEmail(booking);
   if (!transport) {
     console.log(`[อีเมล] ยังไม่ได้ตั้ง SMTP จึงแสดงแทนการส่ง\nถึง: ${to}\nเรื่อง: ${mail.subject}\n${mail.text}\n`);
+    await safeLog(log, { ...base, status: 'SKIPPED', error_message: 'smtp-not-configured' });
     return { sent: false, reason: 'smtp-not-configured' };
   }
-  await transport.sendMail({
-    from: process.env.MAIL_FROM || process.env.SMTP_USER,
-    to,
-    subject: mail.subject,
-    text: mail.text,
-    html: mail.html,
-  });
+  try {
+    await transport.sendMail({
+      from: process.env.MAIL_FROM || process.env.SMTP_USER,
+      to,
+      subject: mail.subject,
+      text: mail.text,
+      html: mail.html,
+    });
+  } catch (err) {
+    await safeLog(log, { ...base, status: 'FAILED', error_message: err.message });
+    throw err;
+  }
+  await safeLog(log, { ...base, status: 'SENT' });
   return { sent: true };
 }
 
