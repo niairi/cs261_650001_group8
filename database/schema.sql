@@ -13,6 +13,8 @@ CREATE TABLE booking (
     booking_date DATE NOT NULL,
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
+    people INTEGER NOT NULL CHECK (people > 0),
+    purpose VARCHAR(255),
     status VARCHAR(20) NOT NULL DEFAULT 'BOOKED',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     confirmed_at TIMESTAMP,

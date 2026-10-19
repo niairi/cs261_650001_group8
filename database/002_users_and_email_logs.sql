@@ -15,6 +15,11 @@ CREATE TABLE IF NOT EXISTS users (
     last_login_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Link booking with users
+ALTER TABLE booking
+ADD CONSTRAINT fk_booking_student
+FOREIGN KEY (student_id) REFERENCES users(student_id);
+
 CREATE TABLE IF NOT EXISTS email_logs (
     email_log_id    BIGSERIAL PRIMARY KEY,
     booking_id      BIGINT REFERENCES booking(booking_id),
