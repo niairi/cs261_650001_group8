@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ประวัติการจอง | TU CS Space</title>
+  <link rel="stylesheet" href="./css/booking.css" />
+  <link rel="stylesheet" href="./css/booking-his.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+<body class="booking-history-page">
+  <header class="top-nav" id="top">
+    <a class="top-nav-brand" href="./booking.html#top" aria-label="TU CS Space หน้าหลัก">
+      <span class="top-nav-name">TU CS Space</span>
+      <span class="school-badge">THAMMASAT</span>
+      <span class="brand-divider" aria-hidden="true"></span>
+    </a>
+    <nav class="main-nav" aria-label="เมนูหลัก">
+      <a class="nav-link" href="./booking.html#rooms">ผังห้อง</a>
+      <a class="nav-link" href="./booking.html#availability">ตารางสถานะ Real-time</a>
+      <a class="nav-link" href="./booking.html#booking">ฟอร์มลงเวลาจอง</a>
+      <a class="nav-link active" href="./booking-his.html" aria-current="page">ประวัติการจอง</a>
+    </nav>
+    <div class="user-profile" aria-label="ผู้ใช้ username รหัสนักศึกษา id number">
+      <span class="profile-avatar" aria-hidden="true">U</span>
+      <span class="profile-details"><strong>username</strong><small>id number</small></span>
+    </div>
+  </header>
+
+  <main class="booking-history-main">
+    <section class="history-hero" aria-labelledby="history-title">
+      <div class="history-hero-copy">
+        <p class="history-location"><span aria-hidden="true"></span> LC4 ชั้น 1 มธ.ศูนย์รังสิต · Co-Working Space</p>
+        <h1 id="history-title">ประวัติการจองห้อง</h1>
+        <p class="history-intro">ตรวจสอบสถานะและยกเลิกการจองห้อง Co-Working Space (เปิดบริการ 09:00 - 16:00 น.)</p>
+      </div>
+      <div class="history-total" id="history-total" aria-label="รายการทั้งหมด 0 รายการ">
+        <span>รายการทั้งหมด</span>
+        <strong><span id="total-count">0</span> <small>รายการ</small></strong>
+      </div>
+    </section>
+
+    <nav class="history-filters" aria-label="กรองประวัติการจอง">
+      <button class="history-filter active" type="button" data-filter="all" aria-pressed="true">ทั้งหมด (<span data-count="all">0</span>)</button>
+      <button class="history-filter" type="button" data-filter="upcoming" aria-pressed="false">รอเข้าใช้งาน (Upcoming) (<span data-count="upcoming">0</span>)</button>
+      <button class="history-filter" type="button" data-filter="completed" aria-pressed="false">ใช้งานเสร็จสิ้น (Completed) (<span data-count="completed">0</span>)</button>
+      <button class="history-filter" type="button" data-filter="cancelled" aria-pressed="false">ยกเลิกแล้ว (Cancelled) (<span data-count="cancelled">0</span>)</button>
+    </nav>
+
+    <p class="history-data-note" role="status">กำลังรอเชื่อมต่อ Backend เพื่อโหลดประวัติการจอง</p>
+    <section class="history-list" id="history-list" aria-label="รายการประวัติการจอง" hidden></section>
+    <section class="history-empty panel" id="history-empty" aria-labelledby="history-empty-title">
+      <div class="history-empty-icon" aria-hidden="true">
+        <i class="fa-regular fa-calendar-days"></i>
+      </div>
+      <h2 id="history-empty-title">รอข้อมูลประวัติการจอง</h2>
+      <p>รายการจองและสถานะจะแสดงที่นี่เมื่อเชื่อมต่อระบบ Backend แล้ว</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 Department of Computer Science, Faculty of Science and Technology, Thammasat University.</p>
+    <div class="footer-links">
+      <a href="#">ระเบียบการใช้งาน</a>
+      <span aria-hidden="true">·</span>
+      <a href="#">ติดต่อผู้ดูแลระบบ CS</a>
+    </div>
+  </footer>
+  <script src="./js/booking-history.js"></script>
+</body>
+</html>

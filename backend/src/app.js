@@ -1,5 +1,6 @@
 const express = require('express');
 const roomsRouter = require('./routes/rooms');
+const adminRouter = require('./routes/admin');
 const loginRouter = require('./routes/login');
 const bookingsRouter = require('./routes/bookings'); 
 
@@ -26,6 +27,7 @@ app.use(express.json());
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 app.use('/rooms', roomsRouter);
+app.use('/admin', adminRouter);                     // US5 เจ้าหน้าที่
 app.use('/login', loginRouter);                     // US1 เข้าสู่ระบบ
 app.use('/booking', bookingsRouter); // เพิ่ม
 

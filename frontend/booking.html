@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 </head>
+
 <body>
   <header class="top-nav" id="top">
     <a class="top-nav-brand" href="#top" aria-label="TU CS Space หน้าหลัก">
@@ -21,7 +23,7 @@
       <a class="nav-link active" href="#rooms" aria-current="page">ผังห้อง</a>
       <a class="nav-link" href="#availability">ตารางสถานะ Real-time</a>
       <a class="nav-link" href="#booking">ฟอร์มลงเวลาจอง</a>
-      <span class="nav-link is-disabled" aria-disabled="true">ประวัติการจอง</span>
+      <a class="nav-link" href="./booking-his.html">ประวัติการจอง</a>
     </nav>
     <div class="user-profile" aria-label="ผู้ใช้ username รหัสนักศึกษา id number">
       <span class="profile-avatar" aria-hidden="true">U</span>
@@ -38,8 +40,8 @@
       </div>
       <aside class="notice">
         <p>
-            <i class="fa-solid fa-location-dot pin"></i>
-            อาคารบรรยายรวม 4 (LC4) ชั้น 1 มธ.ศูนย์รังสิต
+          <i class="fa-solid fa-location-dot pin"></i>
+          อาคารบรรยายรวม 4 (LC4) ชั้น 1 มธ.ศูนย์รังสิต
         </p>
         <p><span class="clock">◷</span> เปิดให้บริการทุกวัน 09:00 - 16:00 น.</p>
       </aside>
@@ -53,88 +55,88 @@
         <span class="muted small">คลิกเพื่อดูตารางเวลาเฉพาะห้อง</span>
       </div>
 
-<div class="room-grid" id="room-list">
-  <button class="room-card" type="button" data-room="1" aria-pressed="false">
-    <div class="room-top">
-      <span class="room-tag">ห้องที่ 1</span>
-      <span class="capacity">
-        <i class="fa-solid fa-users" aria-hidden="true"></i>
-        <span>8 ที่นั่ง</span>
-      </span>
-    </div>
+      <div class="room-grid" id="room-list">
+        <button class="room-card" type="button" data-room="1" aria-pressed="false">
+          <div class="room-top">
+            <span class="room-tag">ห้องที่ 1</span>
+            <span class="capacity">
+              <i class="fa-solid fa-users" aria-hidden="true"></i>
+              <span>8 ที่นั่ง</span>
+            </span>
+          </div>
 
-    <h3>ห้องที่ 101</h3>
+          <h3>ห้องที่ 1</h3>
 
-    <ul class="features">
-      <li>
-        <i class="fa-solid fa-plug" aria-hidden="true"></i>
-        <span>ปลั๊กพ่วงกำลังไฟสูง</span>
-      </li>
-      <li>
-        <i class="fa-solid fa-chalkboard" aria-hidden="true"></i>
-        <span>ไวท์บอร์ดกระจก</span>
-      </li>
-      <li>
-        <i class="fa-solid fa-tv" aria-hidden="true"></i>
-        <span>Smart TV</span>
-      </li>
-    </ul>
-  </button>
+          <ul class="features">
+            <li>
+              <i class="fa-solid fa-plug" aria-hidden="true"></i>
+              <span>ปลั๊กพ่วงกำลังไฟสูง</span>
+            </li>
+            <li>
+              <i class="fa-solid fa-chalkboard" aria-hidden="true"></i>
+              <span>ไวท์บอร์ดกระจก</span>
+            </li>
+            <li>
+              <i class="fa-solid fa-tv" aria-hidden="true"></i>
+              <span>Smart TV</span>
+            </li>
+          </ul>
+        </button>
 
-  <button class="room-card" type="button" data-room="2" aria-pressed="false">
-    <div class="room-top">
-      <span class="room-tag">ห้องที่ 2</span>
-      <span class="capacity">
-        <i class="fa-solid fa-users" aria-hidden="true"></i>
-        <span>8 ที่นั่ง</span>
-      </span>
-    </div>
+        <button class="room-card" type="button" data-room="2" aria-pressed="false">
+          <div class="room-top">
+            <span class="room-tag">ห้องที่ 2</span>
+            <span class="capacity">
+              <i class="fa-solid fa-users" aria-hidden="true"></i>
+              <span>8 ที่นั่ง</span>
+            </span>
+          </div>
 
-    <h3>ห้องที่ 102</h3>
+          <h3>ห้องที่ 2</h3>
 
-    <ul class="features">
-      <li>
-        <i class="fa-solid fa-plug" aria-hidden="true"></i>
-        <span>ปลั๊กพ่วงกำลังไฟสูง</span>
-      </li>
-      <li>
-        <i class="fa-solid fa-chalkboard" aria-hidden="true"></i>
-        <span>ไวท์บอร์ดกระจก</span>
-      </li>
-      <li>
-        <i class="fa-solid fa-tv" aria-hidden="true"></i>
-        <span>Smart TV</span>
-      </li>
-    </ul>
-  </button>
+          <ul class="features">
+            <li>
+              <i class="fa-solid fa-plug" aria-hidden="true"></i>
+              <span>ปลั๊กพ่วงกำลังไฟสูง</span>
+            </li>
+            <li>
+              <i class="fa-solid fa-chalkboard" aria-hidden="true"></i>
+              <span>ไวท์บอร์ดกระจก</span>
+            </li>
+            <li>
+              <i class="fa-solid fa-tv" aria-hidden="true"></i>
+              <span>Smart TV</span>
+            </li>
+          </ul>
+        </button>
 
-  <button class="room-card" type="button" data-room="3" aria-pressed="false">
-    <div class="room-top">
-      <span class="room-tag">ห้องที่ 3</span>
-      <span class="capacity">
-        <i class="fa-solid fa-users" aria-hidden="true"></i>
-        <span>8 ที่นั่ง</span>
-      </span>
-    </div>
+        <button class="room-card" type="button" data-room="3" aria-pressed="false">
+          <div class="room-top">
+            <span class="room-tag">ห้องที่ 3</span>
+            <span class="capacity">
+              <i class="fa-solid fa-users" aria-hidden="true"></i>
+              <span>8 ที่นั่ง</span>
+            </span>
+          </div>
 
-    <h3>ห้องที่ 103</h3>
+          <h3>ห้องที่ 3</h3>
 
-    <ul class="features">
-      <li>
-        <i class="fa-solid fa-plug" aria-hidden="true"></i>
-        <span>ปลั๊กพ่วงกำลังไฟสูง</span>
-      </li>
-      <li>
-        <i class="fa-solid fa-chalkboard" aria-hidden="true"></i>
-        <span>ไวท์บอร์ดกระจก</span>
-      </li>
-      <li>
-        <i class="fa-solid fa-tv" aria-hidden="true"></i>
-        <span>Smart TV</span>
-      </li>
-    </ul>
-  </button>
-</div>
+          <ul class="features">
+            <li>
+              <i class="fa-solid fa-plug" aria-hidden="true"></i>
+              <span>ปลั๊กพ่วงกำลังไฟสูง</span>
+            </li>
+            <li>
+              <i class="fa-solid fa-chalkboard" aria-hidden="true"></i>
+              <span>ไวท์บอร์ดกระจก</span>
+            </li>
+            <li>
+              <i class="fa-solid fa-tv" aria-hidden="true"></i>
+              <span>Smart TV</span>
+            </li>
+          </ul>
+        </button>
+      </div>
     </section>
 
     <dialog class="room-schedule-dialog" id="room-schedule-dialog" aria-labelledby="schedule-modal-title">
@@ -162,8 +164,13 @@
             <thead>
               <tr>
                 <th scope="col">วัน / เวลา</th>
-                <th scope="col">09:00</th><th scope="col">10:00</th><th scope="col">11:00</th><th scope="col">12:00</th>
-                <th scope="col">13:00</th><th scope="col">14:00</th><th scope="col">15:00</th>
+                <th scope="col">09:00</th>
+                <th scope="col">10:00</th>
+                <th scope="col">11:00</th>
+                <th scope="col">12:00</th>
+                <th scope="col">13:00</th>
+                <th scope="col">14:00</th>
+                <th scope="col">15:00</th>
               </tr>
             </thead>
             <tbody id="weekly-schedule-body"></tbody>
@@ -179,8 +186,10 @@
       <div class="availability-heading">
         <h2><span class="red-icon">◷</span> ตารางสถานะห้องว่างแบบ Real-time</h2>
         <div class="table-actions">
-          <button class="date-chip active" id="today-button" type="button">วันนี้ (<span id="today-label">17 ต.ค. 2569</span>)</button>
-          <button class="date-chip" id="tomorrow-button" type="button">พรุ่งนี้ (<span id="tomorrow-label">18 ต.ค. 2569</span>)</button>
+          <button class="date-chip active" id="today-button" type="button">วันนี้ (<span id="today-label">17 ต.ค.
+              2569</span>)</button>
+          <button class="date-chip" id="tomorrow-button" type="button">พรุ่งนี้ (<span id="tomorrow-label">18 ต.ค.
+              2569</span>)</button>
           <button class="refresh" id="refresh-button" type="button" aria-label="รีเฟรชสถานะ">↻</button>
         </div>
       </div>
@@ -189,14 +198,28 @@
           <thead>
             <tr>
               <th>ห้อง/ช่วงเวลา (3 ห้อง)</th>
-              <th>09:00</th><th>10:00</th><th>11:00</th><th>12:00</th>
-              <th>13:00</th><th>14:00</th><th>15:00</th>
+              <th>09:00</th>
+              <th>10:00</th>
+              <th>11:00</th>
+              <th>12:00</th>
+              <th>13:00</th>
+              <th>14:00</th>
+              <th>15:00</th>
             </tr>
           </thead>
           <tbody id="schedule-body">
-            <tr data-room-row="1"><th>ห้องที่ 1 <small>จุ 8 ที่นั่ง</small></th><td colspan="7"><span class="empty-status">รอข้อมูลจากระบบ</span></td></tr>
-            <tr data-room-row="2"><th>ห้องที่ 2 <small>จุ 8 ที่นั่ง</small></th><td colspan="7"><span class="empty-status">รอข้อมูลจากระบบ</span></td></tr>
-            <tr data-room-row="3"><th>ห้องที่ 3 <small>จุ 8 ที่นั่ง</small></th><td colspan="7"><span class="empty-status">รอข้อมูลจากระบบ</span></td></tr>
+            <tr data-room-row="1">
+              <th>ห้องที่ 1 <small>จุ 8 ที่นั่ง</small></th>
+              <td colspan="7"><span class="empty-status">รอข้อมูลจากระบบ</span></td>
+            </tr>
+            <tr data-room-row="2">
+              <th>ห้องที่ 2 <small>จุ 8 ที่นั่ง</small></th>
+              <td colspan="7"><span class="empty-status">รอข้อมูลจากระบบ</span></td>
+            </tr>
+            <tr data-room-row="3">
+              <th>ห้องที่ 3 <small>จุ 8 ที่นั่ง</small></th>
+              <td colspan="7"><span class="empty-status">รอข้อมูลจากระบบ</span></td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -215,9 +238,9 @@
             <span>เลือกห้อง CO-WORKING SPACE (3 ห้อง)</span>
             <select id="room-select" name="room" required>
               <option value="" selected disabled>กรุณาเลือกห้อง</option>
-              <option value="1">ห้องที่ 1</option>
-              <option value="2">ห้องที่ 2</option>
-              <option value="3">ห้องที่ 3</option>
+              <option value="101">ห้องที่ 1</option>
+              <option value="102">ห้องที่ 2</option>
+              <option value="103">ห้องที่ 3</option>
             </select>
           </label>
           <label class="field">
@@ -233,16 +256,26 @@
             <span>เวลาเริ่มต้น (START TIME)</span>
             <select id="start-time" name="startTime" required>
               <option value="" selected disabled>เลือกเวลาเริ่มต้น</option>
-              <option>09:00</option><option>10:00</option><option>11:00</option>
-              <option>12:00</option><option>13:00</option><option>14:00</option><option>15:00</option>
+              <option>09:00</option>
+              <option>10:00</option>
+              <option>11:00</option>
+              <option>12:00</option>
+              <option>13:00</option>
+              <option>14:00</option>
+              <option>15:00</option>
             </select>
           </label>
           <label class="field">
             <span>เวลาสิ้นสุด (END TIME)</span>
             <select id="end-time" name="endTime" required>
               <option value="" selected disabled>เลือกเวลาสิ้นสุด</option>
-              <option>10:00</option><option>11:00</option><option>12:00</option>
-              <option>13:00</option><option>14:00</option><option>15:00</option><option>16:00</option>
+              <option>10:00</option>
+              <option>11:00</option>
+              <option>12:00</option>
+              <option>13:00</option>
+              <option>14:00</option>
+              <option>15:00</option>
+              <option>16:00</option>
             </select>
           </label>
           <label class="field full">
@@ -251,13 +284,70 @@
           </label>
         </div>
         <div class="form-bottom">
-          <p class="user-note"><i class="fa-regular fa-user user-icon" aria-hidden="true"></i> ผู้จอง: <strong id="booking-user">Name Surname (id number)</strong></p>
+          <p class="user-note"><i class="fa-regular fa-user user-icon" aria-hidden="true"></i> ผู้จอง: <strong
+              id="booking-user">Name Surname (id number)</strong></p>
           <button class="submit-button" type="submit">ยืนยันการจองห้องล่วงหน้า <span>➜</span></button>
         </div>
-        <p class="backend-note" id="form-message" role="status">ระบบแสดงตัวอย่างหน้าจอเท่านั้น — รอเชื่อมต่อ Backend ก่อนส่งคำขอจองจริง</p>
+        <p class="backend-note" id="form-message" role="status">ระบบแสดงตัวอย่างหน้าจอเท่านั้น — รอเชื่อมต่อ Backend
+          ก่อนส่งคำขอจองจริง</p>
       </form>
     </section>
   </main>
+
+  <dialog class="booking-confirmation-dialog" id="booking-confirmation-dialog" tabindex="-1"
+    aria-labelledby="confirmation-title" aria-describedby="confirmation-message">
+    <div class="confirmation-content">
+      <div class="confirmation-icon" aria-hidden="true">
+        <i class="fa-solid fa-check"></i>
+      </div>
+      <p class="confirmation-status"><span aria-hidden="true"></span> ตรวจสอบข้อมูลเรียบร้อย</p>
+      <h2 id="confirmation-title">ตรวจสอบข้อมูลการจองแล้ว!</h2>
+      <p class="confirmation-message" id="confirmation-message">
+        ระบบได้ส่งข้อมูลและรายละเอียดการจองห้องไปยัง Email ของคุณเรียบร้อยแล้ว<br />
+        โปรดตรวจสอบที่กล่องข้อความหรืออีเมลมหาวิทยาลัย
+      </p>
+
+      <div class="confirmation-details">
+        <div class="confirmation-detail">
+          <span class="confirmation-label">ห้องที่จอง</span>
+          <strong id="confirmation-room"></strong>
+        </div>
+        <div class="confirmation-detail">
+          <span class="confirmation-label">สถานที่</span>
+          <strong>อาคาร LC4 ชั้น 1</strong>
+        </div>
+        <div class="confirmation-detail">
+          <span class="confirmation-label">วันที่ใช้บริการ</span>
+          <strong id="confirmation-date"></strong>
+        </div>
+        <div class="confirmation-detail">
+          <span class="confirmation-label">ช่วงเวลา</span>
+          <strong class="confirmation-time" id="confirmation-time"></strong>
+        </div>
+        <div class="confirmation-detail">
+          <span class="confirmation-label">จำนวนผู้เข้าใช้งาน</span>
+          <strong id="confirmation-people"></strong>
+        </div>
+        <div class="confirmation-detail confirmation-purpose">
+          <span class="confirmation-label">วัตถุประสงค์</span>
+          <strong id="confirmation-purpose"></strong>
+        </div>
+        <div class="confirmation-detail confirmation-detail-wide confirmation-booker">
+          <span class="confirmation-label">ผู้จอง</span>
+          <strong id="confirmation-booker"></strong>
+        </div>
+      </div>
+
+      <div class="confirmation-actions">
+        <button class="confirmation-home-button" id="confirmation-home-button" type="button">
+          <span aria-hidden="true">←</span> กลับสู่หน้าหลัก
+        </button>
+        <button class="confirmation-history-button" id="confirmation-history-button" type="button">
+          ไปสู่หน้าประวัติการจอง <span aria-hidden="true">➜</span>
+        </button>
+      </div>
+    </div>
+  </dialog>
 
   <footer class="site-footer">
     <p>© 2026 Department of Computer Science, Faculty of Science and Technology, Thammasat University.</p>
@@ -269,4 +359,5 @@
   </footer>
   <script src="./js/booking.js"></script>
 </body>
+
 </html>

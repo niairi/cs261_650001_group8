@@ -1,0 +1,53 @@
+@startuml
+skinparam defaultFontName Loma
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+autonumber
+title US1 : Login เข้าสู่ระบบด้วย TU Account
+actor "นักศึกษา" as U
+participant "Frontend\nlogin.html / login.js" as FE
+participant "Backend\nPOST /login\n(routes/login.js)" as R
+participant "loginService" as S
+participant "tuAuth\n(verifyWithTU)" as T
+participant "TU REST API" as TU
+participant "userRepo" as UR
+database "PostgreSQL\nusers" as DB
+
+U -> FE : กรอก username / password\n(+ จดจำการเข้าสู่ระบบ)
+FE -> FE : ตรวจช่องว่าง
+FE -> R : POST /login {username, password, remember}
+R -> S : login(body)
+alt กรอกไม่ครบ
+  S --> R : HttpError 400
+  R --> FE : 400 ข้อมูลเข้าสู่ระบบไม่ถูกต้อง
+else กรอกครบ
+  S -> T : verifyWithTU(username, password)
+  alt มี TU_API_KEY
+    T -> TU : POST /auth/Ad/verify\n(Application-Key)
+    TU --> T : {status, email, displayname, ...}
+  else ไม่มี TU_API_KEY (โหมดจำลอง)
+    T -> T : mockVerify()
+  end
+  alt ติดต่อ TU ไม่ได้
+    T --> S : TuApiError
+    S --> R : HttpError 502
+    R --> FE : 502 เชื่อมต่อระบบมหาวิทยาลัยไม่ได้
+  else รหัสผ่านผิด
+    T --> S : null
+    S --> R : HttpError 401
+    R --> FE : 401 เลขทะเบียนหรือรหัสผ่านไม่ถูกต้อง
+  else สำเร็จ
+    T --> S : ข้อมูลผู้ใช้
+    S -> S : roleOf(student_id)\n(อยู่ใน ADMIN_IDS = admin)
+    S -> UR : upsertUser(user)
+    UR -> DB : INSERT ... ON CONFLICT DO UPDATE
+    DB --> UR : ok
+    S -> S : jwt.sign(payload, 8h / 7d)
+    S --> R : {token, user}
+    R --> FE : 200 {token, user}
+    FE -> FE : localStorage.setItem(token, user)
+    FE --> U : ไปหน้า booking.html
+  end
+end
+@enduml

@@ -1,0 +1,50 @@
+@startuml
+skinparam defaultFontName Loma
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+autonumber
+title US4 : ดูรายการจองของฉัน และกดยกเลิกการจอง
+actor "นักศึกษา" as U
+participant "Frontend\nbooking-his.html\nbooking-history.js" as FE
+participant "Backend\nGET /booking/me\nPATCH /booking/:id/cancel" as R
+participant "middleware\nrequireAuth" as A
+participant "emailService" as E
+database "PostgreSQL\nbooking, room" as DB
+
+U -> FE : เปิดหน้าประวัติการจอง
+FE -> R : GET /booking/me (Bearer token)
+R -> A : ตรวจ token
+A -> R : req.user
+R -> DB : SELECT booking JOIN room\nWHERE student_id = ผู้ใช้
+DB --> R : รายการจอง
+R --> FE : 200 [bookings]
+FE -> FE : canCancel(): เหลือเวลาก่อนเริ่ม\nอย่างน้อย 30 นาทีไหม (US4 TC4)
+alt เหลือไม่ถึง 30 นาที
+  FE --> U : ปุ่มยกเลิกกดไม่ได้ + "ยกเลิกได้ก่อนเวลาเริ่ม\nอย่างน้อย 30 นาที"
+else ยกเลิกได้
+FE --> U : แสดงรายการ + ปุ่มยกเลิก
+U -> FE : กดยกเลิก
+FE --> U : หน้าต่างยืนยันการยกเลิก
+alt กดไม่ยกเลิก
+  FE --> U : ปิดหน้าต่าง (ไม่เปลี่ยนแปลง)
+else ยืนยัน
+  FE -> R : PATCH /booking/:id/cancel
+  R -> DB : BEGIN\nSELECT booking ... FOR UPDATE
+  alt ไม่พบ
+    R --> FE : 404
+  else ไม่ใช่การจองของตัวเอง
+    R --> FE : 403
+  else CANCELLED / EXPIRED อยู่แล้ว
+    R --> FE : 409
+  else เหลือไม่ถึง 30 นาที (เช็คซ้ำฝั่ง backend)
+    R --> FE : 400 ยกเลิกได้ก่อนเวลาเริ่ม\nอย่างน้อย 30 นาที
+  else ยกเลิกได้
+    R -> DB : UPDATE status = CANCELLED\nCOMMIT
+    R ->> E : sendBookingCancellation() (ไม่รอ)
+    R --> FE : 200 ยกเลิกการจองสำเร็จ
+    FE --> U : อัปเดตรายการ (สถานะยกเลิกแล้ว)
+  end
+end
+end
+@enduml

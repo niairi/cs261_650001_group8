@@ -1,0 +1,84 @@
+@startuml
+skinparam defaultFontName Loma
+skinparam defaultFontSize 14
+skinparam activity {
+  BackgroundColor #FFFFFF
+  BorderColor #1F4E79
+  DiamondBackgroundColor #FCE4D6
+}
+skinparam note {
+  BackgroundColor #FFF2CC
+  BorderColor #BF9000
+}
+title Business Workflow (Activity Diagram) : การจองห้อง CS Co-Working Space พร้อม Domain Object
+
+|นักศึกษา|
+start
+:Login ด้วย TU Account;
+|ระบบจองห้อง|
+:ตรวจสอบตัวตนผ่าน TU REST API;
+if (เป็นนักศึกษาสาขาวิทยาการคอมพิวเตอร์?) then (ไม่ใช่)
+  :แจ้ง "ไม่มีสิทธิ์ใช้งานระบบ";
+  stop
+else (ใช่)
+endif
+:แสดงตารางห้องว่าง/ไม่ว่าง แบบ Real-time;
+note right
+  <b>Domain Object</b>
+  ตารางห้อง (Room Schedule)
+end note
+repeat
+  |นักศึกษา|
+  :เลือกห้อง วัน ช่วงเวลา\nจำนวนคน และวัตถุประสงค์;
+  :กดยืนยันการจอง;
+  |ระบบจองห้อง|
+  :ตรวจช่วงเวลาว่าง / เวลา 09:00–17:00\nครั้งละไม่เกิน 3 ชม. / จองล่วงหน้าไม่เกิน 7 วัน;
+repeat while (ผ่านเงื่อนไข?) is (ไม่ผ่าน : แจ้งเหตุผล)
+->ผ่าน;
+:บันทึกการจอง สถานะ BOOKED;
+note right
+  <b>Domain Object</b>
+  ใบจอง (Booking)
+end note
+:ส่งอีเมลยืนยันการจอง (SMTP);
+note right
+  <b>Domain Object</b>
+  อีเมลยืนยันการจอง
+end note
+|นักศึกษา|
+if (มาใช้ห้องตามเวลาที่จอง?) then (ไม่มา)
+  if (ยกเลิกก่อนเวลาเริ่ม อย่างน้อย 30 นาที?) then (ยกเลิก)
+    |นักศึกษา|
+    :กดยกเลิกการจอง;
+    |ระบบจองห้อง|
+    :เปลี่ยนสถานะเป็น CANCELLED\nคืนช่วงเวลาให้ผู้อื่นจอง;
+        :ส่งอีเมลแจ้งการยกเลิก (SMTP);
+    stop
+  else (ไม่ยกเลิก)
+    |ระบบจองห้อง|
+    :ไม่ยืนยันการเข้าใช้งานภายใน 15 นาที\nเปลี่ยนสถานะเป็น EXPIRED (No-show)\nและคืนช่วงเวลาที่เหลือ;
+    if (No-show ครบ 3 ครั้งในภาคการศึกษา?) then (ใช่)
+      :ระงับสิทธิ์การจอง 30 วัน (Blacklist);
+      note right
+        <b>Domain Object</b>
+        รายชื่อ Blacklist
+      end note
+            :ส่งอีเมลแจ้งการระงับสิทธิ์ (SMTP);
+    else (ยังไม่ครบ)
+    endif
+    stop
+  endif
+else (มา)
+  |นักศึกษา|
+  :ไปที่ห้อง แล้วกดยืนยันการเข้าใช้งาน (Check-in);
+  note right
+    <b>Domain Object</b>
+    ตำแหน่งห้อง (พิกัด GPS)
+  end note
+  |ระบบจองห้อง|
+  :ตรวจตำแหน่ง GPS อยู่ภายในระยะ 5 เมตร\nและอยู่ในช่วงเวลาที่จอง\nเปลี่ยนสถานะเป็น CONFIRMED;
+  |นักศึกษา|
+  :ใช้ห้องตามเวลาที่จอง;
+  stop
+endif
+@enduml

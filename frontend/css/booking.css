@@ -1,14 +1,14 @@
 :root {
-  --maroon: #82001E;
-  --maroon-dark: #4B0012;
-  --red: #A8173A;
-  --gold: #D6B66D;
-  --ink: #29252A;
-  --muted: #77717A;
-  --line: #D9D9D9;
+  --maroon: #82001e;
+  --maroon-dark: #4b0012;
+  --red: #a8173a;
+  --gold: #d6b66d;
+  --ink: #29252a;
+  --muted: #77717a;
+  --line: #d9d9d9;
   --line-soft: rgba(217, 217, 217, 0.5);
-  --surface: #FFFFFF;
-  --page: #F8F5F6;
+  --surface: #ffffff;
+  --page: #f8f5f6;
 }
 
 * {
@@ -22,7 +22,12 @@ html {
 body {
   margin: 0;
   color: var(--ink);
-  background: radial-gradient(ellipse at top, #FFFFFF 0%, #F8F5F6 65%, #F1E9EC 100%);
+  background: radial-gradient(
+    ellipse at top,
+    #ffffff 0%,
+    #f8f5f6 65%,
+    #f1e9ec 100%
+  );
   font-family: "Prompt", sans-serif;
   font-size: 13px;
 }
@@ -48,7 +53,7 @@ button {
   min-height: 56px;
   padding: 8px 26px;
   background: var(--surface);
-  border-bottom: 1px solid #E9E2E4;
+  border-bottom: 1px solid #e9e2e4;
   box-shadow: 0 2px 10px rgba(75, 0, 18, 0.06);
 }
 
@@ -68,17 +73,17 @@ button {
 
 .school-badge {
   padding: 2px 6px;
-  border: 1px solid #E9D7DC;
+  border: 1px solid #e9d7dc;
   border-radius: 4px;
   color: var(--maroon);
-  background: #FBF7F8;
+  background: #fbf7f8;
   font-size: 8px;
   font-weight: 700;
 }
 
 .brand-divider {
   height: 20px;
-  border-left: 1px solid #E9E2E4;
+  border-left: 1px solid #e9e2e4;
   margin-left: 2px;
 }
 
@@ -110,7 +115,7 @@ button {
 }
 
 .nav-link.is-disabled {
-  color: #A29AA0;
+  color: #a29aa0;
   cursor: default;
 }
 
@@ -119,9 +124,9 @@ button {
   align-items: center;
   gap: 7px;
   padding: 4px 9px 4px 5px;
-  border: 1px solid #E9E2E4;
+  border: 1px solid #e9e2e4;
   border-radius: 20px;
-  background: #FBF9FA;
+  background: #fbf9fa;
 }
 
 .profile-avatar {
@@ -156,7 +161,7 @@ button {
 }
 
 .hero {
-  background: linear-gradient(120deg, var(--maroon) 0%, #8D0625 100%);
+  background: linear-gradient(120deg, var(--maroon) 0%, #8d0625 100%);
   color: white;
   border-bottom: 4px solid var(--gold);
 }
@@ -172,7 +177,7 @@ button {
 }
 
 .eyebrow {
-  color: #F0D99D;
+  color: #f0d99d;
   font-size: 11px;
   font-weight: 700;
   margin: 0 0 4px;
@@ -198,7 +203,7 @@ h1 {
 
 .pin,
 .clock {
-  color: #F0D99D;
+  color: #f0d99d;
   margin-right: 7px;
 }
 
@@ -262,28 +267,34 @@ h2 {
 .room-card {
   text-align: left;
   background: var(--surface);
-  border: 2px solid #D9D9D9;
+  border: 2px solid #d9d9d9;
   border-radius: 10px;
   padding: 13px 15px 12px;
   min-height: 128px;
   color: var(--ink);
-  transition: border-color .15s, box-shadow .15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .room-card:hover {
   border-color: var(--maroon);
-  box-shadow: 0 0 0 3px rgba(130, 0, 30, 0.24), 0 6px 20px rgba(75, 0, 18, 0.28);
+  box-shadow:
+    0 0 0 3px rgba(130, 0, 30, 0.24),
+    0 6px 20px rgba(75, 0, 18, 0.28);
 }
 
 .room-card.selected {
-  border-color: #D9D9D9;
-  background: #FFFBFC;
+  border-color: #d9d9d9;
+  background: #fffbfc;
   box-shadow: 0 3px 12px rgba(130, 0, 30, 0.08);
 }
 
 .room-card.selected:hover {
   border-color: var(--maroon);
-  box-shadow: 0 0 0 3px rgba(130, 0, 30, 0.24), 0 6px 20px rgba(75, 0, 18, 0.28);
+  box-shadow:
+    0 0 0 3px rgba(130, 0, 30, 0.24),
+    0 6px 20px rgba(75, 0, 18, 0.28);
 }
 
 .room-top {
@@ -295,13 +306,13 @@ h2 {
 
 .room-top .room-tag,
 .room-top .capacity {
-  border-color: #D9D9D9;
+  border-color: #d9d9d9;
 }
 
 .room-tag {
   border: 1px solid var(--line);
   border-radius: 5px;
-  background: #F8F5F6;
+  background: #f8f5f6;
   padding: 3px 8px;
   font-size: 11px;
   font-weight: 700;
@@ -345,7 +356,7 @@ h2 {
   width: min(930px, calc(100vw - 36px));
   max-height: 90vh;
   padding: 0;
-  border: 1px solid #D8E1EC;
+  border: 1px solid #d8e1ec;
   border-radius: 16px;
   color: var(--ink);
   background: white;
@@ -357,13 +368,173 @@ h2 {
   background: rgba(18, 16, 20, 0.72);
 }
 
+.booking-confirmation-dialog {
+  width: min(540px, calc(100vw - 32px));
+  max-height: min(92vh, 760px);
+  padding: 0;
+  border: 1px solid #e1e8f0;
+  border-top: 10px solid var(--maroon);
+  border-radius: 15px;
+  color: #172033;
+  background: #ffffff;
+  box-shadow: 0 24px 80px rgba(15, 18, 28, 0.32);
+  overflow: auto;
+}
+
+.booking-confirmation-dialog::backdrop {
+  background: rgba(18, 16, 20, 0.72);
+}
+
+.booking-confirmation-dialog:focus {
+  outline: none;
+}
+
+.confirmation-content {
+  padding: 24px 28px 22px;
+  text-align: center;
+}
+
+.confirmation-icon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 14px;
+  border: 4px solid #c8f3e0;
+  border-radius: 50%;
+  color: #059669;
+  background: #ecfdf5;
+  font-size: 31px;
+}
+
+.confirmation-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 8px;
+  padding: 3px 11px;
+  border: 1px solid #a7f3d0;
+  border-radius: 20px;
+  color: #047857;
+  background: #f0fdf4;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.confirmation-status span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+.booking-confirmation-dialog h2 {
+  margin: 0 0 5px;
+  color: #111827;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.confirmation-message {
+  margin: 0 0 16px;
+  color: #536176;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.confirmation-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+  padding: 14px 15px;
+  border: 1px solid #dfe7f1;
+  border-radius: 12px;
+  background: #f8fafd;
+  text-align: left;
+}
+
+.confirmation-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.confirmation-label {
+  color: #93a1b5;
+  font-size: 10px;
+}
+
+.confirmation-detail strong {
+  color: #202b3f;
+  font-size: 12px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.confirmation-detail .confirmation-time {
+  color: #047857;
+}
+
+.confirmation-detail-wide {
+  grid-column: 1 / -1;
+}
+
+.confirmation-booker {
+  padding-top: 10px;
+  border-top: 1px solid #dfe7f1;
+}
+
+.confirmation-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  margin-top: 18px;
+}
+
+.confirmation-home-button,
+.confirmation-history-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.confirmation-home-button {
+  border: 0;
+  color: #ffffff;
+  background: var(--maroon);
+  box-shadow: 0 3px 7px rgba(75, 0, 18, 0.18);
+}
+
+.confirmation-home-button:hover {
+  background: var(--maroon-dark);
+}
+
+.confirmation-history-button {
+  border: 1px solid #e2e8f0;
+  color: var(--maroon);
+  background: #ffffff;
+}
+
+.confirmation-history-button:hover {
+  border-color: var(--maroon);
+  background: #fbf7f8;
+}
+
 .schedule-modal-header {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 17px 22px;
   color: white;
-  background: #8B001C;
+  background: #8b001c;
 }
 
 .schedule-modal-icon {
@@ -374,7 +545,7 @@ h2 {
   flex: 0 0 40px;
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 11px;
-  color: #F4C900;
+  color: #f4c900;
   font-size: 18px;
 }
 
@@ -399,7 +570,7 @@ h2 {
   padding: 3px 9px;
   border-radius: 6px;
   color: #641400;
-  background: #FFC928;
+  background: #ffc928;
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
@@ -437,9 +608,9 @@ h2 {
   gap: 14px;
   margin-bottom: 16px;
   padding: 11px 13px;
-  border: 1px solid #E4EAF2;
+  border: 1px solid #e4eaf2;
   border-radius: 12px;
-  background: #F8FAFD;
+  background: #f8fafd;
 }
 
 .schedule-legend-items {
@@ -449,11 +620,11 @@ h2 {
   gap: 18px;
 }
 
-.schedule-legend-items>span {
+.schedule-legend-items > span {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: #44536A;
+  color: #44536a;
   font-size: 12px;
 }
 
@@ -465,22 +636,22 @@ h2 {
 }
 
 .legend-dot.available {
-  background: #10B981;
+  background: #10b981;
 }
 
 .legend-dot.booked {
-  background: #F43F5E;
+  background: #f43f5e;
 }
 
 .schedule-week-range {
-  color: #64748B;
+  color: #64748b;
   font-size: 12px;
   white-space: nowrap;
 }
 
 .weekly-table-scroll {
   overflow-x: auto;
-  border: 1px solid #E0E7F0;
+  border: 1px solid #e0e7f0;
   border-radius: 12px;
 }
 
@@ -495,7 +666,7 @@ h2 {
 .weekly-schedule thead th {
   padding: 12px 10px;
   color: #475569;
-  background: #F3F6FA;
+  background: #f3f6fa;
   text-align: center;
   font-weight: 700;
 }
@@ -508,7 +679,7 @@ h2 {
 .weekly-schedule tbody th {
   padding: 10px 12px;
   color: #273449;
-  background: #FBFCFE;
+  background: #fbfcfe;
   text-align: left;
   font-weight: 600;
   white-space: nowrap;
@@ -521,7 +692,7 @@ h2 {
   height: 8px;
   margin-right: 9px;
   border-radius: 50%;
-  background: #8B001C;
+  background: #8b001c;
   vertical-align: 1px;
 }
 
@@ -542,28 +713,28 @@ h2 {
 }
 
 .slot-status.available {
-  border-color: #A7F3D0;
+  border-color: #a7f3d0;
   color: #047857;
-  background: #ECFDF5;
+  background: #ecfdf5;
 }
 
 .slot-status.booked {
-  border-color: #FECDD3;
-  color: #BE123C;
-  background: #FFF1F2;
+  border-color: #fecdd3;
+  color: #be123c;
+  background: #fff1f2;
 }
 
 .schedule-modal-footer {
   display: flex;
   justify-content: flex-end;
   padding: 13px 22px 17px;
-  border-top: 1px solid #E7ECF3;
-  background: #F8FAFD;
+  border-top: 1px solid #e7ecf3;
+  background: #f8fafd;
 }
 
 .schedule-modal-close {
   padding: 8px 16px;
-  border: 1px solid #CBD5E1;
+  border: 1px solid #cbd5e1;
   border-radius: 10px;
   color: #334155;
   background: white;
@@ -573,8 +744,8 @@ h2 {
 
 .schedule-modal-close:hover,
 .schedule-modal-x:hover {
-  background: #EAF0F7;
-  color: #1F2937;
+  background: #eaf0f7;
+  color: #1f2937;
 }
 
 .panel {
@@ -741,7 +912,7 @@ h2 {
   width: 28px;
   height: 28px;
   margin-right: 8px;
-  color: #F0D99D;
+  color: #f0d99d;
   font-size: 18px;
   line-height: 1;
 }
@@ -771,7 +942,7 @@ h2 {
   min-width: 0;
 }
 
-.field>span {
+.field > span {
   font-size: 13px;
   font-weight: 500;
   color: var(--ink);
@@ -796,7 +967,7 @@ h2 {
 }
 
 .field input::placeholder {
-  color: #A29AA0;
+  color: #a29aa0;
 }
 
 .span-2 {
@@ -874,7 +1045,7 @@ h2 {
   margin: 0;
   font-size: 10px;
   line-height: 1.9;
-  color: #8A8087;
+  color: #8a8087;
 }
 
 .footer-links {
@@ -1002,6 +1173,29 @@ h2 {
     width: calc(100vw - 20px);
     max-height: 94vh;
     border-radius: 12px;
+  }
+
+  .confirmation-content {
+    padding: 24px 18px 20px;
+  }
+
+  .booking-confirmation-dialog h2 {
+    font-size: 21px;
+  }
+
+  .confirmation-details {
+    gap: 12px;
+    padding: 15px 12px;
+  }
+
+  .confirmation-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .confirmation-home-button,
+  .confirmation-history-button {
+    width: 100%;
   }
 
   .schedule-modal-header {

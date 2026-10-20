@@ -1,0 +1,1099 @@
+{
+  "info": {
+    "name": "TU CS Space API",
+    "description": "ทดสอบ API ระบบจองห้อง TU CS Space (Task20) ดูรายละเอียด endpoint ใน docs/API.md และ test case ใน docs/TEST_CASES.md\n\nวิธีใช้: 1) รัน backend  2) ตั้ง username / password ในแท็บ Variables ช่อง Current value  3) กด Run collection ตามลำดับ folder",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// คำนวณวันที่ตามเวลาเครื่อง (YYYY-MM-DD) ก่อนทุก request",
+          "const ymd = (d) => [d.getFullYear(), String(d.getMonth() + 1).padStart(2, \"0\"), String(d.getDate()).padStart(2, \"0\")].join(\"-\");",
+          "const now = new Date();",
+          "pm.collectionVariables.set(\"tomorrow\", ymd(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)));",
+          "pm.collectionVariables.set(\"yesterday\", ymd(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)));"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "username",
+      "value": "",
+      "description": "เลขทะเบียน TU ใส่ในช่อง Current value เท่านั้น"
+    },
+    {
+      "key": "password",
+      "value": "",
+      "description": "รหัสผ่าน TU ใส่ในช่อง Current value เท่านั้น ห้าม commit"
+    },
+    {
+      "key": "fakeToken",
+      "value": "this.is.not-a-real-token"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "studentId",
+      "value": ""
+    },
+    {
+      "key": "roomId",
+      "value": ""
+    },
+    {
+      "key": "roomCapacity",
+      "value": ""
+    },
+    {
+      "key": "tooManyPeople",
+      "value": ""
+    },
+    {
+      "key": "bookingId",
+      "value": ""
+    },
+    {
+      "key": "bookingId2",
+      "value": ""
+    },
+    {
+      "key": "tomorrow",
+      "value": ""
+    },
+    {
+      "key": "yesterday",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Health",
+      "description": "เช็กว่า backend รันอยู่",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health",
+            "description": "ต้องได้ { ok: true }",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"ok = true\", () => pm.expect(pm.response.json().ok).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1. Login (US1)",
+      "description": "ตั้งค่า username / password ในแท็บ Variables ของ collection (ช่อง Current value) ก่อนรัน",
+      "item": [
+        {
+          "name": "Login สำเร็จ (เก็บ token)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/login",
+            "description": "MT-01: login ด้วยบัญชี TU แล้วเก็บ token ไว้ใช้กับ request ถัดไป",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\",\n  \"remember\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"ได้ token และข้อมูลผู้ใช้\", () => {",
+                  "  pm.expect(body.token).to.be.a(\"string\");",
+                  "  pm.expect(body.user.student_id).to.be.a(\"string\");",
+                  "});",
+                  "if (body.token) {",
+                  "  pm.collectionVariables.set(\"token\", body.token);",
+                  "  pm.collectionVariables.set(\"studentId\", body.user.student_id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login ไม่กรอกข้อมูล = 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/login",
+            "description": "MT-03",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"\",\n  \"password\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"error: ข้อมูลเข้าสู่ระบบไม่ถูกต้อง\", () => pm.expect(pm.response.json().error).to.eql(\"ข้อมูลเข้าสู่ระบบไม่ถูกต้อง\"));",
+                  "pm.test(\"details มี: กรุณากรอกรหัสผ่าน\", () => pm.expect(pm.response.json().details).to.include(\"กรุณากรอกรหัสผ่าน\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login รหัสผ่านผิด = 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/login",
+            "description": "MT-02: ใช้ได้เฉพาะเมื่อตั้ง TU_API_KEY แล้ว (โหมดจำลองรับรหัสอะไรก็ได้ จะได้ 200)",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"wrong-password-for-test\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"error: เลขทะเบียนนักศึกษาหรือรหัสผ่านไม่ถูกต้อง\", () => pm.expect(pm.response.json().error).to.eql(\"เลขทะเบียนนักศึกษาหรือรหัสผ่านไม่ถูกต้อง\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. ห้องและตารางสถานะ (US2)",
+      "description": "ไม่ต้อง login",
+      "item": [
+        {
+          "name": "รายการห้อง (เก็บ roomId)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/rooms",
+            "description": "MT-08: เก็บห้องสุดท้ายในรายการไว้ใช้ทดสอบจอง",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "const rooms = pm.response.json();",
+                  "pm.test(\"มีห้องอย่างน้อย 1 ห้อง และมีข้อมูลครบ\", () => {",
+                  "  pm.expect(rooms.length).to.be.above(0);",
+                  "  pm.expect(rooms[0]).to.have.keys(\"room_id\", \"room_name\", \"capacity\", \"location\");",
+                  "  pm.expect(rooms[0].room_id).to.be.a(\"number\");",
+                  "});",
+                  "if (rooms.length) {",
+                  "  const room = rooms[rooms.length - 1];",
+                  "  pm.collectionVariables.set(\"roomId\", room.room_id);",
+                  "  pm.collectionVariables.set(\"roomCapacity\", room.capacity);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ช่วงเวลาที่ถูกจองของพรุ่งนี้",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/booking?date={{tomorrow}}",
+            "description": "ใช้วาดตาราง real-time",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"เป็น array และมีเฉพาะ BOOKED / CONFIRMED\", () => {",
+                  "  const rows = pm.response.json();",
+                  "  pm.expect(rows).to.be.an(\"array\");",
+                  "  rows.forEach((r) => pm.expect(r.status).to.be.oneOf([\"BOOKED\", \"CONFIRMED\"]));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ไม่ส่ง date = 400",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/booking",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"error: ต้องระบุ date ในรูปแบบ YYYY-MM-DD\", () => pm.expect(pm.response.json().error).to.eql(\"ต้องระบุ date ในรูปแบบ YYYY-MM-DD\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. จองห้อง (US3, US7)",
+      "description": "จองห้องสุดท้ายในรายการ วันพรุ่งนี้ 13:00-15:00 ถ้าช่วงนี้มีคนจองไว้แล้ว request แรกจะได้ 409 ให้ยกเลิกของเดิมก่อนหรือเปลี่ยนเวลา\nต้องรัน folder 1 และ 2 ก่อน",
+      "item": [
+        {
+          "name": "จองสำเร็จ (เก็บ bookingId)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking",
+            "description": "MT-17, MT-19: ดู terminal ของ backend ต้องมีอีเมลยืนยันการจอง",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": {{roomId}},\n  \"people\": 2,\n  \"booking_date\": \"{{tomorrow}}\",\n  \"start_time\": \"13:00\",\n  \"end_time\": \"15:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"ได้สถานะ BOOKED และข้อมูลตรงกับที่ส่ง\", () => {",
+                  "  pm.expect(b.status).to.eql(\"BOOKED\");",
+                  "  pm.expect(b.booking_date).to.eql(pm.variables.get(\"tomorrow\"));",
+                  "  pm.expect(b.start_time).to.eql(\"13:00\");",
+                  "  pm.expect(b.end_time).to.eql(\"15:00\");",
+                  "  pm.expect(b.student_id).to.eql(pm.variables.get(\"studentId\"));",
+                  "});",
+                  "if (b.booking_id) pm.collectionVariables.set(\"bookingId\", b.booking_id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "จองทับเวลาเดิม = 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking",
+            "description": "MT-20",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": {{roomId}},\n  \"people\": 2,\n  \"booking_date\": \"{{tomorrow}}\",\n  \"start_time\": \"14:00\",\n  \"end_time\": \"16:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"error: ช่วงเวลานี้มีผู้จองห้องนี้แล้ว\", () => pm.expect(pm.response.json().error).to.eql(\"ช่วงเวลานี้มีผู้จองห้องนี้แล้ว\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "จองเวลาติดกันพอดี = 201 (เก็บ bookingId2)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking",
+            "description": "MT-21: 15:00-16:00 ต่อจาก 13:00-15:00 พอดี ต้องจองได้",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": {{roomId}},\n  \"people\": 2,\n  \"booking_date\": \"{{tomorrow}}\",\n  \"start_time\": \"15:00\",\n  \"end_time\": \"16:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "if (b.booking_id) pm.collectionVariables.set(\"bookingId2\", b.booking_id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "จองเกิน 3 ชั่วโมง = 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking",
+            "description": "MT-23",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": {{roomId}},\n  \"people\": 2,\n  \"booking_date\": \"{{tomorrow}}\",\n  \"start_time\": \"09:00\",\n  \"end_time\": \"13:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"error: ข้อมูลการจองไม่ถูกต้อง\", () => pm.expect(pm.response.json().error).to.eql(\"ข้อมูลการจองไม่ถูกต้อง\"));",
+                  "pm.test(\"details มี: จองได้ครั้งละไม่เกิน 3 ชั่วโมง\", () => pm.expect(pm.response.json().details).to.include(\"จองได้ครั้งละไม่เกิน 3 ชั่วโมง\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "เวลาสิ้นสุดก่อนเวลาเริ่ม = 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking",
+            "description": "MT-22",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": {{roomId}},\n  \"people\": 2,\n  \"booking_date\": \"{{tomorrow}}\",\n  \"start_time\": \"12:00\",\n  \"end_time\": \"10:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"details มี: เวลาสิ้นสุดต้องหลังเวลาเริ่มต้น\", () => pm.expect(pm.response.json().details).to.include(\"เวลาสิ้นสุดต้องหลังเวลาเริ่มต้น\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "จองนอกเวลา 09:00-17:00 = 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": {{roomId}},\n  \"people\": 2,\n  \"booking_date\": \"{{tomorrow}}\",\n  \"start_time\": \"16:00\",\n  \"end_time\": \"18:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"details มี: จองได้เฉพาะช่วง 09:00 - 17:00 น.\", () => pm.expect(pm.response.json().details).to.include(\"จองได้เฉพาะช่วง 09:00 - 17:00 น.\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "จองวันที่ผ่านมาแล้ว = 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking",
+            "description": "MT-24",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": {{roomId}},\n  \"people\": 2,\n  \"booking_date\": \"{{yesterday}}\",\n  \"start_time\": \"10:00\",\n  \"end_time\": \"11:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"details มี: ไม่สามารถจองเวลาที่ผ่านมาแล้ว\", () => pm.expect(pm.response.json().details).to.include(\"ไม่สามารถจองเวลาที่ผ่านมาแล้ว\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "จำนวนคนเกินความจุ = 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking",
+            "description": "MT-25: ใช้ความจุห้อง + 1",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": {{roomId}},\n  \"people\": {{tooManyPeople}},\n  \"booking_date\": \"{{tomorrow}}\",\n  \"start_time\": \"10:00\",\n  \"end_time\": \"11:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"tooManyPeople\", Number(pm.variables.get(\"roomCapacity\")) + 1);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"error บอกความจุสูงสุด\", () => {",
+                  "  pm.expect(pm.response.json().error).to.eql(`ห้องนี้รองรับได้สูงสุด ${pm.variables.get(\"roomCapacity\")} คน`);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ไม่มีห้องนี้ = 404",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking",
+            "description": "MT-28",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": 999,\n  \"people\": 2,\n  \"booking_date\": \"{{tomorrow}}\",\n  \"start_time\": \"10:00\",\n  \"end_time\": \"11:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"error: ไม่พบห้องนี้ หรือห้องปิดใช้งาน\", () => pm.expect(pm.response.json().error).to.eql(\"ไม่พบห้องนี้ หรือห้องปิดใช้งาน\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ไม่ส่ง token = 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking",
+            "description": "MT-27",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": {{roomId}},\n  \"people\": 2,\n  \"booking_date\": \"{{tomorrow}}\",\n  \"start_time\": \"10:00\",\n  \"end_time\": \"11:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"error: กรุณาเข้าสู่ระบบ\", () => pm.expect(pm.response.json().error).to.eql(\"กรุณาเข้าสู่ระบบ\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "token ปลอม = 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking",
+            "description": "MT-30",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{fakeToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": {{roomId}},\n  \"people\": 2,\n  \"booking_date\": \"{{tomorrow}}\",\n  \"start_time\": \"10:00\",\n  \"end_time\": \"11:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"error: Token ไม่ถูกต้องหรือหมดอายุ\", () => pm.expect(pm.response.json().error).to.eql(\"Token ไม่ถูกต้องหรือหมดอายุ\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. ประวัติและยกเลิก (US4, US7)",
+      "description": "ต้องรัน folder 3 ก่อน (ใช้ bookingId ที่เพิ่งจอง) และจะยกเลิกการจองที่สร้างใน folder 3 ทั้งหมด จึงรันซ้ำได้",
+      "item": [
+        {
+          "name": "ประวัติการจองของตัวเอง",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/booking/me",
+            "description": "MT-32",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "const rows = pm.response.json();",
+                  "pm.test(\"มีการจองที่เพิ่งสร้าง\", () => {",
+                  "  const id = Number(pm.variables.get(\"bookingId\"));",
+                  "  pm.expect(rows.map((r) => r.booking_id)).to.include(id);",
+                  "});",
+                  "pm.test(\"มีชื่อห้องในทุกรายการ\", () => rows.forEach((r) => pm.expect(r.room_name).to.be.a(\"string\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ยกเลิกการจอง",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/booking/{{bookingId}}/cancel",
+            "description": "MT-35, MT-36: ดู terminal ของ backend ต้องมีอีเมลยกเลิกการจอง",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test(\"ยกเลิกสำเร็จ สถานะ CANCELLED\", () => {",
+                  "  pm.expect(body.message).to.eql(\"ยกเลิกการจองสำเร็จ\");",
+                  "  pm.expect(body.booking.status).to.eql(\"CANCELLED\");",
+                  "  pm.expect(body.booking.booking_id).to.eql(Number(pm.variables.get(\"bookingId\")));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ยกเลิกซ้ำ = 409",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/booking/{{bookingId}}/cancel",
+            "description": "MT-40",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"error: การจองนี้ถูกยกเลิกไปแล้ว\", () => pm.expect(pm.response.json().error).to.eql(\"การจองนี้ถูกยกเลิกไปแล้ว\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ช่วงที่ยกเลิกกลับมาว่าง",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/booking?date={{tomorrow}}",
+            "description": "MT-37: การจอง 13:00-15:00 ต้องไม่อยู่ในรายการแล้ว",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"ไม่มีช่วง 13:00-15:00 ของห้องที่ทดสอบ\", () => {",
+                  "  const roomId = Number(pm.variables.get(\"roomId\"));",
+                  "  const found = pm.response.json().some((r) => r.room_id === roomId && r.start_time === \"13:00\" && r.end_time === \"15:00\");",
+                  "  pm.expect(found).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ยกเลิกการจองที่ 2 (เก็บกวาด)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/booking/{{bookingId2}}/cancel",
+            "description": "ยกเลิกการจอง 15:00-16:00 ที่สร้างใน folder 3 เพื่อให้รันซ้ำได้",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ไม่พบการจอง = 404",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/booking/999999999/cancel",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"error: ไม่พบการจองนี้\", () => pm.expect(pm.response.json().error).to.eql(\"ไม่พบการจองนี้\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "รหัสการจองไม่ใช่ตัวเลข = 400",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/booking/abc/cancel",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"error: รหัสการจองไม่ถูกต้อง\", () => pm.expect(pm.response.json().error).to.eql(\"รหัสการจองไม่ถูกต้อง\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ไม่ส่ง token = 401",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/booking/{{bookingId}}/cancel",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"error: กรุณาเข้าสู่ระบบ\", () => pm.expect(pm.response.json().error).to.eql(\"กรุณาเข้าสู่ระบบ\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+@startuml
+skinparam defaultFontName Loma
+skinparam defaultFontSize 14
+skinparam node {
+  BackgroundColor #F2F2F2
+  BorderColor #1F4E79
+}
+skinparam component {
+  BackgroundColor #FFFFFF
+  BorderColor #1F4E79
+}
+title Deployment Diagram : ระบบจองห้อง CS Co-Working Space (กลุ่ม 8)
+
+node "เครื่องผู้ใช้\n(คอมพิวเตอร์ / สมาร์ทโฟน)" as client {
+  component "Web Browser\n(login.html / booking.html /\nbooking-his.html)" as browser
+}
+
+node "Docker Host (เครื่อง Lab / เครื่องนักพัฒนา)\nรันด้วย docker compose" as host {
+  node "<<container>>\nfrontend" as fe {
+    component "Nginx\nเสิร์ฟ HTML / CSS / JavaScript\n:5500" as feapp
+  }
+  node "<<container>>\nbackend" as be {
+    component "Node.js (Express)\nREST API :3000\nroutes: /login /rooms /booking /admin\nJWT (jsonwebtoken)" as beapp
+  }
+  node "<<container>>\ndb" as dbn {
+    database "PostgreSQL :5432\n(เปิดออกเครื่องที่ :5433)\n(volume: db_data)\nschema.sql\n002_users_and_email_logs.sql\nseed.sql" as db
+  }
+}
+
+cloud "Internet" {
+  node "TU REST API\n(restapi.tu.ac.th)" as tuapi
+  node "SMTP Server\n(ส่งอีเมลยืนยัน)" as smtp
+}
+
+browser --> feapp : HTTP :5500 (โหลดหน้าเว็บ)
+browser --> beapp : HTTP / JSON (fetch) :3000\nAuthorization: Bearer token
+beapp --> db : SQL (pg)
+beapp --> tuapi : HTTPS (Application-Key)
+beapp --> smtp : SMTP (nodemailer)
+@enduml

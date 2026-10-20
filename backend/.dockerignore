@@ -1,0 +1,7 @@
+# ไม่เอาไฟล์เหล่านี้เข้า Docker image ของ backend
+node_modules
+npm-debug.log
+*.log
+.env
+tests
+.git

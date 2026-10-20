@@ -27,4 +27,12 @@ function requireAuth(req, res, next) {
   next();
 }
 
-module.exports = { requireAuth };
+// ใช้ต่อจาก requireAuth: อนุญาตเฉพาะ role admin (US5)
+function requireAdmin(req, res, next) {
+  if (req.user?.role !== 'admin') {
+    throw new HttpError(403, 'เฉพาะเจ้าหน้าที่เท่านั้น');
+  }
+  next();
+}
+
+module.exports = { requireAuth, requireAdmin };
