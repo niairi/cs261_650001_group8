@@ -739,6 +739,25 @@ h2 {
   background: #fff1f2;
 }
 
+.slot-select-button {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.slot-select-button:hover .slot-status.available {
+  border-color: #34d399;
+  background: #d1fae5;
+}
+
+.slot-select-button:focus-visible {
+  outline: 2px solid var(--maroon);
+  outline-offset: 2px;
+}
+
 .schedule-modal-footer {
   display: flex;
   justify-content: flex-end;
@@ -773,6 +792,16 @@ h2 {
 .availability {
   padding: 17px 18px 14px;
   margin-bottom: 20px;
+}
+
+.availability[hidden] {
+  display: none;
+}
+
+.schedule tbody tr.selected-room-row th {
+  color: var(--maroon);
+  background: #fff7f9;
+  box-shadow: inset 3px 0 var(--maroon);
 }
 
 .availability-heading {
@@ -903,7 +932,20 @@ h2 {
 }
 
 .booking {
-  margin-bottom: 0;
+  width: min(1120px, calc(100vw - 32px));
+  max-width: none;
+  max-height: min(92vh, 760px);
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  border: 1px solid #e8e2e4;
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.booking::backdrop {
+  background: rgba(25, 16, 20, 0.58);
+  backdrop-filter: blur(2px);
 }
 
 .booking-title {
@@ -914,6 +956,9 @@ h2 {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .booking-title h2 {
@@ -938,6 +983,30 @@ h2 {
   padding: 5px 8px;
   font-size: 11px;
   color: rgba(255, 255, 255, 0.85);
+}
+
+.booking-dialog-close {
+  display: grid;
+  place-items: center;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  color: white;
+  background: transparent;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.booking-dialog-close:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.booking-dialog-close:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
 }
 
 #booking-form {
@@ -1226,6 +1295,29 @@ h2 {
 
   .availability {
     padding: 14px 12px;
+  }
+
+  .booking {
+    width: calc(100vw - 20px);
+    max-height: 94vh;
+    border-radius: 12px;
+  }
+
+  .booking-title {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .booking-title h2 {
+    font-size: 14px;
+  }
+
+  .booking-title .service-time {
+    display: none;
+  }
+
+  #booking-form {
+    padding: 16px 14px;
   }
 
   .availability-heading {

@@ -22,6 +22,10 @@ function getUser() {
 const roomCards = document.querySelectorAll(".room-card");
 const roomSelect = document.querySelector("#room-select");
 const form = document.querySelector("#booking-form");
+const startTimeSelect = document.querySelector("#start-time");
+const endTimeSelect = document.querySelector("#end-time");
+const availabilitySection = document.querySelector("#availability");
+const bookingDialog = document.querySelector("#booking");
 const formMessage = document.querySelector("#form-message");
 const bookingConfirmationDialog = document.querySelector("#booking-confirmation-dialog");
 const submitButton = form.querySelector(".submit-button");
@@ -35,6 +39,7 @@ const timeSlots = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00"
 const AUTO_REFRESH_MS = 30000; // ตาราง Real-time รีเฟรชเองทุก 30 วินาที
 let rooms = [];               // รายการห้องจาก GET /rooms
 let selectedDayOffset = 0;    // 0 = วันนี้, 1 = พรุ่งนี้
+let selectedRoomId = null;
 
 function updateNavigationState() {
   const currentHash = window.location.hash;
@@ -77,7 +82,7 @@ function isSlotPast(dateStr, slot) {
   return dateStr < todayStr || (dateStr === todayStr && slot <= now.toTimeString().slice(0, 5));
 }
 
-function createSlotCell(state, slot) {
+function createSlotCell(state, slot, onAvailableClick, accessibleLabel) {
   const label = { available: "ว่าง", booked: "ถูกจอง", past: "หมดเวลา" }[state];
   const cell = document.createElement("td");
   const status = document.createElement("span");
@@ -85,7 +90,17 @@ function createSlotCell(state, slot) {
   if (state === "past") status.style.opacity = "0.45";
   status.textContent = label;
   status.setAttribute("aria-label", `${slot} ${label}`);
-  cell.append(status);
+  if (state === "available" && onAvailableClick) {
+    const selectButton = document.createElement("button");
+    selectButton.type = "button";
+    selectButton.className = "slot-select-button";
+    selectButton.setAttribute("aria-label", accessibleLabel || `เลือกเวลา ${slot} ที่ว่าง`);
+    selectButton.append(status);
+    selectButton.addEventListener("click", onAvailableClick);
+    cell.append(selectButton);
+  } else {
+    cell.append(status);
+  }
   return cell;
 }
 
@@ -149,17 +164,13 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && roomScheduleDialog.open) roomScheduleDialog.close();
 });
 
-roomCards.forEach((card, cardIndex) => {
+roomCards.forEach((card) => {
   card.addEventListener("click", () => {
-    roomCards.forEach((item) => {
-      item.classList.remove("selected");
-      item.setAttribute("aria-pressed", "false");
-    });
-    card.classList.add("selected");
-    card.setAttribute("aria-pressed", "true");
-    roomSelect.value = card.dataset.roomId || card.dataset.room;
-    renderWeeklySchedule(cardIndex);
-    roomScheduleDialog.showModal();
+    const roomId = card.dataset.roomId || card.dataset.room;
+    setSelectedRoom(roomId);
+    availabilitySection.hidden = false;
+    loadAvailability();
+    availabilitySection.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 });
 
@@ -174,30 +185,154 @@ function localDate(date) {
   return date.toLocaleDateString("sv-SE");
 }
 
-const today = new Date();
-const tomorrow = new Date(today);
-tomorrow.setDate(today.getDate() + 1);
 const bookingDateInput = document.querySelector("#booking-date");
-document.querySelector("#today-label").textContent = thaiDate(today);
-document.querySelector("#tomorrow-label").textContent = thaiDate(tomorrow);
-bookingDateInput.value = localDate(today);
-bookingDateInput.min = localDate(today); // ห้ามเลือกวันย้อนหลัง
+const todayButton = document.querySelector("#today-button");
+const tomorrowButton = document.querySelector("#tomorrow-button");
+const todayLabel = document.querySelector("#today-label");
+const tomorrowLabel = document.querySelector("#tomorrow-label");
 
-document.querySelector("#today-button").addEventListener("click", () => {
-  document.querySelector("#today-button").classList.add("active");
-  document.querySelector("#tomorrow-button").classList.remove("active");
-  bookingDateInput.value = localDate(today);
+function dateForOffset(offset = 0) {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + offset);
+  return date;
+}
+
+function updateScheduleDateLabels() {
+  todayLabel.textContent = thaiDate(dateForOffset());
+  tomorrowLabel.textContent = thaiDate(dateForOffset(1));
+}
+
+updateScheduleDateLabels();
+bookingDateInput.value = localDate(dateForOffset());
+bookingDateInput.min = localDate(dateForOffset()); // ห้ามเลือกวันย้อนหลัง
+
+function setSelectedRoom(roomId) {
+  selectedRoomId = String(roomId);
+  roomSelect.value = String(roomId);
+  roomCards.forEach((card) => {
+    const isSelected = String(card.dataset.roomId || card.dataset.room) === selectedRoomId;
+    card.classList.toggle("selected", isSelected);
+    card.setAttribute("aria-pressed", String(isSelected));
+  });
+  scheduleBody.querySelectorAll("[data-room-row]").forEach((row) => {
+    row.classList.toggle("selected-room-row", row.dataset.roomRow === selectedRoomId);
+  });
+}
+
+function populateEndTimes(roomId, startTime, bookings) {
+  const [startHour] = startTime.split(":").map(Number);
+  const endTimes = [];
+
+  for (let hour = startHour; hour < 16; hour += 1) {
+    const slot = `${String(hour).padStart(2, "0")}:00`;
+    if (isSlotBooked(bookings, roomId, slot) || isSlotPast(bookingDateInput.value, slot)) break;
+    endTimes.push(`${String(hour + 1).padStart(2, "0")}:00`);
+  }
+
+  const placeholder = new Option("เลือกเวลาสิ้นสุด", "", true, true);
+  placeholder.disabled = true;
+  endTimeSelect.replaceChildren(placeholder);
+  endTimes.forEach((time) => endTimeSelect.append(new Option(`${time} น.`, time)));
+  return endTimes.length > 0;
+}
+
+async function updateEndTimeOptions() {
+  const roomId = Number(roomSelect.value);
+  const dateStr = bookingDateInput.value;
+  const startTime = startTimeSelect.value;
+  if (!roomId || !dateStr || !startTime) return;
+
+  try {
+    const bookings = await fetchBookings(dateStr);
+    if (!populateEndTimes(roomId, startTime, bookings)) {
+      showMessage("ไม่มีช่วงเวลาว่างต่อจากเวลาเริ่มต้นที่เลือก", false);
+      return;
+    }
+    formMessage.textContent = "";
+    formMessage.style.color = "";
+  } catch (error) {
+    console.error(error);
+    showMessage("ตรวจสอบเวลาสิ้นสุดไม่ได้ กรุณาลองอีกครั้ง", false);
+  }
+}
+
+async function chooseAvailableSlot(roomId, dateStr, startTime) {
+  const room = rooms.find((item) => String(item.room_id) === String(roomId));
+  if (!room) return;
+
+  try {
+    const bookings = await fetchBookings(dateStr);
+    if (slotState(bookings, room.room_id, dateStr, startTime) !== "available") {
+      showMessage("ช่วงเวลานี้มีผู้จองแล้ว กรุณาเลือกช่วงเวลาอื่น", false);
+      loadAvailability();
+      return;
+    }
+
+    setSelectedRoom(roomId);
+    bookingDateInput.value = dateStr;
+    startTimeSelect.value = startTime;
+    if (!populateEndTimes(room.room_id, startTime, bookings)) {
+      showMessage("ช่วงเวลานี้ไม่เหลือเวลาให้จอง กรุณาเลือกช่วงเวลาอื่น", false);
+      loadAvailability();
+      return;
+    }
+
+    const isToday = dateStr === localDate(dateForOffset());
+    const isTomorrow = dateStr === localDate(dateForOffset(1));
+    selectedDayOffset = isTomorrow ? 1 : 0;
+    todayButton.classList.toggle("active", isToday);
+    tomorrowButton.classList.toggle("active", isTomorrow);
+    formMessage.textContent = "";
+    formMessage.style.color = "";
+    bookingDialog.showModal();
+    endTimeSelect.focus({ preventScroll: true });
+  } catch (error) {
+    console.error(error);
+    showMessage("ตรวจสอบสถานะเวลาจองไม่ได้ กรุณาลองอีกครั้ง", false);
+  }
+}
+
+document.querySelector("#booking-dialog-close").addEventListener("click", () => bookingDialog.close());
+bookingDialog.addEventListener("click", (event) => {
+  if (event.target === bookingDialog) bookingDialog.close();
+});
+[roomSelect, bookingDateInput, startTimeSelect].forEach((field) => {
+  field.addEventListener("change", updateEndTimeOptions);
+});
+
+todayButton.addEventListener("click", () => {
+  todayButton.classList.add("active");
+  tomorrowButton.classList.remove("active");
+  bookingDateInput.value = localDate(dateForOffset());
   selectedDayOffset = 0;
   loadAvailability();
 });
-document.querySelector("#tomorrow-button").addEventListener("click", () => {
-  document.querySelector("#tomorrow-button").classList.add("active");
-  document.querySelector("#today-button").classList.remove("active");
-  bookingDateInput.value = localDate(tomorrow);
+tomorrowButton.addEventListener("click", () => {
+  tomorrowButton.classList.add("active");
+  todayButton.classList.remove("active");
+  bookingDateInput.value = localDate(dateForOffset(1));
   selectedDayOffset = 1;
   loadAvailability();
 });
 document.querySelector("#refresh-button").addEventListener("click", () => loadAvailability());
+
+navigationLinks.forEach((link) => {
+  if (link.hash === "#availability") {
+    link.addEventListener("click", () => {
+      availabilitySection.hidden = false;
+      window.setTimeout(() => {
+        availabilitySection.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  } else if (link.hash === "#booking") {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      bookingDialog.showModal();
+    });
+  }
+});
+if (window.location.hash === "#availability") availabilitySection.hidden = false;
 
 // ===== ส่งคำขอจองไปที่ Backend (POST /booking) =====
 function showMessage(text, ok) {
@@ -295,8 +430,8 @@ const availabilityFootnote = document.querySelector("#availability .table-footno
 
 async function loadAvailability() {
   if (!rooms.length) return; // รอให้ loadRooms() โหลดห้องเสร็จก่อน
-  const day = selectedDayOffset === 0 ? today : tomorrow;
-  const dateStr = localDate(day);
+  updateScheduleDateLabels();
+  const dateStr = localDate(dateForOffset(selectedDayOffset));
 
   try {
     const bookings = await fetchBookings(dateStr);
@@ -307,14 +442,26 @@ async function loadAvailability() {
       const header = document.createElement("th");
       header.innerHTML = `${room.room_name} <small>จุ ${room.capacity} ที่นั่ง</small>`;
       row.append(header);
-      timeSlots.forEach((slot) => row.append(createSlotCell(slotState(bookings, room.room_id, dateStr, slot), slot)));
+      const isSelectedRoom = String(room.room_id) === selectedRoomId;
+      row.classList.toggle("selected-room-row", isSelectedRoom);
+      timeSlots.forEach((slot) => {
+        const state = slotState(bookings, room.room_id, dateStr, slot);
+        const cell = createSlotCell(
+          state,
+          slot,
+          isSelectedRoom ? () => chooseAvailableSlot(room.room_id, dateStr, slot) : null,
+          `เลือก${room.room_name} เวลา ${slot}`
+        );
+        row.append(cell);
+      });
       scheduleBody.append(row);
     });
     availabilityLegend.innerHTML =
       '<span><i class="legend-dot available"></i> ช่องสีเขียว = ว่าง</span> ' +
       '<span style="margin-left:16px"><i class="legend-dot booked"></i> ช่องสีแดง = มีผู้จองแล้ว</span>';
     availabilityFootnote.textContent =
-      `อัปเดตล่าสุด ${new Date().toTimeString().slice(0, 5)} น. · รีเฟรชอัตโนมัติทุก ${AUTO_REFRESH_MS / 1000} วินาที`;
+      `เลือกห้องจากผัง แล้วคลิกช่วงเวลาสีเขียว · อัปเดตล่าสุด ${new Date().toTimeString().slice(0, 5)} น. · ` +
+      `รีเฟรชอัตโนมัติทุก ${AUTO_REFRESH_MS / 1000} วินาที`;
   } catch (error) {
     console.error(error);
     availabilityFootnote.textContent = "โหลดสถานะห้องไม่ได้ ตรวจว่า Backend รันอยู่หรือไม่";
@@ -393,9 +540,10 @@ form.addEventListener("submit", async (event) => {
       true
     );
     saveBookingExtra(data.booking_id, { people: payload.people, purpose });
+    bookingDialog.close();
     showBookingConfirmation(data, { people: payload.people, purpose });
     form.reset();
-    bookingDateInput.value = localDate(today);
+    bookingDateInput.value = localDate(dateForOffset());
     loadAvailability();
   } catch {
     showMessage("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจว่า Backend รันอยู่หรือไม่", false);

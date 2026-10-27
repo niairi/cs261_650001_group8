@@ -22,7 +22,6 @@
     <nav class="main-nav" id="main-nav" aria-label="เมนูหลัก">
       <a class="nav-link active" href="#rooms" aria-current="page">ผังห้อง</a>
       <a class="nav-link" href="#availability">ตารางสถานะ Real-time</a>
-      <a class="nav-link" href="#booking">ฟอร์มลงเวลาจอง</a>
       <a class="nav-link" href="./booking-his.html">ประวัติการจอง</a>
     </nav>
     <button class="top-nav-menu-toggle" type="button" aria-label="เปิดเมนู" aria-expanded="false" aria-controls="main-nav">
@@ -186,7 +185,7 @@
       </div>
     </dialog>
 
-    <section class="availability panel" id="availability">
+    <section class="availability panel" id="availability" hidden>
       <div class="availability-heading">
         <h2><span class="red-icon">◷</span> ตารางสถานะห้องว่างแบบ Real-time</h2>
         <div class="table-actions">
@@ -231,10 +230,11 @@
       <p class="table-footnote">ข้อมูลสถานะจะแสดงเมื่อเชื่อมต่อ Backend แล้ว</p>
     </section>
 
-    <section class="booking panel" id="booking">
+    <dialog class="booking panel" id="booking" aria-labelledby="booking-title">
       <div class="booking-title">
-        <h2><i class="fa-regular fa-calendar-plus calendar-icon" aria-hidden="true"></i> แบบฟอร์มยืนยันการจองห้อง</h2>
+        <h2 id="booking-title"><i class="fa-regular fa-calendar-plus calendar-icon" aria-hidden="true"></i> แบบฟอร์มยืนยันการจองห้อง</h2>
         <span class="service-time">เปิด 09:00 - 16:00 น.</span>
+        <button class="booking-dialog-close" id="booking-dialog-close" type="button" aria-label="ปิดแบบฟอร์ม">×</button>
       </div>
       <form id="booking-form">
         <div class="form-grid">
@@ -294,7 +294,7 @@
         </div>
         <p class="backend-note" id="form-message" role="status">สามารถดูผังและสถานะห้องได้โดยไม่ต้องเข้าสู่ระบบ แต่ต้องเข้าสู่ระบบก่อนยืนยันการจอง</p>
       </form>
-    </section>
+    </dialog>
   </main>
 
   <dialog class="booking-confirmation-dialog" id="booking-confirmation-dialog" tabindex="-1"
