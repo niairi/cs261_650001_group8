@@ -19,12 +19,15 @@
       <span class="school-badge">THAMMASAT</span>
       <span class="brand-divider" aria-hidden="true"></span>
     </a>
-    <nav class="main-nav" aria-label="เมนูหลัก">
+    <nav class="main-nav" id="main-nav" aria-label="เมนูหลัก">
       <a class="nav-link active" href="#rooms" aria-current="page">ผังห้อง</a>
       <a class="nav-link" href="#availability">ตารางสถานะ Real-time</a>
       <a class="nav-link" href="#booking">ฟอร์มลงเวลาจอง</a>
       <a class="nav-link" href="./booking-his.html">ประวัติการจอง</a>
     </nav>
+    <button class="top-nav-menu-toggle" type="button" aria-label="เปิดเมนู" aria-expanded="false" aria-controls="main-nav">
+      <span class="menu-toggle-icon" aria-hidden="true"></span>
+    </button>
     <div class="user-profile" aria-label="ผู้เยี่ยมชม ยังไม่ได้เข้าสู่ระบบ">
       <span class="profile-avatar" aria-hidden="true">G</span>
       <span class="profile-details"><strong>ผู้เยี่ยมชม</strong><small>ยังไม่ได้เข้าสู่ระบบ</small></span>
@@ -357,6 +360,7 @@
       <a href="#">ติดต่อผู้ดูแลระบบ CS</a>
     </div>
   </footer>
+  <script src="./js/nav.js"></script>
   <script src="./js/booking.js"></script>
 </body>
 

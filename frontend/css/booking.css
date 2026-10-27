@@ -95,6 +95,10 @@ button {
   min-width: 0;
 }
 
+.top-nav-menu-toggle {
+  display: none;
+}
+
 .nav-link {
   display: inline-flex;
   align-items: center;
@@ -1080,31 +1084,115 @@ h2 {
 
 @media (max-width: 760px) {
   .top-nav {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
     grid-template-rows: auto auto;
-    gap: 4px 10px;
-    padding: 8px 14px 0;
+    gap: 8px 12px;
+    padding: 8px 14px;
+  }
+
+  .top-nav-brand {
+    grid-column: 2;
+    grid-row: 1;
+    margin-left: 4px;
+  }
+
+  .top-nav .user-profile {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
   }
 
   .main-nav {
+    display: none;
+    grid-row: 2;
     grid-column: 1 / -1;
-    justify-content: space-between;
-    gap: 12px;
-    width: calc(100% + 28px);
-    margin: 0 -14px;
-    padding: 0 14px;
-    overflow-x: auto;
-    scrollbar-width: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    width: auto;
+    margin: 0;
+    padding: 4px 0 0;
+    border-top: 1px solid #e9e2e4;
   }
 
-  .main-nav::-webkit-scrollbar {
-    display: none;
+  .top-nav.is-menu-open .main-nav {
+    display: flex;
+  }
+
+  .top-nav-menu-toggle {
+    display: grid;
+    place-items: center;
+    grid-column: 1;
+    grid-row: 1;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid #e9e2e4;
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--maroon);
+    cursor: pointer;
+  }
+
+  .top-nav-menu-toggle:focus-visible {
+    outline: 2px solid var(--maroon);
+    outline-offset: 2px;
+  }
+
+  .menu-toggle-icon,
+  .menu-toggle-icon::before,
+  .menu-toggle-icon::after {
+    display: block;
+    width: 20px;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transition: transform 160ms ease, background-color 160ms ease;
+  }
+
+  .menu-toggle-icon {
+    position: relative;
+  }
+
+  .menu-toggle-icon::before,
+  .menu-toggle-icon::after {
+    position: absolute;
+    left: 0;
+    content: "";
+  }
+
+  .menu-toggle-icon::before {
+    transform: translateY(-6px);
+  }
+
+  .menu-toggle-icon::after {
+    transform: translateY(6px);
+  }
+
+  .top-nav.is-menu-open .menu-toggle-icon {
+    background: transparent;
+  }
+
+  .top-nav.is-menu-open .menu-toggle-icon::before {
+    transform: rotate(45deg);
+  }
+
+  .top-nav.is-menu-open .menu-toggle-icon::after {
+    transform: rotate(-45deg);
   }
 
   .nav-link {
-    min-height: 50px;
+    min-height: 48px;
+    width: 100%;
     padding: 0 12px;
+    border-bottom: 1px solid #f0eaec;
+    border-left: 3px solid transparent;
     font-size: 14px;
+  }
+
+  .nav-link.active {
+    border-bottom-color: #f0eaec;
+    border-left-color: var(--maroon);
   }
 
   .hero-inner {
@@ -1249,6 +1337,19 @@ h2 {
 
   .schedule-modal-footer {
     padding: 11px 14px 14px;
+  }
+}
+
+@media (max-width: 400px) {
+  .school-badge,
+  .brand-divider,
+  .profile-details small {
+    display: none;
+  }
+
+  .top-nav .user-profile {
+    gap: 4px;
+    padding: 3px 6px 3px 3px;
   }
 }
 
