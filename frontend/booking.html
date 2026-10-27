@@ -25,9 +25,10 @@
       <a class="nav-link" href="#booking">ฟอร์มลงเวลาจอง</a>
       <a class="nav-link" href="./booking-his.html">ประวัติการจอง</a>
     </nav>
-    <div class="user-profile" aria-label="ผู้ใช้ username รหัสนักศึกษา id number">
-      <span class="profile-avatar" aria-hidden="true">U</span>
-      <span class="profile-details"><strong>username</strong><small>id number</small></span>
+    <div class="user-profile" aria-label="ผู้เยี่ยมชม ยังไม่ได้เข้าสู่ระบบ">
+      <span class="profile-avatar" aria-hidden="true">G</span>
+      <span class="profile-details"><strong>ผู้เยี่ยมชม</strong><small>ยังไม่ได้เข้าสู่ระบบ</small></span>
+      <a class="login-link" id="login-link" href="./login.html">เข้าสู่ระบบ</a>
     </div>
   </header>
 
@@ -36,7 +37,7 @@
       <div class="brand">
         <p class="eyebrow">ภาควิชาวิทยาการคอมพิวเตอร์ · DEPARTMENT OF COMPUTER SCIENCE, TU</p>
         <h1>เลือกจองเวลาและห้อง Co-Working<br class="desktop-break"> Space</h1>
-        <p class="welcome">ยินดีต้อนรับคุณ <strong id="user-name">Name Surname (id number)</strong></p>
+        <p class="welcome">ยินดีต้อนรับคุณ <strong id="user-name">ผู้เยี่ยมชม</strong></p>
       </div>
       <aside class="notice">
         <p>
@@ -285,11 +286,10 @@
         </div>
         <div class="form-bottom">
           <p class="user-note"><i class="fa-regular fa-user user-icon" aria-hidden="true"></i> ผู้จอง: <strong
-              id="booking-user">Name Surname (id number)</strong></p>
+              id="booking-user">กรุณาเข้าสู่ระบบก่อนจอง</strong></p>
           <button class="submit-button" type="submit">ยืนยันการจองห้องล่วงหน้า <span>➜</span></button>
         </div>
-        <p class="backend-note" id="form-message" role="status">ระบบแสดงตัวอย่างหน้าจอเท่านั้น — รอเชื่อมต่อ Backend
-          ก่อนส่งคำขอจองจริง</p>
+        <p class="backend-note" id="form-message" role="status">สามารถดูผังและสถานะห้องได้โดยไม่ต้องเข้าสู่ระบบ แต่ต้องเข้าสู่ระบบก่อนยืนยันการจอง</p>
       </form>
     </section>
   </main>

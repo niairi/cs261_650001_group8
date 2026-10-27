@@ -91,18 +91,18 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 14px;
   min-width: 0;
 }
 
 .nav-link {
   display: inline-flex;
   align-items: center;
-  min-height: 38px;
-  padding: 0 10px;
+  min-height: 46px;
+  padding: 0 14px;
   border-bottom: 2px solid transparent;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 500;
   text-decoration: none;
   white-space: nowrap;
@@ -158,6 +158,17 @@ button {
 .profile-details small {
   color: var(--muted);
   font-size: 8px;
+}
+
+.login-link {
+  color: var(--maroon);
+  font-size: 9px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.login-link[hidden] {
+  display: none;
 }
 
 .hero {
@@ -1078,7 +1089,7 @@ h2 {
   .main-nav {
     grid-column: 1 / -1;
     justify-content: flex-start;
-    gap: 4px;
+    gap: 10px;
     width: calc(100% + 28px);
     margin: 0 -14px;
     padding: 0 14px;
@@ -1091,7 +1102,9 @@ h2 {
   }
 
   .nav-link {
-    padding: 0 8px;
+    min-height: 44px;
+    padding: 0 10px;
+    font-size: 12px;
   }
 
   .hero-inner {
