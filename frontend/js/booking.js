@@ -206,6 +206,7 @@ function updateScheduleDateLabels() {
 updateScheduleDateLabels();
 bookingDateInput.value = localDate(dateForOffset());
 bookingDateInput.min = localDate(dateForOffset()); // ห้ามเลือกวันย้อนหลัง
+bookingDateInput.max = localDate(dateForOffset(7));
 
 function setSelectedRoom(roomId) {
   selectedRoomId = String(roomId);
