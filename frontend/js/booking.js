@@ -186,20 +186,10 @@ function localDate(date) {
 }
 
 const bookingDateInput = document.querySelector("#booking-date");
-<<<<<<< HEAD
-document.querySelector("#today-label").textContent = thaiDate(today);
-document.querySelector("#tomorrow-label").textContent = thaiDate(tomorrow);
-bookingDateInput.value = localDate(today);
-bookingDateInput.min = localDate(today); // ห้ามเลือกวันย้อนหลัง
-const lastDay = new Date(today);
-lastDay.setDate(today.getDate() + 7);
-bookingDateInput.max = localDate(lastDay); // ปฏิทินเลือกเกิน 7 วันไม่ได้
-=======
 const todayButton = document.querySelector("#today-button");
 const tomorrowButton = document.querySelector("#tomorrow-button");
 const todayLabel = document.querySelector("#today-label");
 const tomorrowLabel = document.querySelector("#tomorrow-label");
->>>>>>> 4a98af5fee00de87a12cbe149eced0826f987d49
 
 function dateForOffset(offset = 0) {
   const date = new Date();
