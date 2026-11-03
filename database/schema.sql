@@ -23,7 +23,7 @@ CREATE TABLE booking (
 
     CHECK (end_time > start_time),
     CHECK (end_time - start_time <= INTERVAL '3 hours'),
-    CHECK (end_time <= TIME '17:00'),
+    CHECK (end_time <= TIME '16:00'),
     CHECK (status IN ('BOOKED', 'CONFIRMED', 'CANCELLED', 'EXPIRED'))
 );
 
