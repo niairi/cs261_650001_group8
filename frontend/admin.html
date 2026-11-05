@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>จัดการการจอง | TU CS Space</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="./css/admin.css" />
+</head>
+<body class="staff-page">
+  <div class="staff-nav-shell">
+    <header class="staff-header">
+      <button class="staff-menu-toggle" type="button" aria-label="เปิดเมนู" aria-expanded="false" aria-controls="staff-navigation">
+        <span class="staff-menu-toggle-icon" aria-hidden="true"></span>
+      </button>
+      <a class="staff-brand" href="./admin.html" aria-label="หน้าจัดการ Co-Working Space">
+        <span class="staff-brand-icon" aria-hidden="true"><i class="fa-solid fa-shield-halved"></i></span>
+        <span class="staff-brand-copy">
+          <strong>ศูนย์จัดการและรายงานการจอง Co-Working Space</strong>
+          <small>ระบบสำหรับเจ้าหน้าที่</small>
+        </span>
+      </a>
+      <div class="staff-account">
+        <span class="staff-account-name"><span class="online-dot" aria-hidden="true"></span><span>Name Surname <small>(เจ้าหน้าที่ดูแลระบบ)</small></span></span>
+        <a class="staff-logout" href="./login.html" aria-label="ออกจากระบบ" title="ออกจากระบบ"><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i></a>
+      </div>
+    </header>
+
+    <nav class="staff-tabs" id="staff-navigation" aria-label="เมนูจัดการระบบ">
+      <a class="staff-tab is-active" href="./admin.html" aria-current="page"><i class="fa-regular fa-calendar-check" aria-hidden="true"></i> การจองทั้งหมด</a>
+      <a class="staff-tab" href="./admin-rooms.html"><i class="fa-solid fa-sliders" aria-hidden="true"></i> จัดการสถานะห้อง</a>
+      <a class="staff-tab" href="./admin-blacklist.html"><i class="fa-solid fa-user-slash" aria-hidden="true"></i> Blacklist</a>
+      <a class="staff-tab staff-logout-tab staff-logout" href="./login.html"><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> ออกจากระบบ</a>
+    </nav>
+  </div>
+
+  <dialog class="logout-dialog" id="logout-dialog" aria-labelledby="logout-dialog-title">
+    <button class="logout-dialog-close" type="button" aria-label="ปิดหน้าต่าง" data-cancel-logout><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    <div class="logout-dialog-icon" aria-hidden="true"><i class="fa-solid fa-arrow-right-from-bracket"></i></div>
+    <h2 id="logout-dialog-title">ยืนยันการออกจากระบบ</h2>
+    <p>คุณต้องการออกจากระบบใช่หรือไม่?<br />คุณจะต้องลงชื่อเข้าใช้ใหม่อีกครั้งเพื่อเข้าถึงระบบ</p>
+    <div class="logout-dialog-actions">
+      <button class="logout-cancel-button" type="button" data-cancel-logout>ยกเลิก</button>
+      <button class="logout-confirm-button" type="button" data-confirm-logout><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> ออกจากระบบ</button>
+    </div>
+  </dialog>
+
+  <main class="staff-main">
+    <section class="staff-panel booking-panel" data-panel="bookings" aria-labelledby="bookings-title">
+      <div class="panel-heading">
+        <h1 id="bookings-title"><i class="fa-regular fa-file-lines" aria-hidden="true"></i> ค้นหาและรายงานรายการจองทั้งหมด</h1>
+        <p>รายการจองและข้อมูลนักศึกษาจะแสดงเมื่อเชื่อมต่อระบบ Backend แล้ว</p>
+      </div>
+      <form class="booking-filters" id="booking-filters">
+        <label class="filter-field filter-search">
+          <span>ค้นหา</span>
+          <span class="input-wrap"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="booking-search" type="search" placeholder="ค้นหาด้วย เช่น 6809560069..." autocomplete="off" /></span>
+        </label>
+        <label class="filter-field">
+          <span>กรองห้อง</span>
+          <select id="room-filter">
+            <option value="all">ทุกห้อง (ทั้งหมด 3 ห้อง)</option>
+            <option value="Room 1">Room 1</option>
+            <option value="Room 2">Room 2</option>
+            <option value="Room 3">Room 3</option>
+          </select>
+        </label>
+        <label class="filter-field">
+          <span>กรองวันที่</span>
+          <input id="date-filter" type="date" aria-label="เลือกวันที่เพื่อกรองรายการจอง" />
+        </label>
+        <label class="filter-field">
+          <span>เรียงตามวัน/เวลา</span>
+          <select id="sort-filter">
+            <option value="asc">เรียงตามวันและเวลาเริ่มต้น (เก่า → ใหม่)</option>
+            <option value="desc">เรียงตามวันและเวลาเริ่มต้น (ใหม่ → เก่า)</option>
+          </select>
+        </label>
+      </form>
+    </section>
+
+    <section class="staff-panel table-panel" aria-label="รายการจอง">
+      <div class="table-scroll">
+        <table class="booking-table">
+          <thead>
+            <tr>
+              <th scope="col" class="number-column">#</th>
+              <th scope="col">วัน &amp; เวลา</th>
+              <th scope="col">ห้อง</th>
+              <th scope="col">ผู้จอง (รหัสนักศึกษา)</th>
+              <th scope="col">วัตถุประสงค์</th>
+              <th scope="col" class="status-column">สถานะ (STATUS)</th>
+            </tr>
+          </thead>
+          <tbody id="booking-rows"></tbody>
+        </table>
+        <p class="no-results" id="no-results" hidden>ไม่พบรายการจองที่ตรงกับเงื่อนไขการค้นหา</p>
+      </div>
+      <div class="table-footer">
+        <p class="result-summary" id="result-summary" aria-live="polite"></p>
+        <nav class="pagination" id="pagination" aria-label="แบ่งหน้ารายการจอง"></nav>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="staff-footer">ระบบบริหารจัดการและจองห้อง Co-Working Space · มหาวิทยาลัยธรรมศาสตร์ (Thammasat University)</footer>
+  <script src="./js/admin-nav.js"></script>
+  <script src="./js/admin.js"></script>
+</body>
+</html>
