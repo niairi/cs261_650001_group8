@@ -4,6 +4,8 @@ CREATE TABLE room (
     capacity INTEGER NOT NULL CHECK (capacity > 0),
     location VARCHAR(255),
     is_active BOOLEAN NOT NULL DEFAULT TRUE
+    latitude DOUBLE PRECISION,   -- US8 พิกัดห้องสำหรับ Check-in
+    longitude DOUBLE PRECISION
 );
 
 CREATE TABLE booking (
