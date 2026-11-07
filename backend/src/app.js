@@ -3,6 +3,7 @@ const roomsRouter = require('./routes/rooms');
 const adminRouter = require('./routes/admin');
 const loginRouter = require('./routes/login');
 const bookingsRouter = require('./routes/bookings'); 
+const usersRouter = require('./routes/users');      // US9, US10 สถานะ No-show ของตัวเอง
 
 const { requireAuth } = require('./middleware/auth');
 const { errorHandler } = require('./errors');
@@ -30,6 +31,7 @@ app.use('/rooms', roomsRouter);
 app.use('/admin', adminRouter);                     // US5 เจ้าหน้าที่
 app.use('/login', loginRouter);                     // US1 เข้าสู่ระบบ
 app.use('/booking', bookingsRouter); // เพิ่ม
+app.use('/users', usersRouter);                     // US9, US10
 
 app.use((req, res) => res.status(404).json({ error: 'ไม่พบ endpoint นี้' }));
 app.use(errorHandler);
