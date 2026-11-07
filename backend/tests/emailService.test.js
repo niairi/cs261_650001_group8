@@ -3,6 +3,7 @@ const assert = require('node:assert');
 const {
   sendBookingConfirmation, sendBookingCancellation,
   buildBookingConfirmationEmail, buildBookingCancellationEmail, formatThaiDate,
+  emailDeliveryStatus,
 } = require('../src/services/emailService');
 
 const booking = {
@@ -129,4 +130,37 @@ test('อีเมลยกเลิก: SMTP ส่งไม่สำเร็�
   const broken = { sendMail: async () => { throw new Error('SMTP down'); } };
   await assert.rejects(sendBookingCancellation('s@dome.tu.ac.th', booking, broken, log), /SMTP down/);
   assert.equal(log.logs[0].status, 'FAILED');
+});
+
+// ---------- US5 TC3: สถานะอีเมลที่ตอบกลับหน้าเว็บ (Task70) ----------
+test('US5 TC1: ส่งได้ปกติ = SENT (หน้าเว็บไม่แสดงข้อความเตือน)', async () => {
+  const status = await emailDeliveryStatus(sendBookingConfirmation('a@dome.tu.ac.th', booking, fakeTransport(), noLog));
+  assert.equal(status, 'SENT');
+});
+
+test('US5 TC3: SMTP ส่งไม่ได้ = FAILED และบันทึก email_logs เป็น FAILED', async () => {
+  const logs = [];
+  const broken = { sendMail: async () => { throw new Error('ECONNREFUSED'); } };
+  const status = await emailDeliveryStatus(
+    sendBookingConfirmation('a@dome.tu.ac.th', booking, broken, async (e) => { logs.push(e); })
+  );
+  assert.equal(status, 'FAILED');
+  assert.equal(logs[0].status, 'FAILED');
+  assert.equal(logs[0].email_type, 'BOOKING_CONFIRMED');
+});
+
+test('US5 TC3: SMTP ตอบช้าเกินเวลาที่รอ = FAILED (ไม่ค้างจนหน้าเว็บรอนาน)', async () => {
+  const slow = { sendMail: () => new Promise((r) => setTimeout(r, 200)) };
+  const status = await emailDeliveryStatus(sendBookingConfirmation('a@dome.tu.ac.th', booking, slow, noLog), 20);
+  assert.equal(status, 'FAILED');
+});
+
+test('ไม่ได้ตั้ง SMTP = SKIPPED (ไม่ใช่ FAILED)', async () => {
+  const status = await emailDeliveryStatus(sendBookingConfirmation('a@dome.tu.ac.th', booking, null, noLog));
+  assert.equal(status, 'SKIPPED');
+});
+
+test('ไม่มีอีเมลผู้รับ = SKIPPED', async () => {
+  const status = await emailDeliveryStatus(sendBookingConfirmation(null, booking, fakeTransport(), noLog));
+  assert.equal(status, 'SKIPPED');
 });
