@@ -42,7 +42,7 @@ router.post('/', requireAuth, async (req, res, next) => {
         LIMIT 1`,
       [b.roomId, b.booking_date, b.start_time, b.end_time]
     );
-    if (clash.rows.length > 0) throw new HttpError(409, 'ช่วงเวลานี้มีผู้จองห้องนี้แล้ว');
+    if (clash.rows.length > 0) throw new HttpError(409, 'ช่วงเวลานี้ถูกจองแล้ว');
 
     const inserted = await client.query(
       `INSERT INTO booking (student_id, room_id, booking_date, start_time, end_time, people, purpose)
