@@ -90,23 +90,19 @@ button {
 .main-nav {
   display: flex;
   align-items: center;
-  justify-content: space-evenly;
-  gap: 18px;
+  justify-content: center;
+  gap: 8px;
   min-width: 0;
-}
-
-.top-nav-menu-toggle {
-  display: none;
 }
 
 .nav-link {
   display: inline-flex;
   align-items: center;
-  min-height: 54px;
-  padding: 0 16px;
+  min-height: 38px;
+  padding: 0 10px;
   border-bottom: 2px solid transparent;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 10px;
   font-weight: 500;
   text-decoration: none;
   white-space: nowrap;
@@ -162,17 +158,6 @@ button {
 .profile-details small {
   color: var(--muted);
   font-size: 8px;
-}
-
-.login-link {
-  color: var(--maroon);
-  font-size: 9px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.login-link[hidden] {
-  display: none;
 }
 
 .hero {
@@ -739,25 +724,6 @@ h2 {
   background: #fff1f2;
 }
 
-.slot-select-button {
-  width: 100%;
-  padding: 0;
-  border: 0;
-  border-radius: 5px;
-  background: transparent;
-  cursor: pointer;
-}
-
-.slot-select-button:hover .slot-status.available {
-  border-color: #34d399;
-  background: #d1fae5;
-}
-
-.slot-select-button:focus-visible {
-  outline: 2px solid var(--maroon);
-  outline-offset: 2px;
-}
-
 .schedule-modal-footer {
   display: flex;
   justify-content: flex-end;
@@ -792,16 +758,6 @@ h2 {
 .availability {
   padding: 17px 18px 14px;
   margin-bottom: 20px;
-}
-
-.availability[hidden] {
-  display: none;
-}
-
-.schedule tbody tr.selected-room-row th {
-  color: var(--maroon);
-  background: #fff7f9;
-  box-shadow: inset 3px 0 var(--maroon);
 }
 
 .availability-heading {
@@ -932,20 +888,7 @@ h2 {
 }
 
 .booking {
-  width: min(1120px, calc(100vw - 32px));
-  max-width: none;
-  max-height: min(92vh, 760px);
-  margin: auto;
-  padding: 0;
-  overflow: auto;
-  border: 1px solid #e8e2e4;
-  border-radius: 14px;
-  background: var(--surface);
-}
-
-.booking::backdrop {
-  background: rgba(25, 16, 20, 0.58);
-  backdrop-filter: blur(2px);
+  margin-bottom: 0;
 }
 
 .booking-title {
@@ -956,9 +899,6 @@ h2 {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  position: sticky;
-  top: 0;
-  z-index: 1;
 }
 
 .booking-title h2 {
@@ -983,30 +923,6 @@ h2 {
   padding: 5px 8px;
   font-size: 11px;
   color: rgba(255, 255, 255, 0.85);
-}
-
-.booking-dialog-close {
-  display: grid;
-  place-items: center;
-  flex: 0 0 34px;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 50%;
-  color: white;
-  background: transparent;
-  font-size: 24px;
-  line-height: 1;
-}
-
-.booking-dialog-close:hover {
-  background: rgba(255, 255, 255, 0.14);
-}
-
-.booking-dialog-close:focus-visible {
-  outline: 2px solid white;
-  outline-offset: 2px;
 }
 
 #booking-form {
@@ -1153,115 +1069,29 @@ h2 {
 
 @media (max-width: 760px) {
   .top-nav {
-    grid-template-columns: 44px minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-rows: auto auto;
-    gap: 8px 12px;
-    padding: 8px 14px;
-  }
-
-  .top-nav-brand {
-    grid-column: 2;
-    grid-row: 1;
-    margin-left: 4px;
-  }
-
-  .top-nav .user-profile {
-    grid-column: 3;
-    grid-row: 1;
-    justify-self: end;
+    gap: 4px 10px;
+    padding: 8px 14px 0;
   }
 
   .main-nav {
-    display: none;
-    grid-row: 2;
     grid-column: 1 / -1;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0;
-    width: auto;
-    margin: 0;
-    padding: 4px 0 0;
-    border-top: 1px solid #e9e2e4;
+    justify-content: flex-start;
+    gap: 4px;
+    width: calc(100% + 28px);
+    margin: 0 -14px;
+    padding: 0 14px;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
 
-  .top-nav.is-menu-open .main-nav {
-    display: flex;
-  }
-
-  .top-nav-menu-toggle {
-    display: grid;
-    place-items: center;
-    grid-column: 1;
-    grid-row: 1;
-    width: 44px;
-    height: 44px;
-    padding: 0;
-    border: 1px solid #e9e2e4;
-    border-radius: 10px;
-    background: var(--surface);
-    color: var(--maroon);
-    cursor: pointer;
-  }
-
-  .top-nav-menu-toggle:focus-visible {
-    outline: 2px solid var(--maroon);
-    outline-offset: 2px;
-  }
-
-  .menu-toggle-icon,
-  .menu-toggle-icon::before,
-  .menu-toggle-icon::after {
-    display: block;
-    width: 20px;
-    height: 2px;
-    border-radius: 2px;
-    background: currentColor;
-    transition: transform 160ms ease, background-color 160ms ease;
-  }
-
-  .menu-toggle-icon {
-    position: relative;
-  }
-
-  .menu-toggle-icon::before,
-  .menu-toggle-icon::after {
-    position: absolute;
-    left: 0;
-    content: "";
-  }
-
-  .menu-toggle-icon::before {
-    transform: translateY(-6px);
-  }
-
-  .menu-toggle-icon::after {
-    transform: translateY(6px);
-  }
-
-  .top-nav.is-menu-open .menu-toggle-icon {
-    background: transparent;
-  }
-
-  .top-nav.is-menu-open .menu-toggle-icon::before {
-    transform: rotate(45deg);
-  }
-
-  .top-nav.is-menu-open .menu-toggle-icon::after {
-    transform: rotate(-45deg);
+  .main-nav::-webkit-scrollbar {
+    display: none;
   }
 
   .nav-link {
-    min-height: 48px;
-    width: 100%;
-    padding: 0 12px;
-    border-bottom: 1px solid #f0eaec;
-    border-left: 3px solid transparent;
-    font-size: 14px;
-  }
-
-  .nav-link.active {
-    border-bottom-color: #f0eaec;
-    border-left-color: var(--maroon);
+    padding: 0 8px;
   }
 
   .hero-inner {
@@ -1295,29 +1125,6 @@ h2 {
 
   .availability {
     padding: 14px 12px;
-  }
-
-  .booking {
-    width: calc(100vw - 20px);
-    max-height: 94vh;
-    border-radius: 12px;
-  }
-
-  .booking-title {
-    padding: 10px 12px;
-    gap: 8px;
-  }
-
-  .booking-title h2 {
-    font-size: 14px;
-  }
-
-  .booking-title .service-time {
-    display: none;
-  }
-
-  #booking-form {
-    padding: 16px 14px;
   }
 
   .availability-heading {
@@ -1429,19 +1236,6 @@ h2 {
 
   .schedule-modal-footer {
     padding: 11px 14px 14px;
-  }
-}
-
-@media (max-width: 400px) {
-  .school-badge,
-  .brand-divider,
-  .profile-details small {
-    display: none;
-  }
-
-  .top-nav .user-profile {
-    gap: 4px;
-    padding: 3px 6px 3px 3px;
   }
 }
 
