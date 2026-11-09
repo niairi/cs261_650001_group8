@@ -52,6 +52,8 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
       MAIL_FROM: ${MAIL_FROM:-TU CS Space <no-reply@example.com>}
+      # US14: ชื่อสาขาที่ยอมรับ คั่นด้วย , (ว่าง = ยังไม่ตรวจสาขา)
+      ALLOWED_DEPARTMENTS: ${ALLOWED_DEPARTMENTS:-}
     ports:
       - "3000:3000"
     depends_on:
