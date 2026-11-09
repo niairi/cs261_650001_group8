@@ -68,7 +68,9 @@ package "services" {
   }
   class AdminService <<module>> {
     + listBookings(db, filters)
-    + summary(db, filters)  (US7)
+    + buildBookingQuery(filters)
+    + bookingSummary(db, filters, now)  (US7)
+    + buildSummaryQuery(filters, now)
   }
   class NoShowService <<Sprint 2>> {
     + startNoShowScheduler(db, options)
