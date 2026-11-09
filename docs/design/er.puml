@@ -1,4 +1,12 @@
-@startuml
+@startuml er_sprint2
+
+' =========================================================
+' Legend:
+' *  = NOT NULL (required field)
+' PK = Primary Key
+' FK = Foreign Key
+' =========================================================
+
 skinparam defaultFontName Tahoma
 skinparam defaultFontSize 13
 hide circle
@@ -15,63 +23,63 @@ title ER Diagram : Sprint 2 – US8, US9, US10
 entity "USERS" as users {
   * student_id : VARCHAR(50) <<PK>>
   --
-  name_th : VARCHAR(255)
-  name_en : VARCHAR(255)
-  email : VARCHAR(255)
-  type : VARCHAR(20)
-  department : VARCHAR(255)
-  faculty : VARCHAR(255)
-  role : VARCHAR(20)
-  created_at : TIMESTAMP
-  last_login_at : TIMESTAMP
+  * name_th : VARCHAR(255)
+  * name_en : VARCHAR(255)
+  * email : VARCHAR(255)
+  * type : VARCHAR(20)
+  * department : VARCHAR(255)
+  * faculty : VARCHAR(255)
+  * role : VARCHAR(20)
+  * created_at : TIMESTAMP
+  * last_login_at : TIMESTAMP
 }
 
 entity "ROOM" as room {
   * room_id : BIGSERIAL <<PK>>
   --
-  room_name : VARCHAR(100)
-  capacity : INTEGER
-  location : VARCHAR(255)
-  is_active : BOOLEAN
-  latitude : DECIMAL(10,7)
-  longitude : DECIMAL(10,7)
+  * room_name : VARCHAR(100)
+  * capacity : INTEGER
+  * location : VARCHAR(255)
+  * is_active : BOOLEAN
+  * latitude : DECIMAL(10,7)
+  * longitude : DECIMAL(10,7)
 }
 
 entity "BOOKING" as booking {
   * booking_id : BIGSERIAL <<PK>>
   --
-  student_id : VARCHAR(50) <<FK>>
-  room_id : BIGINT <<FK>>
-  booking_date : DATE
-  start_time : TIME
-  end_time : TIME
-  people : INTEGER
-  purpose : VARCHAR(255)
-  status : VARCHAR(20)
-  created_at : TIMESTAMP
+  * student_id : VARCHAR(50) <<FK>>
+  * room_id : BIGINT <<FK>>
+  * booking_date : DATE
+  * start_time : TIME
+  * end_time : TIME
+  * people : INTEGER
+  * purpose : VARCHAR(255)
+  * status : VARCHAR(20)
+  * created_at : TIMESTAMP
   confirmed_at : TIMESTAMP
 }
 
 entity "EMAIL_LOGS" as email_logs {
   * email_log_id : BIGSERIAL <<PK>>
   --
-  booking_id : BIGINT <<FK>>
-  to_email : VARCHAR(255)
-  email_type : VARCHAR(30)
-  status : VARCHAR(20)
+  * booking_id : BIGINT <<FK>>
+  * to_email : VARCHAR(255)
+  * email_type : VARCHAR(30)
+  * status : VARCHAR(20)
   error_message : TEXT
-  created_at : TIMESTAMP
+  * created_at : TIMESTAMP
 }
 
 entity "BLACKLIST" as blacklist {
   * blacklist_id : BIGSERIAL <<PK>>
   --
-  student_id : VARCHAR(50) <<FK>>
-  trigger_booking_id : BIGINT <<FK>>
-  start_date : DATE
-  end_date : DATE
-  reason : VARCHAR(255)
-  created_at : TIMESTAMP
+  * student_id : VARCHAR(50) <<FK>>
+  * trigger_booking_id : BIGINT <<FK>>
+  * start_date : DATE
+  * end_date : DATE
+  * reason : VARCHAR(255)
+  * created_at : TIMESTAMP
 }
 
 users ||--o{ booking : "ทำการจอง"
@@ -81,11 +89,41 @@ booking ||--o{ email_logs : "มีประวัติการส่งอี
 users ||--o{ blacklist : "ได้รับ Blacklist"
 booking ||--o| blacklist : "เป็นต้นเหตุ"
 
+note bottom of users
+  role:
+  - student
+  - admin
+
+  type:
+  - student
+  - employee
+end note
+
+note bottom of room
+  latitude and longitude are required
+  for US8 check-in verification.
+  User must be within 5 meters
+  of the Coworking Space reference point.
+end note
+
 note bottom of booking
   CHECK end_time > start_time
   CHECK end_time - start_time <= 3 ชั่วโมง
+  CHECK end_time <= 16:00
   CHECK status IN (BOOKED, CONFIRMED, CANCELLED, EXPIRED)
   Index: idx_booking_student (student_id)
+end note
+
+note bottom of email_logs
+  email_type:
+  - BOOKING_CONFIRMED
+  - BOOKING_UPDATED
+  - ACCOUNT_SUSPENDED
+
+  status:
+  - SENT
+  - FAILED
+  - SKIPPED
 end note
 
 note bottom of blacklist
