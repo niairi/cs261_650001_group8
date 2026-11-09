@@ -19,6 +19,7 @@ services:
       - ./database/002_users_and_email_logs.sql:/docker-entrypoint-initdb.d/02_users_and_email_logs.sql:ro
       - ./database/seed.sql:/docker-entrypoint-initdb.d/03_seed.sql:ro
       - ./database/003_sprint2.sql:/docker-entrypoint-initdb.d/04_sprint2.sql:ro
+      - ./database/004_blacklist.sql:/docker-entrypoint-initdb.d/05_blacklist.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d room_booking"]
       interval: 5s

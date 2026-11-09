@@ -1,8 +1,10 @@
-const { sendBookingConfirmation, sendBookingCancellation, sendBookingUpdate } = require('../services/emailService');
+const { sendBookingConfirmation, sendBookingCancellation, sendBookingUpdate, sendBlacklistNotice } = require('../services/emailService');
 const express = require('express');
 const pool = require('../db');
 const { requireAuth } = require('../middleware/auth');
 const { HttpError } = require('../errors');
+const { createBlacklistService } = require('../services/blacklistService');
+const blacklistService = createBlacklistService({ db: pool, sendNotice: sendBlacklistNotice });
 const {
   isRealDate,
   validateBooking,
@@ -19,7 +21,7 @@ router.post('/', requireAuth, async (req, res, next) => {
   let client;
   try {
     const b = validateBooking(req.body || {});
-
+    await blacklistService.assertNotBlacklisted(req.user.student_id);
     client = await pool.connect();
     await client.query('BEGIN');
 
@@ -236,6 +238,7 @@ router.patch('/:id', requireAuth, async (req, res, next) => {
 
     // แก้ไขได้ก่อนเวลาเริ่ม (ของการจองเดิม) อย่างน้อย 30 นาที (US6 TC4)
     assertChangeable(old, 'แก้ไข');
+    await blacklistService.assertNotBlacklisted(req.user.student_id);
 
     // รวมค่าใหม่กับค่าเดิม แล้วตรวจกฎเดียวกับการจองใหม่ (ว่าง, ไม่เกิน 3 ชม., 09:00–16:00, ไม่เกิน 7 วัน)
     const b = validateBooking({
