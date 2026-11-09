@@ -31,6 +31,9 @@
       <span class="profile-avatar" aria-hidden="true">G</span>
       <span class="profile-details"><strong>ผู้เยี่ยมชม</strong><small>ยังไม่ได้เข้าสู่ระบบ</small></span>
       <a class="login-link" id="login-link" href="./login.html">เข้าสู่ระบบ</a>
+      <a class="user-logout" href="./login.html" aria-label="ออกจากระบบ" title="ออกจากระบบ" hidden>
+        <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
+      </a>
     </div>
   </header>
 
@@ -301,6 +304,23 @@
     </div>
   </dialog>
 
+  <dialog class="logout-dialog" id="logout-dialog" aria-labelledby="logout-dialog-title">
+    <button class="logout-dialog-close" type="button" aria-label="ปิดหน้าต่าง" data-cancel-logout>
+      <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+    </button>
+    <div class="logout-dialog-icon" aria-hidden="true">
+      <i class="fa-solid fa-arrow-right-from-bracket"></i>
+    </div>
+    <h2 id="logout-dialog-title">ยืนยันการออกจากระบบ</h2>
+    <p>คุณต้องการออกจากระบบใช่หรือไม่?<br />คุณจะต้องลงชื่อเข้าใช้ใหม่อีกครั้งเพื่อเข้าถึงระบบ</p>
+    <div class="logout-dialog-actions">
+      <button class="logout-cancel-button" type="button" data-cancel-logout>ยกเลิก</button>
+      <button class="logout-confirm-button" type="button" data-confirm-logout>
+        <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> ออกจากระบบ
+      </button>
+    </div>
+  </dialog>
+
   <footer class="site-footer">
     <p>© 2026 Department of Computer Science, Faculty of Science and Technology, Thammasat University.</p>
     <div class="footer-links">
@@ -310,6 +330,7 @@
     </div>
   </footer>
   <script src="./js/nav.js"></script>
+  <script src="./js/logout.js"></script>
   <script src="./js/booking.js"></script>
 </body>
 

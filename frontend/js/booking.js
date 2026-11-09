@@ -3,22 +3,6 @@ const API_URL = "http://localhost:3000";
 const TOKEN_KEY = "token"; // ต้องตรงกับชื่อที่ login.js ใช้เก็บ token ใน localStorage
 const USER_KEY = "user";   // ข้อมูลผู้ใช้จาก login (name, student_id)
 
-// ===== ต้อง login ก่อนเข้าหน้านี้ =====
-function goToLogin() {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
-  window.location.href = "./login.html";
-}
-if (!localStorage.getItem(TOKEN_KEY)) goToLogin();
-
-function getUser() {
-  try {
-    return JSON.parse(localStorage.getItem(USER_KEY)) || null;
-  } catch {
-    return null;
-  }
-}
-
 const roomCards = document.querySelectorAll(".room-card");
 const roomSelect = document.querySelector("#room-select");
 const form = document.querySelector("#booking-form");
@@ -262,7 +246,13 @@ if (bookingConfirmationDialog) {
 // ===== แสดงชื่อผู้ใช้จากผล login =====
 function renderUser() {
   const user = getUser();
-  if (!user) return;
+  const loginLink = document.querySelector("#login-link");
+  const logoutLink = document.querySelector(".user-logout");
+  if (!user) {
+    if (loginLink) loginLink.hidden = false;
+    if (logoutLink) logoutLink.hidden = true;
+    return;
+  }
   const name = user.name || user.student_id;
   const label = `${name} (${user.student_id})`;
   document.querySelector(".profile-details strong").textContent = name;
@@ -271,6 +261,8 @@ function renderUser() {
   document.querySelector(".user-profile").setAttribute("aria-label", `ผู้ใช้ ${name} รหัสนักศึกษา ${user.student_id}`);
   document.querySelector("#user-name").textContent = label;
   document.querySelector("#booking-user").textContent = label;
+  if (loginLink) loginLink.hidden = true;
+  if (logoutLink) logoutLink.hidden = false;
 }
 renderUser();
 
