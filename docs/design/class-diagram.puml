@@ -3,7 +3,11 @@ skinparam defaultFontName Loma
 skinparam defaultFontSize 12
 skinparam classAttributeIconSize 0
 skinparam packageStyle rectangle
-title Class Diagram : Backend (Node.js + Express)
+skinparam class {
+  BackgroundColor<<Sprint 2>> #E8F8F5
+  BorderColor<<Sprint 2>> #117A65
+}
+title Class Diagram : Backend (Node.js + Express) — Sprint 1 + Sprint 2
 
 package "routes (Express Router)" {
   class LoginRouter <<router>> {
@@ -17,10 +21,15 @@ package "routes (Express Router)" {
     + GET /booking?date=
     + GET /booking/me
     + PATCH /booking/:id/cancel
-    - validateBooking(body)
+    + PATCH /booking/:id  (US6)
+    + POST /booking/:id/checkin  (US8)
+  }
+  class UsersRouter <<router>> {
+    + GET /users/me/status  (US9, US10)
   }
   class AdminRouter <<router>> {
     + GET /admin/bookings
+    + GET /admin/reports/summary  (US7)
   }
 }
 
@@ -41,16 +50,41 @@ package "services" {
     + isMockMode() : boolean
     - mockVerify(username, password)
   }
+  class BookingRules <<Sprint 2>> {
+    + OPEN = '09:00'
+    + CLOSE = '16:00'
+    + MAX_HOURS = 3
+    + CHANGE_BEFORE_MIN = 30
+    + validateBooking(body, now)
+    + assertChangeable(booking, action, now)
+    + minutesUntilStart(date, time, now)
+  }
   class EmailService <<module>> {
     + sendBookingConfirmation(to, booking)
     + sendBookingCancellation(to, booking)
-    + buildBookingConfirmationEmail(booking)
-    + buildBookingCancellationEmail(booking)
+    + sendBookingUpdate(to, booking, previous)  (US6)
+    + sendBanNotice(to, until)  (US10)
     + formatThaiDate(date) : string
   }
   class AdminService <<module>> {
     + listBookings(db, filters)
-    + buildBookingQuery(filters)
+    + summary(db, filters)  (US7)
+  }
+  class NoShowService <<Sprint 2>> {
+    + startNoShowScheduler(db, options)
+    + runNoShowCheck(db, { now, onNoShow })
+    + expireNoShows(db, now)
+    + countNoShows(db, studentId, semester) : number
+  }
+  class NoShowStatus <<Sprint 2>> {
+    + getUserStatus(db, studentId)
+  }
+  class BlacklistService <<Sprint 2>> {
+    + createBlacklistService({ db, sendNotice })
+    + handleNoShow(event)
+    + getActiveBlacklist(studentId)
+    + countNoShowsSinceLastBan(studentId)
+    + assertNotBlacklisted(studentId)
   }
 }
 
@@ -80,14 +114,30 @@ LoginRouter --> LoginService
 LoginService --> TuAuth
 LoginService --> UserRepo
 BookingsRouter --> Auth
+BookingsRouter --> BookingRules
+BookingsRouter --> BlacklistService
 BookingsRouter --> EmailService
 BookingsRouter --> Db
 RoomsRouter --> Db
 AdminRouter --> Auth
 AdminRouter --> AdminService
 AdminService --> Db
+UsersRouter --> Auth
+UsersRouter --> NoShowStatus
+NoShowStatus --> Db
+NoShowService --> BlacklistService
+NoShowService --> Db
+BlacklistService --> EmailService
+BlacklistService --> Db
 EmailService --> EmailLogRepo
 UserRepo --> Db
 EmailLogRepo --> Db
 HttpError -[hidden]- TuApiError
+
+legend right
+  สีเขียว = เพิ่มใน Sprint 2
+  ตามโค้ดใน develop (9 พ.ย. 2569)
+  POST /booking/:id/checkin (US8) และ BlacklistService (US10)
+  ตามโค้ดใน PR #23 และ #30 ที่รอ merge
+endlegend
 @enduml

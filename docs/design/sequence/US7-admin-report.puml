@@ -1,0 +1,51 @@
+@startuml
+skinparam defaultFontName Loma
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+autonumber
+title US7 : เจ้าหน้าที่เรียกดูข้อมูลและรายงานการจองทั้งหมด
+actor "เจ้าหน้าที่ (Admin)" as U
+participant "Frontend\nหน้า จัดการการจอง" as FE
+participant "Backend\nGET /admin/bookings\nGET /admin/reports/summary\n(routes/admin.js)" as R
+participant "middleware\nrequireAuth\nrequireAdmin" as A
+participant "adminService" as S
+database "PostgreSQL\nbooking, room, users" as DB
+
+== TC5 เมนู Admin ==
+U -> FE : Login สำเร็จ
+FE -> FE : อ่าน role จาก token
+alt role = admin
+  FE --> U : แสดงเมนู "จัดการการจอง"
+else role = student
+  FE --> U : ไม่แสดงเมนูนี้
+end
+
+== TC1–TC3 รายการจอง ค้นหา และกรอง ==
+U -> FE : เปิดหน้า "จัดการการจอง"\n(ค้นหารหัส / กรองห้อง / วันที่)
+FE -> R : GET /admin/bookings?student_id=&room_id=&date=
+R -> A : ตรวจ token และ role
+alt ไม่ใช่ admin (TC4)
+  A --> FE : 403 เฉพาะเจ้าหน้าที่เท่านั้น
+  FE --> U : พากลับหน้าหลัก
+else admin
+  R -> S : listBookings(db, filters)
+  S -> DB : SELECT ... WHERE ตามเงื่อนไข\nORDER BY วันที่, เวลา
+  DB --> S : รายการจอง
+  S --> R : rows
+  R --> FE : 200 รายการจอง + สถานะ
+  FE --> U : แสดงตาราง
+end
+
+== TC6 รายงานสรุป ==
+U -> FE : เลือกวันที่ / ห้อง แล้วกด "รายงานสรุป"
+FE -> R : GET /admin/reports/summary?date=&room_id= *
+R -> A : ตรวจ token และ role
+A -> R : admin
+R -> S : summary(db, filters)
+S -> DB : COUNT แยกตามสถานะ\n(จองทั้งหมด / CANCELLED / EXPIRED = No-show)
+DB --> S : จำนวนแต่ละสถานะ
+R --> FE : 200 { total, cancelled, no_show }
+FE --> U : แสดง จอง 3 / ยกเลิก 1 / No-show 1
+
+@enduml
