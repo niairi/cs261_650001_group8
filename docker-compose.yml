@@ -32,6 +32,12 @@ services:
       DATABASE_URL: postgres://postgres:postgres@db:5432/room_booking
       JWT_SECRET: ${JWT_SECRET:-change-me}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
+      # US9: ตัวตรวจ No-show (Task67)
+      NO_SHOW_GRACE_MIN: ${NO_SHOW_GRACE_MIN:-15}
+      NO_SHOW_CHECK_INTERVAL_MS: ${NO_SHOW_CHECK_INTERVAL_MS:-60000}
+      NO_SHOW_LIMIT: ${NO_SHOW_LIMIT:-3}
+      SEMESTER_START: ${SEMESTER_START:-}
+      SEMESTER_END: ${SEMESTER_END:-}
       CORS_ORIGIN: http://localhost:5500,http://127.0.0.1:5500
       TZ: Asia/Bangkok
       BOOKING_DAYS_AHEAD: ${BOOKING_DAYS_AHEAD:-7}
