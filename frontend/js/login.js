@@ -141,8 +141,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
             localStorage.setItem(TOKEN_KEY, data.token);
             localStorage.setItem(USER_KEY, JSON.stringify(data.user));
-            showMessage("เข้าสู่ระบบสำเร็จ กำลังไปหน้าจองห้อง...", "success");
-            window.location.href = "./booking.html";
+            const destination = data.user?.role === "admin" ? "./admin.html" : "./booking.html";
+            showMessage(
+                data.user?.role === "admin"
+                    ? "เข้าสู่ระบบสำเร็จ กำลังไปหน้าจัดการการจอง..."
+                    : "เข้าสู่ระบบสำเร็จ กำลังไปหน้าจองห้อง...",
+                "success"
+            );
+            window.location.href = destination;
         } catch {
             showMessage("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจว่า Backend รันอยู่หรือไม่", "error");
         } finally {

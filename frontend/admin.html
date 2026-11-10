@@ -24,7 +24,7 @@
         </span>
       </a>
       <div class="staff-account">
-        <span class="staff-account-name"><span class="online-dot" aria-hidden="true"></span><span>Name Surname <small>(เจ้าหน้าที่ดูแลระบบ)</small></span></span>
+        <span class="staff-account-name"><span class="online-dot" aria-hidden="true"></span><span id="admin-account-name">เจ้าหน้าที่ดูแลระบบ</span></span>
         <a class="staff-logout" href="./login.html" aria-label="ออกจากระบบ" title="ออกจากระบบ"><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i></a>
       </div>
     </header>
@@ -50,20 +50,20 @@
     <section class="staff-panel booking-panel" data-panel="bookings" aria-labelledby="bookings-title">
       <div class="panel-heading">
         <h1 id="bookings-title"><i class="fa-regular fa-file-lines" aria-hidden="true"></i> ค้นหาและรายงานรายการจองทั้งหมด</h1>
-        <p>รายการจองและข้อมูลนักศึกษาจะแสดงเมื่อเชื่อมต่อระบบ Backend แล้ว</p>
+        <p>ค้นหารายการจองจากข้อมูลในระบบ</p>
       </div>
       <form class="booking-filters" id="booking-filters">
         <label class="filter-field filter-search">
-          <span>ค้นหา</span>
-          <span class="input-wrap"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="booking-search" type="search" placeholder="ค้นหาด้วย เช่น 6809560069..." autocomplete="off" /></span>
+          <span>ค้นหารหัสนักศึกษา</span>
+          <span class="input-wrap"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="booking-search" type="search" placeholder="กรอกรหัสนักศึกษา" autocomplete="off" /></span>
         </label>
         <label class="filter-field">
           <span>กรองห้อง</span>
           <select id="room-filter">
             <option value="all">ทุกห้อง (ทั้งหมด 3 ห้อง)</option>
-            <option value="Room 1">Room 1</option>
-            <option value="Room 2">Room 2</option>
-            <option value="Room 3">Room 3</option>
+            <option value="101">Room A</option>
+            <option value="102">Room B</option>
+            <option value="103">Room C</option>
           </select>
         </label>
         <label class="filter-field">
