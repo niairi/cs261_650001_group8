@@ -299,15 +299,43 @@ button {
 }
 
 .hero {
-  background: linear-gradient(120deg, var(--maroon) 0%, #8d0625 100%);
-  color: white;
+  position: relative;
+  overflow: hidden;
   border-bottom: 4px solid var(--gold);
+  background: linear-gradient(135deg, #82001e 0%, #650017 48%, #3f000f 100%);
+  color: white;
+}
+
+.hero::before,
+.hero::after {
+  position: absolute;
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+}
+
+.hero::before {
+  top: -140px;
+  right: -65px;
+  width: 230px;
+  height: 230px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.hero::after {
+  bottom: -145px;
+  left: -55px;
+  width: 190px;
+  height: 190px;
+  background: rgba(214, 182, 109, 0.1);
 }
 
 .hero-inner {
+  position: relative;
+  z-index: 1;
   max-width: 1240px;
   margin: auto;
-  padding: 22px 26px 20px;
+  padding: 26px 32px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
