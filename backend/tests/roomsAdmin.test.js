@@ -113,7 +113,7 @@ const app = require('../src/app');
 // ---------- ตัวช่วย ----------
 const tokenOf = (student_id, role = 'student') => jwt.sign({ student_id, email: `${student_id}@dome.tu.ac.th`, name: 'ทดสอบ', role }, 'test-secret');
 const ADMIN = tokenOf('6809650099', 'admin');
-const STUDENT = tokenOf('6809650069');
+const STUDENT = tokenOf('6809650010');
 const plusDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toLocaleDateString('sv-SE'); };
 const TOMORROW = plusDays(1);
 const DAY2 = plusDays(2);
@@ -182,7 +182,7 @@ test('US12 TC3: วันนั้นมีการจองค้างอย�
   const r = await closeRoom(102, TOMORROW);
   assert.equal(r.status, 409);
   assert.match(r.body.error, /มีการจองห้องนี้อยู่ 1 รายการ/);
-  assert.deepEqual(r.body.details, ['#1 6809650069 13:00-15:00']);
+  assert.deepEqual(r.body.details, ['#1 6809650010 13:00-15:00']);
   assert.equal(db.closures.length, 0);
 });
 

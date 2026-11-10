@@ -9,7 +9,7 @@ test('มี TU_API_KEY = Login ตรวจกับ TU จริง (ok)', () 
 });
 
 test('ไม่มี TU_API_KEY = เตือนโหมดจำลอง พร้อมจำนวนบัญชีทดสอบ', () => {
-  const [login] = configWarnings({ MOCK_USERS: '6809650069:test1234,6609000001:x:คณิตศาสตร์' });
+  const [login] = configWarnings({ MOCK_USERS: '6809650010:test1234,6609000001:x:คณิตศาสตร์' });
   assert.equal(login.level, 'warn');
   assert.match(login.text, /โหมดจำลอง/);
   assert.match(login.text, /\(2 บัญชี\)/);
@@ -17,7 +17,7 @@ test('ไม่มี TU_API_KEY = เตือนโหมดจำลอง �
 });
 
 test('ไม่แสดงค่าลับ (TU_API_KEY, รหัสผ่านใน MOCK_USERS) ในข้อความ', () => {
-  const env = { TU_API_KEY: 'SUPER-SECRET-KEY', MOCK_USERS: '6809650069:mypass', SMTP_HOST: 'smtp.gmail.com', SMTP_PASS: 'smtp-pass' };
+  const env = { TU_API_KEY: 'SUPER-SECRET-KEY', MOCK_USERS: '6809650010:mypass', SMTP_HOST: 'smtp.gmail.com', SMTP_PASS: 'smtp-pass' };
   const all = [...configWarnings(env), ...configWarnings({ ...env, TU_API_KEY: '' })].map((l) => l.text).join('\n');
   for (const secret of ['SUPER-SECRET-KEY', 'mypass', 'smtp-pass']) assert.ok(!all.includes(secret), `ห้ามมี ${secret}`);
 });

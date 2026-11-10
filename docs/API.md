@@ -472,7 +472,7 @@ Authorization: Bearer <token>
 
 ```json
 {
-  "student_id": "6809650069",
+  "student_id": "6809650010",
   "semester": { "start": "2026-08-10", "end": "2026-12-11" },
   "no_show_count": 1,
   "no_show_limit": 3,
