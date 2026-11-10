@@ -73,7 +73,7 @@ const app = require('../src/app');
 
 // ---------- ตัวช่วย ----------
 const tokenOf = (student_id) => jwt.sign({ student_id, email: `${student_id}@dome.tu.ac.th`, name: 'ทดสอบ', role: 'student' }, 'test-secret');
-const A = tokenOf('6809650069');
+const A = tokenOf('6809650010');
 const B = tokenOf('6809650070');
 const ymd = (d) => d.toLocaleDateString('sv-SE');
 const hm = (d) => d.toTimeString().slice(0, 5);
@@ -102,7 +102,7 @@ const book = (token, start, end, extra = {}) => call('POST', '/booking', {
 });
 // ใส่การจองลงฐานข้อมูลปลอมตรงๆ (ใช้ทดสอบกรณีใกล้เวลาเริ่ม)
 function seed(row) {
-  const b = { booking_id: db.nextId++, student_id: '6809650069', room_id: 101, people: 2, purpose: null, status: 'BOOKED', ...row };
+  const b = { booking_id: db.nextId++, student_id: '6809650010', room_id: 101, people: 2, purpose: null, status: 'BOOKED', ...row };
   db.bookings.push(b);
   return b;
 }
@@ -113,7 +113,7 @@ test('US3 TC1: จองสำเร็จ = 201 สถานะ BOOKED แล�
   assert.equal(r.status, 201);
   assert.equal(r.body.status, 'BOOKED');
   assert.equal(r.body.room_name, 'Room A');
-  assert.equal(r.body.student_id, '6809650069'); // ใช้รหัสจาก token ไม่ใช่จาก body
+  assert.equal(r.body.student_id, '6809650010'); // ใช้รหัสจาก token ไม่ใช่จาก body
   assert.equal(db.bookings.length, 1);
   await new Promise((resolve) => setTimeout(resolve, 20));
   assert.equal(db.emailLogs[0].email_type, 'BOOKING_CONFIRMED');
@@ -183,7 +183,7 @@ test('US4 TC1: GET /booking/me แสดงเฉพาะการจองข�
   await book(B, '13:00', '14:00');
   const r = await call('GET', '/booking/me', { token: A });
   assert.equal(r.status, 200);
-  assert.deepEqual(r.body.map((x) => x.student_id), ['6809650069']);
+  assert.deepEqual(r.body.map((x) => x.student_id), ['6809650010']);
 });
 
 // ---------- ยกเลิก (US4) ----------

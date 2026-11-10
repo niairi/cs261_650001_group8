@@ -27,7 +27,7 @@ npm test          # ผลที่ถูกต้อง: fail 0 (ตอนน�
 1. PostgreSQL รันอยู่ และสร้างตารางจาก `database/schema.sql`, `database/seed.sql`, `database/002_users_and_email_logs.sql`
 2. ตั้ง `backend/.env` (ดู `.env.example`) แล้วรัน `npm run dev` ใน `backend/` ต้องขึ้น `Room booking API running on http://localhost:3000`
 3. เปิด `frontend/login.html` ด้วย Live Server (`http://127.0.0.1:5500`)
-4. บัญชีทดสอบ: **นักศึกษา A** และ **นักศึกษา B** ใช้บัญชี TU จริง 2 คน หรือเว้น `TU_API_KEY` ว่างเพื่อใช้โหมดจำลอง (ใช้บัญชีทดสอบใน `MOCK_USERS` เช่น `6809650069` / `test1234`)
+4. บัญชีทดสอบ: **นักศึกษา A** และ **นักศึกษา B** ใช้บัญชี TU จริง 2 คน หรือเว้น `TU_API_KEY` ว่างเพื่อใช้โหมดจำลอง (ใช้บัญชีทดสอบใน `MOCK_USERS` เช่น `6809650010` / `test1234`)
 5. ถ้ายังไม่ได้ตั้ง SMTP อีเมลจะแสดงใน terminal ที่รัน backend แทนการส่งจริง
 
 ช่อง **ผล** ในส่วน B ให้กรอก ✅ ผ่าน / ❌ ไม่ผ่าน พร้อมวันที่และชื่อผู้ทดสอบ
