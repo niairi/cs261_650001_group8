@@ -1,15 +1,30 @@
 // backend/src/services/blacklistService.js
 // Task68 US10: No-show ครบ 3 ครั้ง → ระงับสิทธิ์การจอง 30 วัน
+// ใช้ตาราง blacklist จาก PR #26 (Task56): student_id, trigger_booking_id, start_date, end_date (DATE), reason
+// end_date = วันสุดท้ายที่ยังถูกระงับ วันถัดไปจองได้
+// ต่อกับ Task67: server.js ส่ง handleNoShow เป็น onNoShow ของ startNoShowScheduler
 const { HttpError } = require('../errors');
+const { semesterRange } = require('./noShowService');
 
-const NO_SHOW_LIMIT = 3;
+const noShowLimit = () => Number(process.env.NO_SHOW_LIMIT || 3); // ค่าเดียวกับ Task67
 const BLACKLIST_DAYS = 30;
-const DAY_MS = 24 * 60 * 60 * 1000;
-const NO_SHOW_STATUS = 'EXPIRED'; // สถานะจาก Task67 (ไม่ check-in ภายในเวลา)
+const UNDEFINED_TABLE = '42P01'; // ยังไม่ได้รัน migration ตาราง blacklist
 
-// Date → "10 ธันวาคม 2569"
-function formatThaiDateTime(date) {
-  return new Date(date).toLocaleDateString('th-TH', {
+// Date → "2026-11-10" ตามเวลาไทย
+function bangkokDate(date) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok' }).format(date);
+}
+
+// "2026-11-10" + 29 → "2026-12-09"
+function addDays(ymd, days) {
+  const d = new Date(`${ymd}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+// "2026-12-09" → "9 ธันวาคม 2569"
+function formatThaiDate(ymd) {
+  return new Date(`${ymd}T00:00:00+07:00`).toLocaleDateString('th-TH', {
     timeZone: 'Asia/Bangkok',
     year: 'numeric',
     month: 'long',
@@ -18,56 +33,81 @@ function formatThaiDateTime(date) {
 }
 
 function blacklistMessage(entry) {
-  return `คุณถูกระงับสิทธิ์การจองถึงวันที่ ${formatThaiDateTime(entry.end_at)}`;
+  return `คุณถูกระงับสิทธิ์การจองถึงวันที่ ${formatThaiDate(entry.end_date)}`;
 }
 
 // db = pool จาก ../db, sendNotice = sendBlacklistNotice จาก emailService
-function createBlacklistService({ db, sendNotice, now = () => new Date() }) {
-  // ปลดแบนอัตโนมัติ: แบนที่ end_at ผ่านไปแล้วไม่นับว่า active (ไม่ต้องมี cron)
+function createBlacklistService({ db, sendNotice, now = () => new Date(), semester = semesterRange() }) {
+  // ปลดแบนอัตโนมัติ: นับว่าถูกแบนเฉพาะเมื่อ end_date >= วันนี้ (ไม่ต้องมี cron)
+  // ยังไม่มีตาราง = ไม่มีใครถูกแบน (แบบเดียวกับ noShowStatus.js) ระบบจองจะได้ไม่ล่ม
   async function getActiveBlacklist(studentId) {
-    const { rows } = await db.query(
-      `SELECT blacklist_id, student_id, reason, start_at, end_at
-         FROM blacklist
-        WHERE student_id = $1 AND end_at > $2
-        ORDER BY end_at DESC
-        LIMIT 1`,
-      [studentId, now()]
-    );
-    return rows[0] || null;
+    try {
+      const { rows } = await db.query(
+        `SELECT student_id, start_date::text AS start_date, end_date::text AS end_date, trigger_booking_id
+           FROM blacklist
+          WHERE student_id = $1 AND end_date >= $2::date
+          ORDER BY end_date DESC
+          LIMIT 1`,
+        [studentId, bangkokDate(now())]
+      );
+      return rows[0] || null;
+    } catch (err) {
+      if (err.code === UNDEFINED_TABLE) return null;
+      throw err;
+    }
   }
 
-  // นับเฉพาะ no-show หลังแบนครั้งล่าสุด ไม่ให้ no-show ชุดเดิมทำให้โดนแบนซ้ำหลังปลดแบน
+  // นับ No-show แบบเดียวกับ Task67 (EXPIRED ที่ไม่มี confirmed_at ในภาคการศึกษา)
+  // แต่นับเฉพาะที่เกิดหลัง booking ที่ทำให้โดนแบนครั้งล่าสุด
+  // (กันไม่ให้ No-show ชุดเดิมทำให้โดนแบนซ้ำหลังปลดแบน)
   async function countNoShowsSinceLastBan(studentId) {
+    const params = [studentId];
+    let range = '';
+    if (semester.start) {
+      params.push(semester.start);
+      range += ` AND b.booking_date >= $${params.length}`;
+    }
+    if (semester.end) {
+      params.push(semester.end);
+      range += ` AND b.booking_date <= $${params.length}`;
+    }
     const { rows } = await db.query(
       `SELECT COUNT(*)::int AS count
          FROM booking b
         WHERE b.student_id = $1
-          AND b.status = $2
-          AND (b.booking_date + b.start_time) AT TIME ZONE 'Asia/Bangkok' > COALESCE(
-                (SELECT MAX(start_at) FROM blacklist WHERE student_id = $1),
-                '-infinity'::timestamptz)`,
-      [studentId, NO_SHOW_STATUS]
+          AND b.status = 'EXPIRED'
+          AND b.confirmed_at IS NULL${range}
+          AND (b.booking_date + b.start_time) > COALESCE(
+                (SELECT t.booking_date + t.start_time
+                   FROM blacklist bl
+                   JOIN booking t ON t.booking_id = bl.trigger_booking_id
+                  WHERE bl.student_id = $1
+                  ORDER BY bl.end_date DESC
+                  LIMIT 1),
+                '-infinity'::timestamp)`,
+      params
     );
     return rows[0].count;
   }
 
-  // Task67 เรียกหลังเปลี่ยน booking เป็น EXPIRED
-  // booking: { booking_id, student_id }
+  // Task67 เรียกผ่าน onNoShow หลังเปลี่ยน booking เป็น EXPIRED
+  // booking: event ของ noShowService = { booking_id, student_id, ... }
   async function handleNoShow(booking) {
     const studentId = booking.student_id;
     if (await getActiveBlacklist(studentId)) return null;
 
     const count = await countNoShowsSinceLastBan(studentId);
-    if (count < NO_SHOW_LIMIT) return null;
+    if (count < noShowLimit()) return null;
 
-    const startAt = now();
-    const endAt = new Date(startAt.getTime() + BLACKLIST_DAYS * DAY_MS);
+    // วันนี้ + 29 = ระงับ 30 วันนับรวมวันนี้ จองได้อีกครั้งวันที่ 31
+    const startDate = bangkokDate(now());
+    const endDate = addDays(startDate, BLACKLIST_DAYS - 1);
 
     const { rows } = await db.query(
-      `INSERT INTO blacklist (student_id, reason, start_at, end_at)
-       VALUES ($1, $2, $3, $4)
-       RETURNING blacklist_id, student_id, reason, start_at, end_at`,
-      [studentId, `No-show ครบ ${NO_SHOW_LIMIT} ครั้ง`, startAt, endAt]
+      `INSERT INTO blacklist (student_id, start_date, end_date, trigger_booking_id, reason)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING student_id, start_date::text AS start_date, end_date::text AS end_date, trigger_booking_id`,
+      [studentId, startDate, endDate, booking.booking_id, `No-show ครบ ${count} ครั้ง`]
     );
     const entry = rows[0];
 
@@ -82,7 +122,7 @@ function createBlacklistService({ db, sendNotice, now = () => new Date() }) {
         student_id: studentId,
         no_show_count: count,
         days: BLACKLIST_DAYS,
-        until_text: formatThaiDateTime(entry.end_at),
+        until_text: formatThaiDate(entry.end_date),
       });
     } catch (err) {
       console.error('[blacklist] ส่งอีเมลแจ้งระงับสิทธิ์ไม่สำเร็จ:', err.message);
@@ -103,7 +143,8 @@ function createBlacklistService({ db, sendNotice, now = () => new Date() }) {
 module.exports = {
   createBlacklistService,
   blacklistMessage,
-  formatThaiDateTime,
-  NO_SHOW_LIMIT,
+  formatThaiDate,
+  bangkokDate,
+  addDays,
   BLACKLIST_DAYS,
 };

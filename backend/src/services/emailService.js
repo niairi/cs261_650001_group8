@@ -310,4 +310,6 @@ module.exports = {
   buildBookingCancellationEmail,
   buildBookingUpdatedEmail,
   formatThaiDate,
+  sendBlacklistNotice,
+  buildBlacklistEmail,
 };

@@ -13,6 +13,7 @@ const db = {
   rooms: new Map([[101, { room_id: 101, room_name: 'Room A', capacity: 8, is_active: true }]]),
   bookings: [],
   emailLogs: [],
+  blacklist: [],
   nextId: 1,
 };
 let snapshot = null;
@@ -62,6 +63,9 @@ async function query(sql, p = []) {
     Object.assign(b, { room_id: Number(p[1]), booking_date: p[2], start_time: p[3], end_time: p[4], people: p[5], purpose: p[6] });
     return { rows: [{ ...b }] };
   }
+    if (/FROM blacklist WHERE student_id = \$1 AND end_date >= \$2/.test(s)) { // เช็กแบนตอนจอง/แก้ไข (US10)
+    return { rows: db.blacklist.filter((x) => x.student_id === p[0] && x.end_date >= p[1]) };
+  }
   throw new Error(`ฐานข้อมูลปลอมไม่รู้จัก SQL นี้: ${s.slice(0, 80)}`);
 }
 const fakePool = { query, connect: async () => ({ query, release() {} }) };
@@ -89,7 +93,7 @@ test.before(async () => {
   base = `http://127.0.0.1:${server.address().port}`;
 });
 test.after(() => { console.log = realLog; server.close(); });
-test.beforeEach(() => { db.bookings = []; db.emailLogs = []; db.nextId = 1; });
+test.beforeEach(() => { db.bookings = []; db.emailLogs = []; db.blacklist = []; db.nextId = 1; });
 
 async function call(method, url, { token, body } = {}) {
   const headers = { 'Content-Type': 'application/json' };
@@ -259,4 +263,16 @@ test('US6: แก้การจองของคนอื่น = 403 / ไม
   const { body } = await book(A, '10:00', '12:00');
   assert.equal((await call('PATCH', `/booking/${body.booking_id}`, { token: B, body: { people: 4 } })).status, 403);
   assert.equal((await call('PATCH', `/booking/${body.booking_id}`, { token: A, body: { start_time: '10:00' } })).status, 400);
+});
+
+test('US10 TC2: ผู้ถูกระงับสิทธิ์พยายามจอง = 403 "คุณถูกระงับสิทธิ์การจองถึงวันที่ ..." และไม่บันทึก', async () => {
+  db.blacklist.push({ student_id: '6809650069', start_date: plusDays(0), end_date: plusDays(29), trigger_booking_id: 1 });
+  const r = await book(A, '10:00', '12:00');
+  assert.strictEqual(r.status, 403);
+  assert.ok(JSON.stringify(r.body).includes('คุณถูกระงับสิทธิ์การจองถึงวันที่'));
+  assert.strictEqual(db.bookings.length, 0);
+
+  // คนที่ไม่ถูกแบนยังจองได้ตามปกติ
+  const ok = await book(B, '10:00', '12:00');
+  assert.strictEqual(ok.status, 201);
 });
