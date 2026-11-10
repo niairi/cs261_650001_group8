@@ -3,7 +3,9 @@
 .env.*
 !.env.docker.example
 !.env.example
+# secrets/env.enc (เข้ารหัสแล้ว) commit ได้ · ไฟล์สำรองจาก env-secret.js ถูกกันด้วย .env.* อยู่แล้ว
 
 # อื่นๆ
 node_modules/
-*.log.DS_Store
+*.log
+.DS_Store

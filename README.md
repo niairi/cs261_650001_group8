@@ -73,6 +73,42 @@ cp .env.docker.example .env
 แล้วใส่ `TU_API_KEY`, `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` ในไฟล์ `.env`
 ⚠️ ห้าม commit ไฟล์ `.env` (มีอยู่ใน `.gitignore` แล้ว)
 
+### ไฟล์ .env แบบเข้ารหัส (เครื่องเดโม / เครื่องเพื่อน)
+
+ทีมเก็บค่าใน `.env` (root, ใช้กับ docker compose) และ `backend/.env` (ใช้กับ `npm start`) ไว้ใน repo แบบเข้ารหัสที่ `secrets/env.enc`
+เครื่องไหนก็ได้ที่ clone repo แล้ว ถอดรหัสครั้งเดียวก็ได้ `.env` ครบ ไม่ต้องพิมพ์ใหม่ · รหัสผ่านขอจาก PO ทางแชทส่วนตัว
+
+**ถอดรหัส** (ทำที่โฟลเดอร์โปรเจกต์ แล้วพิมพ์รหัสผ่าน ตัวอักษรจะไม่แสดงบนจอ)
+
+```bash
+git pull
+node scripts/env-secret.js decrypt
+docker compose up --build
+```
+
+เครื่องที่ไม่มี Node.js ใช้ Docker แทนได้
+
+```bash
+# macOS / Linux
+docker run --rm -it -v "$PWD":/app -w /app node:22-alpine node scripts/env-secret.js decrypt
+# Windows PowerShell
+docker run --rm -it -v "${PWD}:/app" -w /app node:22-alpine node scripts/env-secret.js decrypt
+```
+
+- ถ้าในเครื่องมี `.env` อยู่แล้วและค่าไม่เหมือนกัน ไฟล์เดิมจะถูกสำรองเป็น `.env.bak-วันที่-เวลา` ก่อนเขียนทับ
+- ดูว่าในไฟล์มีตัวแปรอะไรบ้าง (แสดงแค่ชื่อ ไม่แสดงค่า): `node scripts/env-secret.js list`
+- `backend/.env` ในไฟล์เข้ารหัสใช้ `DATABASE_URL` ของเครื่องคนเข้ารหัส ถ้ารันแบบไม่ใช้ Docker อาจต้องแก้บรรทัดนี้ให้ตรงกับเครื่อง
+
+**อัปเดตค่า** (เช่นได้ `TU_API_KEY` ใหม่) แก้ `.env` ในเครื่องตัวเองให้ถูกก่อน แล้ว
+
+```bash
+node scripts/env-secret.js encrypt
+git add secrets/env.enc
+git commit -m "chore: อัปเดต .env ที่เข้ารหัส"
+```
+
+แล้วเปิด PR ตามปกติ · ตั้งรหัสผ่านอย่างน้อย 12 ตัวอักษร ส่งรหัสผ่านทางแชทส่วนตัวเท่านั้น ห้ามส่งในกลุ่มหรือใส่ใน repo · ถ้ารหัสผ่านหลุด ให้เปลี่ยน `TU_API_KEY` / `SMTP_PASS` แล้ว encrypt ใหม่ด้วยรหัสผ่านใหม่
+
 ## วิธีรันแบบไม่ใช้ Docker (สำหรับพัฒนา)
 
 1. สร้างฐานข้อมูล PostgreSQL ชื่อ `room_booking` แล้วรันตามลำดับ `schema.sql` → `002_users_and_email_logs.sql` → `seed.sql`
