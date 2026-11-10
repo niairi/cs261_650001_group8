@@ -304,6 +304,7 @@
   gap: 6px;
 }
 
+.history-edit-button,
 .history-cancel-button,
 .history-completed-note {
   display: inline-flex;
@@ -320,12 +321,22 @@
   font-weight: 500;
 }
 
+.history-edit-button {
+  color: #334155;
+}
+
+.history-edit-button:hover {
+  border-color: #94A3B8;
+  background: #F8FAFC;
+}
+
 .history-cancel-button:hover {
   border-color: #FDA4AF;
   background: #FFF1F2;
 }
 
 /* US4 TC4: เหลือไม่ถึง 30 นาทีก่อนเริ่ม ปุ่มยกเลิกกดไม่ได้ */
+.history-edit-button:disabled,
 .history-cancel-button:disabled {
   color: #94A3B8;
   background: #F1F5F9;
@@ -333,6 +344,7 @@
   cursor: not-allowed;
 }
 
+.history-edit-note,
 .history-cancel-note {
   margin: 0;
   color: #64748B;
@@ -412,6 +424,7 @@
     justify-content: flex-end;
   }
 
+  .history-edit-button,
   .history-cancel-button,
   .history-completed-note {
     min-width: 125px;
@@ -451,6 +464,62 @@
   box-shadow: 0 24px 70px rgba(40, 0, 12, 0.28);
   text-align: center;
   animation: dialog-slide-up 0.25s ease;
+}
+
+.history-edit-dialog {
+  max-width: 520px;
+  text-align: left;
+}
+
+.history-edit-dialog .history-dialog-title {
+  text-align: center;
+}
+
+.history-edit-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.history-edit-field {
+  display: grid;
+  gap: 7px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.history-edit-field input,
+.history-edit-field select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 9px 11px;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  color: #26344A;
+  background: #FFFFFF;
+  font: inherit;
+}
+
+.history-edit-field input:focus,
+.history-edit-field select:focus {
+  border-color: #82001E;
+  outline: 3px solid rgba(130, 0, 30, 0.12);
+}
+
+.history-edit-message {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #B91C1C;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.history-edit-form .history-dialog-actions {
+  grid-column: 1 / -1;
+  margin-top: 4px;
 }
 
 .history-dialog-icon {
@@ -594,5 +663,9 @@
 
   .history-dialog-button {
     width: 100%;
+  }
+
+  .history-edit-form {
+    grid-template-columns: 1fr;
   }
 }
