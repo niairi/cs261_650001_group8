@@ -6,6 +6,7 @@ const { HttpError } = require('../errors');
 const { isRealDate, validateBooking, assertChangeable } = require('../services/bookingRules');
 
 const router = express.Router();
+const { assertRoomOpen } = require('../services/roomService'); // US12 ห้องปิดปรับปรุง
 
 router.post('/', requireAuth, async (req, res, next) => {
   let client;
@@ -29,6 +30,8 @@ router.post('/', requireAuth, async (req, res, next) => {
     if (b.people > room.capacity) {
       throw new HttpError(400, `ห้องนี้รองรับได้สูงสุด ${room.capacity} คน`);
     }
+    // ห้องปิดปรับปรุงวันนั้น จองไม่ได้ (US12 TC2)
+    await assertRoomOpen(client, b.roomId, b.booking_date);
 
     
     const clash = await client.query(
@@ -269,6 +272,8 @@ router.patch('/:id', requireAuth, async (req, res, next) => {
     if (b.people > room.capacity) {
       throw new HttpError(400, `ห้องนี้รองรับได้สูงสุด ${room.capacity} คน`);
     }
+    // ห้องปิดปรับปรุงวันนั้น จองไม่ได้ (US12 TC2)
+    await assertRoomOpen(client, b.roomId, b.booking_date);
 
     // ช่วงใหม่ต้องว่าง (ไม่นับการจองของตัวเอง ช่วงเดิมจึงว่างให้คนอื่นหลังแก้ไข — US6 TC1)
     const clash = await client.query(

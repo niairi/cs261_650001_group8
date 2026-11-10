@@ -26,6 +26,7 @@ async function query(sql, p = []) {
   if (s === 'COMMIT') { snapshot = null; return { rows: [] }; }
   if (s === 'ROLLBACK') { if (snapshot) db.bookings = snapshot; snapshot = null; return { rows: [] }; }
   if (/INSERT INTO email_logs/.test(s)) { db.emailLogs.push({ booking_id: p[0], email_type: p[2], status: p[3] }); return { rows: [] }; }
+  if (/FROM room_closure/.test(s)) return { rows: [] }; // US12: ไม่มีห้องปิดปรับปรุง (ทดสอบใน roomsAdmin.test.js)
   if (/FROM room WHERE room_id = \$1 AND is_active/.test(s)) {
     const r = db.rooms.get(Number(p[0]));
     return { rows: r && r.is_active ? [r] : [] };

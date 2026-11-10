@@ -18,7 +18,7 @@
 |---|---|---|---|---|---|
 | GET | `/health` | ไม่ | - | - | เช็กว่า server ทำงานอยู่ |
 | POST | `/login` | ไม่ | - | US1 | เข้าสู่ระบบด้วยบัญชี TU รับ token |
-| GET | `/rooms` | ไม่ | - | US2 | รายการห้องที่เปิดใช้งาน |
+| GET | `/rooms?date=` | ไม่ | - | US2, US12 | รายการห้องที่เปิดใช้งาน (🆕 บอกว่าวันนั้นปิดปรับปรุงหรือไม่) |
 | GET | `/booking?date=` | ไม่ | - | US2 | ช่วงเวลาที่ถูกจองของวันนั้น (ตาราง real-time) |
 | POST | `/booking` | ใช่ | student, admin | US3, US5, US10 | จองห้อง + ส่งอีเมลยืนยัน (🆕 ตอบสถานะอีเมล, ปฏิเสธผู้ถูกระงับสิทธิ์) |
 | GET | `/booking/me` | ใช่ | student, admin | US4 | ประวัติการจองของตัวเอง |
@@ -28,6 +28,11 @@
 | GET | `/users/me/status` 🆕 | ใช่ | student, admin | US9, US10 | จำนวน No-show ในภาคการศึกษา และสถานะการถูกระงับสิทธิ์ |
 | GET | `/admin/bookings` | ใช่ | admin | US7 | เจ้าหน้าที่ดูการจองทั้งหมด (🆕 กรองตามห้องและช่วงวันที่) |
 | GET | `/admin/reports/summary` 🆕 | ใช่ | admin | US7 | รายงานสรุปจำนวนจอง/ยกเลิก/No-show ตามห้องและวัน |
+| GET | `/admin/rooms` 🆕 | ใช่ | admin | US12 | ห้องทั้งหมด (รวมที่ปิดใช้งาน) + วันปิดปรับปรุงที่ยังไม่ถึง |
+| POST | `/admin/rooms` 🆕 | ใช่ | admin | US12 | เพิ่มห้อง |
+| PATCH | `/admin/rooms/:id` 🆕 | ใช่ | admin | US12 | แก้ไขชื่อ / ความจุ / ที่ตั้ง / เปิด-ปิดใช้งานห้อง |
+| POST | `/admin/rooms/:id/closures` 🆕 | ใช่ | admin | US12 | ปิดปรับปรุงห้องวันที่เลือก |
+| DELETE | `/admin/rooms/:id/closures/:date` 🆕 | ใช่ | admin | US12 | ยกเลิกการปิดปรับปรุง |
 
 งานอัตโนมัติ (ไม่ใช่ endpoint): **🆕 ตัวตรวจ No-show** รันทุก 1 นาที (US9, US10) ดูหัวข้อ "งานอัตโนมัติ: No-show และระงับสิทธิ์"
 
@@ -142,19 +147,26 @@ frontend เก็บ `token` และ `user` ไว้ใน `localStorage` �
 
 ---
 
-## GET /rooms — รายการห้อง (US2)
+## GET /rooms?date=YYYY-MM-DD — รายการห้อง (US2, 🆕 US12)
 
 คืนเฉพาะห้องที่ `is_active = TRUE` เรียงตาม `room_id` (ตัวอย่างด้านล่าง ค่าจริงมาจากตาราง `room`)
+🆕 แต่ละห้องบอก `closed` / `closure_reason` ของวันที่ส่งมา (ไม่ส่ง `date` = วันนี้) ใช้แสดงช่อง "ปิดปรับปรุง" ในตารางจอง (US12 TC1)
 
-**200 OK**
+**200 OK** (`GET /rooms?date=2026-11-18` ห้อง 102 ปิดปรับปรุงวันนั้น)
 
 ```json
 [
-  { "room_id": 101, "room_name": "ห้องที่ 1", "capacity": 8, "location": "LC4 ชั้น 1" },
-  { "room_id": 102, "room_name": "ห้องที่ 2", "capacity": 8, "location": "LC4 ชั้น 1" },
-  { "room_id": 103, "room_name": "ห้องที่ 3", "capacity": 8, "location": "LC4 ชั้น 1" }
+  { "room_id": 101, "room_name": "ห้องที่ 1", "capacity": 8, "location": "LC4 ชั้น 1", "closed": false, "closure_reason": null },
+  { "room_id": 102, "room_name": "ห้องที่ 2", "capacity": 8, "location": "LC4 ชั้น 1", "closed": true, "closure_reason": "ซ่อมเครื่องปรับอากาศ" },
+  { "room_id": 103, "room_name": "ห้องที่ 3", "capacity": 8, "location": "LC4 ชั้น 1", "closed": false, "closure_reason": null }
 ]
 ```
+
+| status | กรณี | error |
+|---|---|---|
+| 400 | `date` ผิดรูปแบบ | `date ต้องอยู่ในรูปแบบ YYYY-MM-DD` |
+
+frontend: ห้องที่ `closed: true` ให้ทุกช่องเวลาของวันนั้นแสดง "ปิดปรับปรุง" และกดจองไม่ได้ ถ้าเลือกวันอื่นต้องเรียก `/rooms?date=` ของวันนั้นใหม่
 
 ---
 
@@ -258,6 +270,16 @@ frontend เก็บ `token` และ `user` ไว้ใน `localStorage` �
 - ตรวจทั้ง `POST /booking` (จองใหม่) และ `PATCH /booking/:id` (แก้ไข) เพื่อกันการย้ายการจองเดิมไปช่วงใหม่ระหว่างถูกระงับ
 - การจองที่จองไว้ก่อนถูกระงับยังอยู่ ไม่ถูกยกเลิกอัตโนมัติ (ยกเลิกเองได้ตามปกติ)
 - ผู้ที่ No-show 2 ครั้งยังจองได้ (US10 TC4) · พ้นวันสิ้นสุดแล้วจองได้ตามปกติ (US10 TC3)
+
+### 🆕 Sprint 2: ห้องปิดปรับปรุง (US12 TC2)
+
+ห้องที่ปิดปรับปรุงในวันที่เลือก จองไม่ได้ (ใช้กับ `PATCH /booking/:id` ด้วย)
+
+**409 Conflict**
+
+```json
+{ "error": "ห้องนี้ปิดปรับปรุงในวันที่เลือก", "details": ["เหตุผล: ซ่อมเครื่องปรับอากาศ"] }
+```
 
 ### 🆕 Sprint 2: เวลาทำการ 09:00–16:00
 
@@ -569,6 +591,71 @@ Authorization: Bearer <token ของ admin>
 
 ---
 
+## 🆕 จัดการข้อมูลห้อง (US12 · Task85) — admin เท่านั้น
+
+ทุก endpoint ต้องมี token ของ admin · นักศึกษาได้ **403** `เฉพาะเจ้าหน้าที่เท่านั้น` · ไม่ login ได้ **401**
+วันปิดปรับปรุงเก็บในตาราง `room_closure` (Task84) หนึ่งแถวต่อห้องต่อวัน
+
+### GET /admin/rooms
+
+ห้องทั้งหมด (รวม `is_active = false`) พร้อมวันปิดปรับปรุงตั้งแต่วันนี้เป็นต้นไป
+
+```json
+{
+  "rooms": [
+    { "room_id": 101, "room_name": "ห้องที่ 1", "capacity": 8, "location": "LC4 ชั้น 1", "is_active": true, "closures": [] },
+    { "room_id": 102, "room_name": "ห้องที่ 2", "capacity": 8, "location": "LC4 ชั้น 1", "is_active": true,
+      "closures": [{ "date": "2026-11-18", "reason": "ซ่อมเครื่องปรับอากาศ" }] }
+  ]
+}
+```
+
+### POST /admin/rooms — เพิ่มห้อง (US12 TC4)
+
+```json
+{ "room_id": 104, "room_name": "ห้องที่ 4", "capacity": 10, "location": "LC4 ชั้น 1" }
+```
+
+`room_id` ไม่ส่งก็ได้ (ระบบสร้างให้) · `is_active` ไม่ส่ง = `true` · **201** คืนข้อมูลห้องที่สร้าง
+
+### PATCH /admin/rooms/:id — แก้ไขห้อง (US12 TC5)
+
+ส่งเฉพาะช่องที่จะเปลี่ยน: `room_name`, `capacity`, `location`, `is_active` (`false` = ปิดใช้งานถาวร ไม่แสดงในตารางจอง) · **200** คืนข้อมูลห้องหลังแก้
+
+| status | กรณี | error / details |
+|---|---|---|
+| 400 | ข้อมูลผิด (US12 TC7) | `ข้อมูลห้องไม่ถูกต้อง` · `กรุณากรอกชื่อห้อง` / `ความจุต้องเป็นจำนวนเต็ม 1-100 คน` / `ไม่มีข้อมูลห้องที่เปลี่ยนแปลง` |
+| 404 | ไม่มีห้องนี้ (PATCH) | `ไม่พบห้องนี้` |
+| 409 | `room_id` ซ้ำ (POST) | `มีห้องรหัสนี้อยู่แล้ว` |
+
+### POST /admin/rooms/:id/closures — ปิดปรับปรุงห้องวันที่เลือก (US12 TC1)
+
+```json
+{ "date": "2026-11-18", "reason": "ซ่อมเครื่องปรับอากาศ" }
+```
+
+**201 Created**
+
+```json
+{ "closure_id": 1, "room_id": 102, "room_name": "ห้องที่ 2", "date": "2026-11-18", "reason": "ซ่อมเครื่องปรับอากาศ", "created_by": "6809650099" }
+```
+
+| status | กรณี | error / details |
+|---|---|---|
+| 400 | วันที่ผิดรูปแบบ / ย้อนหลัง | `ข้อมูลการปิดปรับปรุงไม่ถูกต้อง` · `ปิดปรับปรุงย้อนหลังไม่ได้` |
+| 404 | ไม่มีห้องนี้ | `ไม่พบห้องนี้` |
+| 409 | วันนั้นมีการจอง BOOKED/CONFIRMED อยู่ (US12 TC3) | `วันนี้มีการจองห้องนี้อยู่ N รายการ ต้องยกเลิกก่อนปิดปรับปรุง` · details = `#id รหัส เวลา` |
+| 409 | ปิดวันนี้อยู่แล้ว | `ห้องนี้ปิดปรับปรุงวันนี้อยู่แล้ว` |
+| 503 | ยังไม่มีตาราง `room_closure` (ก่อน merge Task84) | `ยังไม่มีตาราง room_closure ในฐานข้อมูล ...` |
+
+ไม่ยกเลิกการจองของนักศึกษาให้อัตโนมัติ เจ้าหน้าที่ต้องแจ้งและยกเลิกก่อน แล้วจึงปิดปรับปรุง
+
+### DELETE /admin/rooms/:id/closures/:date — ยกเลิกการปิดปรับปรุง
+
+**200** `{ "room_id": 102, "date": "2026-11-18" }` · ไม่ได้ปิดวันนั้นอยู่ = **404** `ห้องนี้ไม่ได้ปิดปรับปรุงในวันที่เลือก`
+
+---
+
 ## 🆕 งานอัตโนมัติ: No-show และระงับสิทธิ์ (US9, US10)
 
 ไม่ใช่ endpoint เป็นตัวตั้งเวลาใน backend (`noShowService.js` · Task67) เริ่มทำงานพร้อม server
@@ -626,7 +713,7 @@ ALTER TABLE booking ADD CONSTRAINT booking_end_time_check CHECK (end_time <= TIM
 ## CORS
 
 อนุญาตเฉพาะ origin ที่อยู่ใน `CORS_ORIGIN` (คั่นด้วย `,`) เช่น Live Server `http://127.0.0.1:5500`
-Method ที่อนุญาต: `GET, POST, PATCH, OPTIONS` Header: `Content-Type, Authorization`
+Method ที่อนุญาต: `GET, POST, PATCH, DELETE, OPTIONS` (🆕 DELETE สำหรับ US12) Header: `Content-Type, Authorization`
 
 ## สถานะการจอง
 
