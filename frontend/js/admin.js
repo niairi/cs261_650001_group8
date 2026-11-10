@@ -31,6 +31,10 @@
   const sortFilter = document.querySelector("#sort-filter");
   const bookingRows = document.querySelector("#booking-rows");
   const bookingSummary = document.querySelector("#result-summary");
+  const reportTotal = document.querySelector("#report-total");
+  const reportCancelled = document.querySelector("#report-cancelled");
+  const reportNoShow = document.querySelector("#report-no-show");
+  const reportSummaryMessage = document.querySelector("#report-summary-message");
   const pagination = document.querySelector("#pagination");
   const noResults = document.querySelector("#no-results");
 
@@ -43,6 +47,10 @@
     || !(sortFilter instanceof HTMLSelectElement)
     || !(bookingRows instanceof HTMLTableSectionElement)
     || !(bookingSummary instanceof HTMLElement)
+    || !(reportTotal instanceof HTMLElement)
+    || !(reportCancelled instanceof HTMLElement)
+    || !(reportNoShow instanceof HTMLElement)
+    || !(reportSummaryMessage instanceof HTMLElement)
     || !(pagination instanceof HTMLElement)
     || !(noResults instanceof HTMLElement)
   ) {
@@ -70,6 +78,7 @@
   let bookings = [];
   let currentPage = 1;
   let bookingRequestId = 0;
+  let reportRequestId = 0;
   let searchTimer;
 
   function displayDate(value) {
@@ -255,6 +264,41 @@
     }
   }
 
+  async function loadReportSummary() {
+    const requestId = ++reportRequestId;
+    const selectedDate = dateFilter.value;
+    const query = queryString({
+      room_id: roomFilter.value,
+      date_from: selectedDate,
+      date_to: selectedDate
+    });
+    reportTotal.textContent = "…";
+    reportCancelled.textContent = "…";
+    reportNoShow.textContent = "…";
+    reportSummaryMessage.textContent = "";
+
+    try {
+      const data = await apiGet(`/admin/reports/summary?${query}`);
+      if (requestId !== reportRequestId) return;
+      const totals = data.totals;
+      const values = [totals?.total, totals?.cancelled, totals?.no_show];
+      if (values.some((value) => value === undefined || value === null || !Number.isFinite(Number(value)))) {
+        throw new Error("รูปแบบข้อมูลรายงานสรุปไม่ถูกต้อง");
+      }
+
+      [reportTotal, reportCancelled, reportNoShow].forEach((element, index) => {
+        element.textContent = numberFormatter.format(Number(values[index]));
+      });
+    } catch (error) {
+      if (requestId !== reportRequestId) return;
+      console.error("Could not load admin report summary.", error);
+      reportTotal.textContent = "—";
+      reportCancelled.textContent = "—";
+      reportNoShow.textContent = "—";
+      reportSummaryMessage.textContent = error.message || "โหลดรายงานสรุปไม่สำเร็จ";
+    }
+  }
+
   bookingFilters.addEventListener("submit", (event) => {
     event.preventDefault();
     loadBookings();
@@ -263,8 +307,13 @@
     window.clearTimeout(searchTimer);
     searchTimer = window.setTimeout(loadBookings, 300);
   });
-  [roomFilter, dateFilter, sortFilter].forEach((filter) => {
-    filter.addEventListener("change", loadBookings);
+  [roomFilter, dateFilter].forEach((filter) => {
+    filter.addEventListener("change", () => {
+      loadBookings();
+      loadReportSummary();
+    });
   });
+  sortFilter.addEventListener("change", loadBookings);
   loadBookings();
+  loadReportSummary();
 })();
