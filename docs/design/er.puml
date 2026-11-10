@@ -1,39 +1,51 @@
-@startuml
-skinparam defaultFontName Loma
+@startuml er_sprint2
+
+' =========================================================
+' Legend:
+' *  = NOT NULL (required field)
+' PK = Primary Key
+' FK = Foreign Key
+' =========================================================
+
+skinparam defaultFontName Tahoma
 skinparam defaultFontSize 13
 hide circle
 skinparam linetype ortho
+
 skinparam class {
   BackgroundColor #FFFFFF
   BorderColor #1F4E79
   HeaderBackgroundColor #D6EAF8
 }
-title ER Diagram : ฐานข้อมูล PostgreSQL (ตาม schema.sql และ 002_users_and_email_logs.sql)
 
-entity "users" as users {
+title ER Diagram : Sprint 2 – US8, US9, US10
+
+entity "USERS" as users {
   * student_id : VARCHAR(50) <<PK>>
   --
-  name_th : VARCHAR(255)
-  name_en : VARCHAR(255)
-  email : VARCHAR(255)
-  type : VARCHAR(20) -- student / employee
-  department : VARCHAR(255)
-  faculty : VARCHAR(255)
-  * role : VARCHAR(20) -- student / admin
+  * name_th : VARCHAR(255)
+  * name_en : VARCHAR(255)
+  * email : VARCHAR(255)
+  * type : VARCHAR(20)
+  * department : VARCHAR(255)
+  * faculty : VARCHAR(255)
+  * role : VARCHAR(20)
   * created_at : TIMESTAMP
   * last_login_at : TIMESTAMP
 }
 
-entity "room" as room {
+entity "ROOM" as room {
   * room_id : BIGSERIAL <<PK>>
   --
   * room_name : VARCHAR(100)
-  * capacity : INTEGER -- > 0
-  location : VARCHAR(255)
-  * is_active : BOOLEAN -- default TRUE
+  * capacity : INTEGER
+  * location : VARCHAR(255)
+  * is_active : BOOLEAN
+  * latitude : DECIMAL(10,7)
+  * longitude : DECIMAL(10,7)
 }
 
-entity "booking" as booking {
+entity "BOOKING" as booking {
   * booking_id : BIGSERIAL <<PK>>
   --
   * student_id : VARCHAR(50) <<FK>>
@@ -41,32 +53,83 @@ entity "booking" as booking {
   * booking_date : DATE
   * start_time : TIME
   * end_time : TIME
-  * people : INTEGER -- > 0
-  purpose : VARCHAR(255)
-  * status : VARCHAR(20) -- BOOKED / CONFIRMED / CANCELLED / EXPIRED
+  * people : INTEGER
+  * purpose : VARCHAR(255)
+  * status : VARCHAR(20)
   * created_at : TIMESTAMP
   confirmed_at : TIMESTAMP
 }
 
-entity "email_logs" as email_logs {
+entity "EMAIL_LOGS" as email_logs {
   * email_log_id : BIGSERIAL <<PK>>
   --
-  booking_id : BIGINT <<FK>>
-  to_email : VARCHAR(255)
-  * email_type : VARCHAR(30) -- BOOKING_CONFIRMED / BOOKING_CANCELLED
-  * status : VARCHAR(20) -- SENT / FAILED / SKIPPED
+  * booking_id : BIGINT <<FK>>
+  * to_email : VARCHAR(255)
+  * email_type : VARCHAR(30)
+  * status : VARCHAR(20)
   error_message : TEXT
+  * created_at : TIMESTAMP
+}
+
+entity "BLACKLIST" as blacklist {
+  * blacklist_id : BIGSERIAL <<PK>>
+  --
+  * student_id : VARCHAR(50) <<FK>>
+  * trigger_booking_id : BIGINT <<FK>>
+  * start_date : DATE
+  * end_date : DATE
+  * reason : VARCHAR(255)
   * created_at : TIMESTAMP
 }
 
 users ||--o{ booking : "ทำการจอง"
 room ||--o{ booking : "ถูกจอง"
-booking |o--o{ email_logs : "มีประวัติการส่งอีเมล"
+booking ||--o{ email_logs : "มีประวัติการส่งอีเมล"
+
+users ||--o{ blacklist : "ได้รับ Blacklist"
+booking ||--o| blacklist : "เป็นต้นเหตุ"
+
+note bottom of users
+  role:
+  - student
+  - admin
+
+  type:
+  - student
+  - employee
+end note
+
+note bottom of room
+  latitude and longitude are required
+  for US8 check-in verification.
+  User must be within 5 meters
+  of the Coworking Space reference point.
+end note
 
 note bottom of booking
   CHECK end_time > start_time
   CHECK end_time - start_time <= 3 ชั่วโมง
+  CHECK end_time <= 16:00
   CHECK status IN (BOOKED, CONFIRMED, CANCELLED, EXPIRED)
   Index: idx_booking_student (student_id)
 end note
+
+note bottom of email_logs
+  email_type:
+  - BOOKING_CONFIRMED
+  - BOOKING_UPDATED
+  - ACCOUNT_SUSPENDED
+
+  status:
+  - SENT
+  - FAILED
+  - SKIPPED
+end note
+
+note bottom of blacklist
+  UNIQUE trigger_booking_id
+  Blacklist เมื่อ No-show ครบ 3 ครั้ง
+  ระยะเวลา Blacklist 30 วัน
+end note
+
 @enduml

@@ -217,6 +217,32 @@ async function sendBookingEmail(type, mail, to, booking, transport, log) {
   return { sent: true };
 }
 
+// รอผลการส่งอีเมลไม่เกิน timeoutMs แล้วแปลงเป็นสถานะสำหรับตอบหน้าเว็บ (US5 TC3 · Task70)
+// SENT = ส่งสำเร็จ · FAILED = SMTP ส่งไม่สำเร็จหรือรอนานเกิน · SKIPPED = ไม่ได้ตั้ง SMTP / ไม่มีผู้รับ
+// ไม่ throw เด็ดขาด เพื่อให้การจองที่ COMMIT แล้วตอบ 201 ได้เสมอ
+const DEFAULT_EMAIL_WAIT_MS = 10000;
+
+async function emailDeliveryStatus(sending, timeoutMs = Number(process.env.EMAIL_WAIT_MS || DEFAULT_EMAIL_WAIT_MS)) {
+  let timer;
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(() => resolve({ timedOut: true }), timeoutMs);
+  });
+  try {
+    const result = await Promise.race([sending, timeout]);
+    if (result && result.timedOut) {
+      console.error(`[อีเมล] รอผลการส่งเกิน ${timeoutMs} ms จึงแจ้งผู้ใช้ว่าส่งไม่สำเร็จ`);
+      return 'FAILED';
+    }
+    if (result && result.sent) return 'SENT';
+    return 'SKIPPED';
+  } catch (err) {
+    console.error('[อีเมล] ส่งอีเมลไม่สำเร็จ:', err.message);
+    return 'FAILED';
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // อีเมลยืนยันการจอง — transport และ log ส่งเข้ามาเองได้ (ใช้ตอน test)
 function sendBookingConfirmation(to, booking, transport = getTransporter(), log = defaultLog) {
   return sendBookingEmail('BOOKING_CONFIRMED', buildBookingConfirmationEmail(booking), to, booking, transport, log);
@@ -280,6 +306,7 @@ module.exports = {
   sendBookingCancellation,
   buildBookingConfirmationEmail,
   sendBookingUpdate,
+  emailDeliveryStatus,
   buildBookingCancellationEmail,
   buildBookingUpdatedEmail,
   formatThaiDate,

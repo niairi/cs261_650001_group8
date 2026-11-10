@@ -1,3 +1,4 @@
+-- Seed data for ROOM
 INSERT INTO room (
     room_id,
     room_name,
@@ -7,10 +8,9 @@ INSERT INTO room (
     latitude,
     longitude
 ) VALUES
-    -- พิกัดชั่วคราว ยังไม่ได้วัดจริงที่ LC4 ชั้น 1 (US8)
-    (101, 'Room A', 4, 'ชั้น 2', TRUE, 14.07220, 100.60500),
-    (102, 'Room B', 6, 'ชั้น 2', TRUE, 14.07225, 100.60505),
-    (103, 'Room C', 8, 'ชั้น 3', TRUE, 14.07230, 100.60510);
+    (101, 'Room A', 4, 'ชั้น 2', TRUE, 14.0728612, 100.6082701),
+    (102, 'Room B', 6, 'ชั้น 2', TRUE, 14.0728612, 100.6082701),
+    (103, 'Room C', 8, 'ชั้น 3', TRUE, 14.0728612, 100.6082701);
 
 SELECT setval('room_room_id_seq', (SELECT MAX(room_id) FROM room));
 

@@ -1,4 +1,4 @@
-const { sendBookingConfirmation, sendBookingCancellation, sendBookingUpdate, sendBlacklistNotice } = require('../services/emailService');
+const { sendBookingConfirmation, sendBookingCancellation, sendBookingUpdate, emailDeliveryStatus, sendBlacklistNotice } = require('../services/emailService');
 const express = require('express');
 const pool = require('../db');
 const { requireAuth } = require('../middleware/auth');
@@ -52,7 +52,7 @@ router.post('/', requireAuth, async (req, res, next) => {
         LIMIT 1`,
       [b.roomId, b.booking_date, b.start_time, b.end_time]
     );
-    if (clash.rows.length > 0) throw new HttpError(409, 'ช่วงเวลานี้มีผู้จองห้องนี้แล้ว');
+    if (clash.rows.length > 0) throw new HttpError(409, 'ช่วงเวลานี้ถูกจองแล้ว');
 
     const inserted = await client.query(
       `INSERT INTO booking (student_id, room_id, booking_date, start_time, end_time, people, purpose)
@@ -68,13 +68,20 @@ router.post('/', requireAuth, async (req, res, next) => {
     await client.query('COMMIT');
 
     const row = inserted.rows[0];
-    sendBookingConfirmation(req.user.email, { ...row, room_name: room.room_name })
-      .catch((err) => console.error('ส่งอีเมลยืนยันไม่สำเร็จ:', err.message));
+    // คืน connection ก่อนรออีเมล ไม่ให้ค้าง pool ระหว่างรอ SMTP
+    client.release();
+    client = null;
+
+    // การจอง COMMIT แล้ว รอผลอีเมลเพื่อบอกหน้าเว็บ (US5 TC3) ส่งไม่ได้การจองก็ยังสำเร็จ
+    const email_status = await emailDeliveryStatus(
+      sendBookingConfirmation(req.user.email, { ...row, room_name: room.room_name })
+    );
     res.status(201).json({
       ...row,
       booking_id: Number(row.booking_id),
       room_id: Number(row.room_id),
       room_name: room.room_name,
+      email_status,
     });
   } catch (err) {
     if (client) await client.query('ROLLBACK').catch(() => {});

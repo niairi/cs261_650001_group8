@@ -431,7 +431,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"status 409\", () => pm.response.to.have.status(409));",
-                  "pm.test(\"error: ช่วงเวลานี้มีผู้จองห้องนี้แล้ว\", () => pm.expect(pm.response.json().error).to.eql(\"ช่วงเวลานี้มีผู้จองห้องนี้แล้ว\"));"
+                  "pm.test(\"error: ช่วงเวลานี้ถูกจองแล้ว\", () => pm.expect(pm.response.json().error).to.eql(\"ช่วงเวลานี้ถูกจองแล้ว\"));"
                 ]
               }
             }
