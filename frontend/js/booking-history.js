@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const API_URL = "http://localhost:3000";
   const TOKEN_KEY = "token";   // ต้องตรงกับ login.js
   const USER_KEY = "user";
-  const EXTRAS_KEY = "tuCsSpaceBookingExtras"; // จำนวนคน/วัตถุประสงค์ ที่ booking.js เก็บไว้ (DB ไม่มีคอลัมน์นี้)
   const AUTO_REFRESH_MS = 60000;
 
   // ---------- ต้อง login ก่อน ----------
@@ -60,17 +59,8 @@ document.addEventListener("DOMContentLoaded", () => {
     return { res, data };
   }
 
-  function getExtras() {
-    try {
-      return JSON.parse(localStorage.getItem(EXTRAS_KEY)) || {};
-    } catch {
-      return {};
-    }
-  }
-
   // แปลงข้อมูลจาก Backend ให้อยู่ในรูปที่หน้านี้ใช้แสดงผล
-  function fromApi(row, extras) {
-    const extra = extras[row.booking_id] || {};
+  function fromApi(row) {
     return {
       id: row.booking_id,
       room: row.room_name,
@@ -78,9 +68,8 @@ document.addEventListener("DOMContentLoaded", () => {
       startTime: row.start_time,
       endTime: row.end_time,
       apiStatus: row.status, // BOOKED | CONFIRMED | CANCELLED | EXPIRED
-      // ใช้ค่าจากฐานข้อมูลก่อน ถ้าเป็นการจองเก่าที่ยังไม่มีคอลัมน์นี้ ใช้ค่าที่เก็บไว้ในเครื่อง
-      people: row.people ?? extra.people,
-      purpose: row.purpose ?? extra.purpose
+      people: row.people,
+      purpose: row.purpose
     };
   }
 
@@ -94,8 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const { res, data } = await api("/booking/me");
       if (!res.ok) throw new Error(data.error || `GET /booking/me ${res.status}`);
-      const extras = getExtras();
-      bookings = data.map((row) => fromApi(row, extras));
+      bookings = data.map(fromApi);
       setNote("");
     } catch (error) {
       if (error.message === "unauthorized") return;
@@ -205,7 +193,6 @@ document.addEventListener("DOMContentLoaded", () => {
       createText("p", "history-date", `วันที่จอง: ${formatThaiDate(booking.date)}`),
       createText("p", "history-time", `เวลา: ${booking.startTime || "--:--"} - ${booking.endTime || "--:--"} น.`)
     );
-    // จำนวนคน/วัตถุประสงค์ มีเฉพาะการจองที่ทำจากเครื่องนี้ (DB ไม่ได้เก็บ)
     if (booking.people) {
       timing.append(createText("p", "history-people", `จำนวนผู้เข้าร่วม: ${booking.people} คน`));
     }
