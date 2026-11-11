@@ -10,7 +10,7 @@ const {
 
 // 11 พ.ย. 2026 00:30 เวลาไทย (ยังเป็น 10 พ.ย. ตาม UTC) — เช็กว่านับวันตามเวลาไทย
 const NOW = new Date('2026-11-10T17:30:00Z');
-const BOOKING = { booking_id: 99, student_id: '6607038' };
+const BOOKING = { booking_id: 99, student_id: '6809650010' };
 
 // db ปลอม: ตอบตามลำดับที่กำหนด และจำว่าถูกเรียกด้วยอะไร
 function setup(responses, { emailFails = false } = {}) {
@@ -44,7 +44,7 @@ describe('handleNoShow', () => {
     const { calls, sent, service } = setup([
       { rows: [] },
       { rows: [{ count: 3 }] },
-      { rows: [{ student_id: '6607038', start_date: '2026-11-11', end_date: '2026-12-11', trigger_booking_id: 99 }] },
+      { rows: [{ student_id: '6809650010', start_date: '2026-11-11', end_date: '2026-12-11', trigger_booking_id: 99 }] },
       { rows: [{ email: 's@example.com' }] }, // อีเมลจากตาราง users
     ]);
 
@@ -52,7 +52,7 @@ describe('handleNoShow', () => {
 
     assert.equal(result.end_date, '2026-12-11');
     // วันที่ตามเวลาไทย (11 พ.ย.) + 30 วัน = ระงับถึง 11 ธ.ค.
-    assert.deepEqual(calls[2].params, ['6607038', '2026-11-11', '2026-12-11', 99, 'No-show ครบ 3 ครั้ง']);
+    assert.deepEqual(calls[2].params, ['6809650010', '2026-11-11', '2026-12-11', 99, 'No-show ครบ 3 ครั้ง']);
     assert.equal(sent.length, 1);
     assert.equal(sent[0].to, 's@example.com');
     assert.equal(sent[0].info.days, 30);
@@ -76,7 +76,7 @@ describe('handleNoShow', () => {
   });
 
   test('ถูกแบนอยู่แล้ว → ไม่สร้างแบนซ้ำ', async () => {
-    const { calls, service } = setup([{ rows: [{ student_id: '6607038', end_date: '2026-11-20' }] }]);
+    const { calls, service } = setup([{ rows: [{ student_id: '6809650010', end_date: '2026-11-20' }] }]);
 
     assert.equal(await service.handleNoShow(BOOKING), null);
     assert.equal(calls.length, 1);
@@ -88,7 +88,7 @@ describe('handleNoShow', () => {
       [
         { rows: [] },
         { rows: [{ count: 3 }] },
-        { rows: [{ student_id: '6607038', end_date: '2026-12-10', trigger_booking_id: 99 }] },
+        { rows: [{ student_id: '6809650010', end_date: '2026-12-10', trigger_booking_id: 99 }] },
         { rows: [{ email: 's@example.com' }] },
       ],
       { emailFails: true }
@@ -107,7 +107,7 @@ describe('getActiveBlacklist', () => {
       },
     };
     const service = createBlacklistService({ db, sendNotice: async () => {}, now: () => NOW });
-    assert.equal(await service.getActiveBlacklist('6607038'), null);
+    assert.equal(await service.getActiveBlacklist('6809650010'), null);
   });
 });
 
@@ -121,17 +121,17 @@ describe('countNoShowsSinceLastBan', () => {
       now: () => NOW,
       semester: { start: '2026-08-01', end: '2026-12-15' },
     });
-    assert.equal(await service.countNoShowsSinceLastBan('6607038'), 1);
-    assert.deepEqual(calls[0].params, ['6607038', '2026-08-01', '2026-12-15']);
+    assert.equal(await service.countNoShowsSinceLastBan('6809650010'), 1);
+    assert.deepEqual(calls[0].params, ['6809650010', '2026-08-01', '2026-12-15']);
     assert.match(calls[0].sql, /confirmed_at IS NULL/);
   });
 });
 
 describe('assertNotBlacklisted', () => {
   test('US10 TC2: ถูกระงับอยู่ → 403 "คุณถูกระงับสิทธิ์การจองถึงวันที่ ..."', async () => {
-    const { service } = setup([{ rows: [{ student_id: '6607038', end_date: '2026-12-10' }] }]);
+    const { service } = setup([{ rows: [{ student_id: '6809650010', end_date: '2026-12-10' }] }]);
 
-    await assert.rejects(service.assertNotBlacklisted('6607038'), {
+    await assert.rejects(service.assertNotBlacklisted('6809650010'), {
       status: 403,
       message: 'คุณถูกระงับสิทธิ์การจองถึงวันที่ 10 ธันวาคม 2569',
     });
@@ -140,8 +140,8 @@ describe('assertNotBlacklisted', () => {
   test('US10 TC3: ครบ 30 วันแล้ว → จองได้ (เทียบ end_date กับวันนี้ตามเวลาไทย)', async () => {
     const { calls, service } = setup([{ rows: [] }]);
 
-    await service.assertNotBlacklisted('6607038');
-    assert.deepEqual(calls[0].params, ['6607038', '2026-11-11']);
+    await service.assertNotBlacklisted('6809650010');
+    assert.deepEqual(calls[0].params, ['6809650010', '2026-11-11']);
   });
 });
 
