@@ -99,9 +99,9 @@ function createBlacklistService({ db, sendNotice, now = () => new Date(), semest
     const count = await countNoShowsSinceLastBan(studentId);
     if (count < noShowLimit()) return null;
 
-    // วันนี้ + 29 = ระงับ 30 วันนับรวมวันนี้ จองได้อีกครั้งวันที่ 31
+    // ระงับถึงวันนี้ + 30 วัน (US10 TC1: No-show 22 ต.ค. → ระงับถึง 21 พ.ย.) วันถัดไปจองได้
     const startDate = bangkokDate(now());
-    const endDate = addDays(startDate, BLACKLIST_DAYS - 1);
+    const endDate = addDays(startDate, BLACKLIST_DAYS);
 
     const { rows } = await db.query(
       `INSERT INTO blacklist (student_id, start_date, end_date, trigger_booking_id, reason)
