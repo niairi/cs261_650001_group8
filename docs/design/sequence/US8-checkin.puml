@@ -1,0 +1,44 @@
+@startuml
+skinparam defaultFontName Loma
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+autonumber
+title US8 : กดยืนยันการเข้าใช้งาน (Check-in) เมื่ออยู่ภายในระยะ 5 เมตรจากห้อง
+actor "นักศึกษา" as U
+participant "Frontend\nหน้าการจองของฉัน" as FE
+participant "Browser\nGeolocation API" as G
+participant "Backend\nPOST /booking/:id/checkin\n(routes/bookings.js)" as R
+participant "middleware\nrequireAuth" as A
+database "PostgreSQL\nbooking, room\n(latitude, longitude)" as DB
+
+U -> FE : กด "ยืนยันการเข้าใช้งาน"
+FE -> G : getCurrentPosition()
+alt ผู้ใช้ไม่อนุญาตตำแหน่ง (TC3)
+  G --> FE : PERMISSION_DENIED
+  FE --> U : กรุณาอนุญาตการเข้าถึงตำแหน่ง\nเพื่อยืนยันการเข้าใช้งาน
+else ได้ตำแหน่ง
+  G --> FE : { latitude, longitude }
+  FE -> R : POST /booking/:id/checkin\n{ latitude, longitude }
+  R -> A : ตรวจ token
+  A -> R : req.user
+  R -> DB : BEGIN\nSELECT booking JOIN room ... FOR UPDATE
+  alt ไม่ใช่การจองของตัวเอง
+    R --> FE : 403
+  else สถานะไม่ใช่ BOOKED / เลยเวลา (TC4)
+    R --> FE : 409 เลยเวลายืนยันการเข้าใช้งานแล้ว
+  else ก่อนเวลาเริ่มเกิน 10 นาที (TC5)
+    R --> FE : 400 ยืนยันการเข้าใช้งานได้ตั้งแต่ 09:50
+  else อยู่ในช่วง 10 นาทีก่อน ถึง 15 นาทีหลังเวลาเริ่ม
+    R -> R : haversine(ตำแหน่งผู้ใช้, ตำแหน่งห้อง)
+    alt ระยะ > 5 เมตร (TC2)
+      R -> DB : ROLLBACK
+      R --> FE : 400 คุณอยู่นอกระยะ 5 เมตรจากห้องที่จอง
+    else ระยะ <= 5 เมตร (TC1)
+      R -> DB : UPDATE booking SET status = CONFIRMED,\nconfirmed_at = now()\nCOMMIT
+      R --> FE : 200 ยืนยันการเข้าใช้งานสำเร็จ
+      FE --> U : สถานะเป็น CONFIRMED\n(ยกเลิก / แก้ไขไม่ได้แล้ว)
+    end
+  end
+end
+@enduml
