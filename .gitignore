@@ -6,4 +6,4 @@
 
 # อื่นๆ
 node_modules/
-*.log
+*.log.DS_Store

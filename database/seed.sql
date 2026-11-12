@@ -4,11 +4,13 @@ INSERT INTO room (
     room_name,
     capacity,
     location,
-    is_active
+    is_active,
+    latitude,
+    longitude
 ) VALUES
-    (101, 'Room A', 4, 'ชั้น 2', TRUE),
-    (102, 'Room B', 6, 'ชั้น 2', TRUE),
-    (103, 'Room C', 8, 'ชั้น 3', TRUE);
+    (101, 'Room A', 4, 'ชั้น 2', TRUE, 14.0728612, 100.6082701),
+    (102, 'Room B', 6, 'ชั้น 2', TRUE, 14.0728612, 100.6082701),
+    (103, 'Room C', 8, 'ชั้น 3', TRUE, 14.0728612, 100.6082701);
 
 SELECT setval('room_room_id_seq', (SELECT MAX(room_id) FROM room));
 

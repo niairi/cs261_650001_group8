@@ -73,6 +73,14 @@
     {
       "key": "yesterday",
       "value": ""
+    },
+    {
+      "key": "editId",
+      "value": ""
+    },
+    {
+      "key": "blockId",
+      "value": ""
     }
   ],
   "item": [
@@ -423,7 +431,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"status 409\", () => pm.response.to.have.status(409));",
-                  "pm.test(\"error: ช่วงเวลานี้มีผู้จองห้องนี้แล้ว\", () => pm.expect(pm.response.json().error).to.eql(\"ช่วงเวลานี้มีผู้จองห้องนี้แล้ว\"));"
+                  "pm.test(\"error: ช่วงเวลานี้ถูกจองแล้ว\", () => pm.expect(pm.response.json().error).to.eql(\"ช่วงเวลานี้ถูกจองแล้ว\"));"
                 ]
               }
             }
@@ -567,7 +575,7 @@
           ]
         },
         {
-          "name": "จองนอกเวลา 09:00-17:00 = 400",
+          "name": "จองนอกเวลา 09:00-16:00 = 400",
           "request": {
             "method": "POST",
             "header": [
@@ -605,7 +613,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
-                  "pm.test(\"details มี: จองได้เฉพาะช่วง 09:00 - 17:00 น.\", () => pm.expect(pm.response.json().details).to.include(\"จองได้เฉพาะช่วง 09:00 - 17:00 น.\"));"
+                  "pm.test(\"details มี: จองได้เฉพาะช่วง 09:00 - 16:00 น.\", () => pm.expect(pm.response.json().details).to.include(\"จองได้เฉพาะช่วง 09:00 - 16:00 น.\"));"
                 ]
               }
             }
@@ -1088,6 +1096,484 @@
                 "exec": [
                   "pm.test(\"status 401\", () => pm.response.to.have.status(401));",
                   "pm.test(\"error: กรุณาเข้าสู่ระบบ\", () => pm.expect(pm.response.json().error).to.eql(\"กรุณาเข้าสู่ระบบ\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Sprint 2 (US5 TC3, US6–US10, US15)",
+      "description": "Task57: request ของ Sprint 2 ตาม docs/API.md — ก่อนโค้ดของแต่ละ US merge ข้อที่เกี่ยวข้องจะยังไม่ผ่าน",
+      "item": [
+        {
+          "name": "US15 TC2: เลขทะเบียนไม่มีในระบบ = 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/login",
+            "description": "US15 TC2",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"6800000000\",\n  \"password\": \"{{password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"error: เลขทะเบียนนักศึกษาหรือรหัสผ่านไม่ถูกต้อง\", () => pm.expect(pm.response.json().error).to.include(\"เลขทะเบียนนักศึกษาหรือรหัสผ่านไม่ถูกต้อง\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "จองไว้ทดสอบแก้ไข 09:00-10:00 (เก็บ editId)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": {{roomId}},\n  \"people\": 2,\n  \"booking_date\": \"{{tomorrow}}\",\n  \"start_time\": \"09:00\",\n  \"end_time\": \"10:00\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "if (b.booking_id) pm.collectionVariables.set(\"editId\", b.booking_id);",
+                  "pm.test(\"มี email_status (US5 TC3)\", () => pm.expect([\"SENT\",\"FAILED\",\"SKIPPED\"]).to.include(b.email_status));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "จองช่วง 13:00-14:00 ไว้ขวาง (เก็บ blockId)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"room_id\": {{roomId}},\n  \"people\": 2,\n  \"booking_date\": \"{{tomorrow}}\",\n  \"start_time\": \"13:00\",\n  \"end_time\": \"14:00\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "if (b.booking_id) pm.collectionVariables.set(\"blockId\", b.booking_id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "US6 TC1: แก้ไขเป็น 10:00-12:00 = 200",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking/{{editId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "US6 TC1",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"start_time\": \"10:00\",\n  \"end_time\": \"12:00\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "const r = pm.response.json();",
+                  "pm.test(\"เวลาใหม่ถูกบันทึก และมีข้อมูลเดิม\", () => {",
+                  "  pm.expect(r.booking.start_time).to.eql(\"10:00\");",
+                  "  pm.expect(r.booking.end_time).to.eql(\"12:00\");",
+                  "  pm.expect(r.previous.start_time).to.eql(\"09:00\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "US6 TC2: แก้ไขทับช่วงที่ถูกจอง = 409",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking/{{editId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "US6 TC2",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"start_time\": \"12:00\",\n  \"end_time\": \"14:00\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"error: ช่วงเวลานี้ถูกจองแล้ว\", () => pm.expect(pm.response.json().error).to.include(\"ช่วงเวลานี้ถูกจองแล้ว\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "US6 TC3: แก้ไขเกิน 3 ชั่วโมง = 400",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking/{{editId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "US6 TC3",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"start_time\": \"09:00\",\n  \"end_time\": \"13:00\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"details มี: จองได้ครั้งละไม่เกิน 3 ชั่วโมง\", () => pm.expect(pm.response.json().details).to.include(\"จองได้ครั้งละไม่เกิน 3 ชั่วโมง\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "US8 TC5: Check-in ก่อนเวลา = 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking/{{editId}}/checkin",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "US8 TC5 (การจองเป็นของพรุ่งนี้ จึงยังไม่ถึงเวลา)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 14.0722,\n  \"longitude\": 100.605\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"error: ยืนยันการเข้าใช้งานได้ตั้งแต่\", () => pm.expect(pm.response.json().error).to.include(\"ยืนยันการเข้าใช้งานได้ตั้งแต่\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "US8 TC3: Check-in ไม่ส่งพิกัด = 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/booking/{{editId}}/checkin",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "US8 TC3",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"error: กรุณาอนุญาตการเข้าถึงตำแหน่ง\", () => pm.expect(pm.response.json().error).to.include(\"กรุณาอนุญาตการเข้าถึงตำแหน่ง\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "US9/US10: สถานะ No-show ของตัวเอง",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/users/me/status",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "US9 TC4"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "const s = pm.response.json();",
+                  "pm.test(\"มีจำนวน No-show และสถานะระงับสิทธิ์\", () => {",
+                  "  pm.expect(s.no_show_count).to.be.a(\"number\");",
+                  "  pm.expect(s.no_show_limit).to.eql(3);",
+                  "  pm.expect(s.banned).to.be.a(\"boolean\");",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "US7 TC4: นักศึกษาเรียกรายการ Admin = 403",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/admin/bookings",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "US7 TC4 (ใช้ token นักศึกษา)"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"error: เฉพาะเจ้าหน้าที่เท่านั้น\", () => pm.expect(pm.response.json().error).to.include(\"เฉพาะเจ้าหน้าที่เท่านั้น\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "US7 TC4: นักศึกษาเรียกรายงานสรุป = 403",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/admin/reports/summary",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "US7 TC4"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"error: เฉพาะเจ้าหน้าที่เท่านั้น\", () => pm.expect(pm.response.json().error).to.include(\"เฉพาะเจ้าหน้าที่เท่านั้น\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ยกเลิก editId (เก็บกวาด)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/booking/{{editId}}/cancel",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ยกเลิก blockId (เก็บกวาด)",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/booking/{{blockId}}/cancel",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
                 ]
               }
             }

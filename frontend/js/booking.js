@@ -9,15 +9,15 @@ function goToLogin() {
   localStorage.removeItem(USER_KEY);
   window.location.href = "./login.html";
 }
-if (!localStorage.getItem(TOKEN_KEY)) goToLogin();
+// if (!localStorage.getItem(TOKEN_KEY)) goToLogin();
 
-function getUser() {
+ function getUser() {
   try {
     return JSON.parse(localStorage.getItem(USER_KEY)) || null;
   } catch {
     return null;
   }
-}
+ }
 
 const roomCards = document.querySelectorAll(".room-card");
 const roomSelect = document.querySelector("#room-select");

@@ -1,4 +1,5 @@
 // US7: ส่งอีเมลยืนยันการจอง และอีเมลยืนยันการยกเลิกการจอง
+// US6: อีเมลแจ้งการแก้ไขการจอง
 //
 // ตั้งค่า SMTP ใน .env (ดู .env.example)
 // ถ้ายังไม่ได้ตั้ง SMTP_HOST ระบบจะไม่ส่งจริง แต่แสดงเนื้อหาอีเมลใน Terminal แทน
@@ -128,6 +129,48 @@ function buildBookingCancellationEmail(booking) {
   return { subject, text, html };
 }
 
+// booking = การจองหลังแก้ไข, previous = ข้อมูลเดิมก่อนแก้ไข (US6)
+// previous: { room_name, booking_date, start_time, end_time }
+function buildBookingUpdatedEmail(booking, previous) {
+  const date = formatThaiDate(booking.booking_date);
+  const time = `${booking.start_time} - ${booking.end_time} น.`;
+  const oldText = `${previous.room_name} ${formatThaiDate(previous.booking_date)} ${previous.start_time} - ${previous.end_time} น.`;
+  const subject = emailSubject('แก้ไขการจอง', booking);
+
+  const rows = [
+    ['หมายเลขการจอง', `#${booking.booking_id}`],
+    ['ห้อง', booking.room_name],
+    ['วันที่', date],
+    ['เวลา', time],
+    ['รหัสนักศึกษา', booking.student_id],
+    ['เดิม', oldText],
+  ];
+
+  const text = [
+    'การจองห้องของคุณถูกแก้ไขเรียบร้อยแล้ว',
+    '',
+    ...rows.map(([k, v]) => `${k}: ${v}`),
+    '',
+    'ช่วงเวลาเดิมถูกเปิดให้ผู้อื่นจองได้แล้ว',
+    'หากคุณไม่ได้เป็นผู้แก้ไข กรุณาติดต่อผู้ดูแลระบบ',
+    '',
+    'TU CS Space — ภาควิชาวิทยาการคอมพิวเตอร์ มหาวิทยาลัยธรรมศาสตร์',
+  ].join('\n');
+
+  const html = `
+<div style="font-family:sans-serif;max-width:480px">
+  <h2 style="color:#8b0016">การจองห้องของคุณถูกแก้ไขเรียบร้อยแล้ว</h2>
+  <table style="border-collapse:collapse;width:100%">
+    ${rows.map(([k, v]) => `<tr><td style="padding:6px 0;color:#666">${escapeHtml(k)}</td><td style="padding:6px 0"><b>${escapeHtml(v)}</b></td></tr>`).join('')}
+  </table>
+  <p>ช่วงเวลาเดิมถูกเปิดให้ผู้อื่นจองได้แล้ว<br>
+  หากคุณไม่ได้เป็นผู้แก้ไข กรุณาติดต่อผู้ดูแลระบบ</p>
+  <p style="color:#999;font-size:12px">TU CS Space — ภาควิชาวิทยาการคอมพิวเตอร์ มหาวิทยาลัยธรรมศาสตร์</p>
+</div>`;
+
+  return { subject, text, html };
+}
+
 // บันทึกผลการส่งลงตาราง email_logs (Task32) — ถ้าบันทึกไม่ได้ไม่ให้กระทบการส่งอีเมล
 async function defaultLog(entry) {
   const pool = require('../db');
@@ -144,7 +187,7 @@ async function safeLog(log, entry) {
 }
 
 // ส่งอีเมลเกี่ยวกับการจอง 1 ฉบับ — คืนค่า { sent: true/false, reason }
-// type = BOOKING_CONFIRMED | BOOKING_CANCELLED (บันทึกลง email_logs.email_type)
+// type = BOOKING_CONFIRMED | BOOKING_CANCELLED | BOOKING_UPDATED (บันทึกลง email_logs.email_type)
 async function sendBookingEmail(type, mail, to, booking, transport, log) {
   const base = { booking_id: booking.booking_id, to_email: to || null, email_type: type };
 
@@ -174,6 +217,32 @@ async function sendBookingEmail(type, mail, to, booking, transport, log) {
   return { sent: true };
 }
 
+// รอผลการส่งอีเมลไม่เกิน timeoutMs แล้วแปลงเป็นสถานะสำหรับตอบหน้าเว็บ (US5 TC3 · Task70)
+// SENT = ส่งสำเร็จ · FAILED = SMTP ส่งไม่สำเร็จหรือรอนานเกิน · SKIPPED = ไม่ได้ตั้ง SMTP / ไม่มีผู้รับ
+// ไม่ throw เด็ดขาด เพื่อให้การจองที่ COMMIT แล้วตอบ 201 ได้เสมอ
+const DEFAULT_EMAIL_WAIT_MS = 10000;
+
+async function emailDeliveryStatus(sending, timeoutMs = Number(process.env.EMAIL_WAIT_MS || DEFAULT_EMAIL_WAIT_MS)) {
+  let timer;
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(() => resolve({ timedOut: true }), timeoutMs);
+  });
+  try {
+    const result = await Promise.race([sending, timeout]);
+    if (result && result.timedOut) {
+      console.error(`[อีเมล] รอผลการส่งเกิน ${timeoutMs} ms จึงแจ้งผู้ใช้ว่าส่งไม่สำเร็จ`);
+      return 'FAILED';
+    }
+    if (result && result.sent) return 'SENT';
+    return 'SKIPPED';
+  } catch (err) {
+    console.error('[อีเมล] ส่งอีเมลไม่สำเร็จ:', err.message);
+    return 'FAILED';
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // อีเมลยืนยันการจอง — transport และ log ส่งเข้ามาเองได้ (ใช้ตอน test)
 function sendBookingConfirmation(to, booking, transport = getTransporter(), log = defaultLog) {
   return sendBookingEmail('BOOKING_CONFIRMED', buildBookingConfirmationEmail(booking), to, booking, transport, log);
@@ -184,10 +253,18 @@ function sendBookingCancellation(to, booking, transport = getTransporter(), log 
   return sendBookingEmail('BOOKING_CANCELLED', buildBookingCancellationEmail(booking), to, booking, transport, log);
 }
 
+// อีเมลแจ้งการแก้ไขการจอง (US6)
+function sendBookingUpdate(to, booking, previous, transport = getTransporter(), log = defaultLog) {
+  return sendBookingEmail('BOOKING_UPDATED', buildBookingUpdatedEmail(booking, previous), to, booking, transport, log);
+}
+
 module.exports = {
   sendBookingConfirmation,
   sendBookingCancellation,
   buildBookingConfirmationEmail,
+  sendBookingUpdate,
+  emailDeliveryStatus,
   buildBookingCancellationEmail,
+  buildBookingUpdatedEmail,
   formatThaiDate,
 };
