@@ -566,7 +566,72 @@ Authorization: Bearer <token ของ admin>
 | 400 | `เงื่อนไขการค้นหาไม่ถูกต้อง` + details (`date_from ต้องอยู่ในรูปแบบ YYYY-MM-DD`, `date_from ต้องไม่หลัง date_to`, `ช่วงวันที่ต้องไม่เกิน 93 วัน`, `room_id ต้องเป็นตัวเลข`) |
 | 401 | `กรุณาเข้าสู่ระบบ` |
 | 403 | `เฉพาะเจ้าหน้าที่เท่านั้น` |
+---
 
+## 🆕 GET /admin/blacklist — รายชื่อผู้ถูกระงับสิทธิ์ (US13 · Task87)
+
+ต้อง login และ role เป็น `admin` แสดงเฉพาะรายการที่ยังมีผล (`end_date` ไม่ก่อนวันนี้ และยังไม่ถูกปลด) เรียงตามวันสิ้นสุด
+
+```http
+GET /admin/blacklist
+Authorization: Bearer <token ของ admin>
+```
+
+**200 OK**
+
+```json
+{
+  "rows": [
+    {
+      "blacklist_id": 1,
+      "student_id": "6809650010",
+      "name": "นักศึกษาทดสอบ",
+      "start_date": "2026-11-11",
+      "end_date": "2026-12-11",
+      "reason": "No-show ครบ 3 ครั้ง"
+    }
+  ],
+  "count": 1
+}
+```
+
+| Status | กรณี |
+|---|---|
+| 401 | ไม่ได้ login |
+| 403 | ไม่ใช่ admin |
+
+---
+
+## 🆕 POST /admin/blacklist/:id/lift — ปลดระงับสิทธิ์ก่อนกำหนด (US13 · Task87)
+
+ต้อง login และ role เป็น `admin` ไม่ต้องมี body บันทึกผู้ปลด (`lifted_by`) และเวลา (`lifted_at`) ลงตาราง `blacklist` นักศึกษาจองได้ทันทีหลังปลด
+
+```http
+POST /admin/blacklist/1/lift
+Authorization: Bearer <token ของ admin>
+```
+
+**200 OK**
+
+```json
+{
+  "blacklist_id": 1,
+  "student_id": "6809650010",
+  "start_date": "2026-11-11",
+  "end_date": "2026-12-11",
+  "reason": "No-show ครบ 3 ครั้ง",
+  "lifted_at": "2026-11-12T03:15:00.000Z",
+  "lifted_by": "admin01"
+}
+```
+
+| Status | กรณี |
+|---|---|
+| 400 | `:id` ไม่ใช่ตัวเลขที่ถูกต้อง |
+| 401 | ไม่ได้ login |
+| 403 | ไม่ใช่ admin |
+| 404 | ไม่พบรายการระงับสิทธิ์นี้ |
+| 409 | รายการนี้ถูกปลดแล้วหรือหมดอายุแล้ว |
 ---
 
 ## 🆕 งานอัตโนมัติ: No-show และระงับสิทธิ์ (US9, US10)

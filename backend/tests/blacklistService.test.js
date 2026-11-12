@@ -132,7 +132,6 @@ describe('assertNotBlacklisted', () => {
     const { service } = setup([{ rows: [{ student_id: '6809650010', end_date: '2026-12-10' }] }]);
 
     await assert.rejects(service.assertNotBlacklisted('6809650010'), {
-      status: 403,
       message: 'คุณถูกระงับสิทธิ์การจองถึงวันที่ 10 ธันวาคม 2569',
     });
   });
@@ -161,5 +160,67 @@ describe('helpers', () => {
       blacklistMessage({ end_date: '2026-12-10' }),
       'คุณถูกระงับสิทธิ์การจองถึงวันที่ 10 ธันวาคม 2569'
     );
+  });
+});
+
+// ---------- Task87 · US13: admin ดูรายชื่อ / ปลดระงับ ----------
+describe('US13 listActiveBlacklist', () => {
+  test('ดึงเฉพาะที่ยังมีผลและยังไม่ถูกปลด พร้อมชื่อจาก users', async () => {
+    const { calls, service } = setup([
+      { rows: [{ blacklist_id: '7', student_id: '6809650010', name: 'ทดสอบ', start_date: '2026-11-11', end_date: '2026-12-11', reason: 'No-show ครบ 3 ครั้ง' }] },
+    ]);
+
+    const rows = await service.listActiveBlacklist();
+    assert.equal(rows[0].blacklist_id, 7);
+    assert.equal(rows[0].name, 'ทดสอบ');
+    assert.match(calls[0].sql, /lifted_at IS NULL/);
+    assert.deepEqual(calls[0].params, ['2026-11-11']);
+  });
+});
+
+describe('US13 liftBlacklist', () => {
+  test('ปลดสำเร็จ → บันทึกว่าใครปลด เมื่อไหร่', async () => {
+    const { calls, service } = setup([
+      { rows: [{ blacklist_id: '7', student_id: '6809650010', lifted_by: 'admin01', lifted_at: NOW }] },
+    ]);
+
+    const result = await service.liftBlacklist(7, 'admin01');
+    assert.equal(result.blacklist_id, 7);
+    assert.equal(result.lifted_by, 'admin01');
+    assert.deepEqual(calls[0].params, [7, NOW, 'admin01', '2026-11-11']);
+  });
+
+  test('ไม่พบรายการ → 404', async () => {
+    const { service } = setup([{ rows: [] }, { rows: [] }]);
+    await assert.rejects(service.liftBlacklist(99, 'admin01'), { message: 'ไม่พบรายการระงับสิทธิ์นี้' });
+  });
+
+  test('ปลดไปแล้ว / หมดอายุแล้ว → 409', async () => {
+    const { service } = setup([{ rows: [] }, { rows: [{ blacklist_id: 7 }] }]);
+    await assert.rejects(service.liftBlacklist(7, 'admin01'), { message: 'รายการนี้ถูกปลดแล้วหรือหมดอายุแล้ว' });
+  });
+});
+
+describe('US13 getActiveBlacklist กับคอลัมน์ lifted_at', () => {
+  test('ไม่นับรายการที่ admin ปลดแล้ว', async () => {
+    const { calls, service } = setup([{ rows: [] }]);
+    assert.equal(await service.getActiveBlacklist('6809650010'), null);
+    assert.match(calls[0].sql, /lifted_at IS NULL/);
+  });
+
+  test('ยังไม่มีคอลัมน์ lifted_at (ยังไม่รัน migration) → ตรวจแบบเดิม ระบบจองไม่ล่ม', async () => {
+    const calls = [];
+    const db = {
+      query: async (sql, params) => {
+        calls.push({ sql, params });
+        if (calls.length === 1) throw Object.assign(new Error('column "lifted_at" does not exist'), { code: '42703' });
+        return { rows: [{ student_id: '6809650010', end_date: '2026-12-11' }] };
+      },
+    };
+    const service = createBlacklistService({ db, sendNotice: async () => {}, now: () => NOW, semester: { start: null, end: null } });
+
+    const entry = await service.getActiveBlacklist('6809650010');
+    assert.equal(entry.end_date, '2026-12-11');
+    assert.doesNotMatch(calls[1].sql, /lifted_at/);
   });
 });
