@@ -2,12 +2,12 @@
 // API ที่ใช้ (ต้อง login):
 //   GET   /booking/me            การจองทั้งหมดของผู้ใช้ที่ login อยู่
 //   PATCH /booking/:id/cancel    ยกเลิกการจอง
+//   PATCH /booking/:id           แก้ไขห้อง/วัน/เวลาของการจอง
 
 document.addEventListener("DOMContentLoaded", () => {
   const API_URL = "http://localhost:3000";
   const TOKEN_KEY = "token";   // ต้องตรงกับ login.js
   const USER_KEY = "user";
-  const EXTRAS_KEY = "tuCsSpaceBookingExtras"; // จำนวนคน/วัตถุประสงค์ ที่ booking.js เก็บไว้ (DB ไม่มีคอลัมน์นี้)
   const AUTO_REFRESH_MS = 60000;
 
   // ---------- ต้อง login ก่อน ----------
@@ -60,27 +60,18 @@ document.addEventListener("DOMContentLoaded", () => {
     return { res, data };
   }
 
-  function getExtras() {
-    try {
-      return JSON.parse(localStorage.getItem(EXTRAS_KEY)) || {};
-    } catch {
-      return {};
-    }
-  }
-
   // แปลงข้อมูลจาก Backend ให้อยู่ในรูปที่หน้านี้ใช้แสดงผล
-  function fromApi(row, extras) {
-    const extra = extras[row.booking_id] || {};
+  function fromApi(row) {
     return {
       id: row.booking_id,
+      roomId: row.room_id,
       room: row.room_name,
       date: row.booking_date,
       startTime: row.start_time,
       endTime: row.end_time,
       apiStatus: row.status, // BOOKED | CONFIRMED | CANCELLED | EXPIRED
-      // ใช้ค่าจากฐานข้อมูลก่อน ถ้าเป็นการจองเก่าที่ยังไม่มีคอลัมน์นี้ ใช้ค่าที่เก็บไว้ในเครื่อง
-      people: row.people ?? extra.people,
-      purpose: row.purpose ?? extra.purpose
+      people: row.people,
+      purpose: row.purpose
     };
   }
 
@@ -94,8 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const { res, data } = await api("/booking/me");
       if (!res.ok) throw new Error(data.error || `GET /booking/me ${res.status}`);
-      const extras = getExtras();
-      bookings = data.map((row) => fromApi(row, extras));
+      bookings = data.map(fromApi);
       setNote("");
     } catch (error) {
       if (error.message === "unauthorized") return;
@@ -116,6 +106,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function canCancel(booking) {
     const startAt = new Date(`${booking.date}T${booking.startTime}:00`);
     return startAt.getTime() - Date.now() >= CANCEL_BEFORE_MIN * 60 * 1000;
+  }
+
+  function canEdit(booking) {
+    return ["BOOKED", "CONFIRMED"].includes(booking.apiStatus) && canCancel(booking);
   }
 
   function hasStarted(booking) {
@@ -205,7 +199,6 @@ document.addEventListener("DOMContentLoaded", () => {
       createText("p", "history-date", `วันที่จอง: ${formatThaiDate(booking.date)}`),
       createText("p", "history-time", `เวลา: ${booking.startTime || "--:--"} - ${booking.endTime || "--:--"} น.`)
     );
-    // จำนวนคน/วัตถุประสงค์ มีเฉพาะการจองที่ทำจากเครื่องนี้ (DB ไม่ได้เก็บ)
     if (booking.people) {
       timing.append(createText("p", "history-people", `จำนวนผู้เข้าร่วม: ${booking.people} คน`));
     }
@@ -220,12 +213,24 @@ document.addEventListener("DOMContentLoaded", () => {
       const actions = document.createElement("div");
       actions.className = "history-card-actions";
 
+      const editButton = document.createElement("button");
+      editButton.type = "button";
+      editButton.className = "history-edit-button";
+      editButton.textContent = "แก้ไขการจอง";
+
       const cancelButton = document.createElement("button");
       cancelButton.type = "button";
       cancelButton.className = "history-cancel-button";
       cancelButton.textContent = "ยกเลิกการจอง";
 
-      actions.append(cancelButton);
+      actions.append(editButton, cancelButton);
+      if (canEdit(booking)) {
+        editButton.addEventListener("click", () => showEditDialog(booking, editButton));
+      } else {
+        editButton.disabled = true;
+        actions.append(createText("p", "history-edit-note", `แก้ไขได้ก่อนเวลาเริ่มอย่างน้อย ${CANCEL_BEFORE_MIN} นาที`));
+      }
+
       if (canCancel(booking)) {
         cancelButton.addEventListener("click", () => showConfirmDialog(booking));
       } else {
@@ -319,6 +324,181 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function showResult(title, message) {
     showDialog({ title, message, success: true });
+  }
+
+  let roomOptions;
+  async function loadRoomOptions() {
+    if (roomOptions) return roomOptions;
+    const { res, data } = await api("/rooms");
+    if (!res.ok) throw new Error(data.error || `GET /rooms ${res.status}`);
+    roomOptions = data;
+    return roomOptions;
+  }
+
+  function appendEditField(form, labelText, name, value, options) {
+    const label = document.createElement("label");
+    label.className = "history-edit-field";
+    label.htmlFor = `history-edit-${name}`;
+    label.append(createText("span", "", labelText));
+
+    const input = options
+      ? document.createElement("select")
+      : document.createElement("input");
+    input.id = `history-edit-${name}`;
+    input.name = name;
+    input.required = true;
+
+    if (options) {
+      options.forEach((option) => {
+        input.append(new Option(option.label, option.value));
+      });
+    } else {
+      input.type = name === "booking_date" ? "date" : "time";
+      if (name === "booking_date") {
+        input.min = localDate(new Date());
+      } else {
+        input.step = "3600";
+      }
+    }
+
+    input.value = value;
+    label.append(input);
+    form.append(label);
+    return input;
+  }
+
+  async function showEditDialog(booking, trigger) {
+    if (!canEdit(booking)) {
+      showResult("ไม่สามารถแก้ไขได้", `แก้ไขได้ก่อนเวลาเริ่มอย่างน้อย ${CANCEL_BEFORE_MIN} นาที`);
+      return;
+    }
+
+    try {
+      const rooms = await loadRoomOptions();
+      if (!canEdit(booking)) {
+        showResult("ไม่สามารถแก้ไขได้", `แก้ไขได้ก่อนเวลาเริ่มอย่างน้อย ${CANCEL_BEFORE_MIN} นาที`);
+        return;
+      }
+
+      document.querySelector(".history-dialog-overlay")?.remove();
+      const overlay = document.createElement("div");
+      overlay.className = "history-dialog-overlay";
+
+      const dialog = document.createElement("section");
+      dialog.className = "history-dialog history-edit-dialog";
+      dialog.setAttribute("role", "dialog");
+      dialog.setAttribute("aria-modal", "true");
+      dialog.setAttribute("aria-labelledby", "history-edit-title");
+      dialog.setAttribute("tabindex", "-1");
+
+      const heading = createText("h2", "history-dialog-title", "แก้ไขการจอง");
+      heading.id = "history-edit-title";
+      dialog.append(heading, createText("p", "history-dialog-message", "เลือกห้อง วัน และเวลาใหม่สำหรับการจอง"));
+
+      const form = document.createElement("form");
+      form.className = "history-edit-form";
+
+      appendEditField(form, "ห้อง", "room_id", String(booking.roomId), rooms.map((room) => ({
+        value: String(room.room_id),
+        label: `${room.room_name} (จุได้ ${room.capacity} คน)`
+      })));
+      appendEditField(form, "วันที่", "booking_date", booking.date);
+      appendEditField(form, "เวลาเริ่ม", "start_time", booking.startTime);
+      appendEditField(form, "เวลาสิ้นสุด", "end_time", booking.endTime);
+
+      const message = createText("p", "history-edit-message", "");
+      message.setAttribute("role", "status");
+      message.setAttribute("aria-live", "polite");
+      message.hidden = true;
+
+      const actions = document.createElement("div");
+      actions.className = "history-dialog-actions";
+      const cancelButton = document.createElement("button");
+      cancelButton.type = "button";
+      cancelButton.className = "history-dialog-button secondary";
+      cancelButton.textContent = "กลับ";
+
+      const saveButton = document.createElement("button");
+      saveButton.type = "submit";
+      saveButton.className = "history-dialog-button primary";
+      saveButton.textContent = "บันทึกการแก้ไข";
+      actions.append(cancelButton, saveButton);
+
+      function closeDialog() {
+        document.removeEventListener("keydown", handleEscape);
+        overlay.remove();
+        trigger.focus();
+      }
+
+      function handleEscape(event) {
+        if (event.key === "Escape") closeDialog();
+      }
+
+      cancelButton.addEventListener("click", closeDialog);
+      form.append(message, actions);
+      dialog.append(form);
+      overlay.append(dialog);
+      document.body.append(overlay);
+
+      overlay.addEventListener("click", (event) => {
+        if (event.target === overlay) closeDialog();
+      });
+      document.addEventListener("keydown", handleEscape);
+      dialog.focus();
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!canEdit(booking)) {
+          message.textContent = `ไม่สามารถแก้ไขได้ เนื่องจากเหลือเวลาไม่ถึง ${CANCEL_BEFORE_MIN} นาทีก่อนเริ่ม`;
+          message.hidden = false;
+          saveButton.disabled = true;
+          return;
+        }
+
+        const payload = {
+          room_id: Number(form.elements.room_id.value),
+          booking_date: form.elements.booking_date.value,
+          start_time: form.elements.start_time.value,
+          end_time: form.elements.end_time.value
+        };
+        saveButton.disabled = true;
+        saveButton.textContent = "กำลังบันทึก...";
+        message.hidden = true;
+
+        try {
+          const { res, data } = await api(`/booking/${booking.id}`, {
+            method: "PATCH",
+            body: JSON.stringify(payload)
+          });
+          if (!res.ok) {
+            const details = Array.isArray(data.details) ? ` (${data.details.join(", ")})` : "";
+            message.textContent = `${data.error || "แก้ไขการจองไม่สำเร็จ"}${details}`;
+            message.hidden = false;
+            saveButton.disabled = false;
+            saveButton.textContent = "บันทึกการแก้ไข";
+            return;
+          }
+
+          closeDialog();
+          showResult("แก้ไขการจองสำเร็จ", data.message || "บันทึกการเปลี่ยนแปลงเรียบร้อยแล้ว");
+          await loadBookings();
+        } catch (error) {
+          if (error.message === "unauthorized") {
+            closeDialog();
+            return;
+          }
+          console.error(error);
+          message.textContent = "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้ง";
+          message.hidden = false;
+          saveButton.disabled = false;
+          saveButton.textContent = "บันทึกการแก้ไข";
+        }
+      });
+    } catch (error) {
+      if (error.message === "unauthorized") return;
+      console.error(error);
+      showResult("โหลดรายการห้องไม่ได้", "ไม่สามารถโหลดห้องได้ ตรวจว่า Backend รันอยู่หรือไม่");
+    }
   }
 
   // ---------- ยกเลิกการจอง: PATCH /booking/:id/cancel ----------
