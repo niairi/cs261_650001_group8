@@ -18,7 +18,7 @@ skinparam class {
   HeaderBackgroundColor #D6EAF8
 }
 
-title ER Diagram : Sprint 2 – US8, US9, US10
+title ER Diagram : Sprint 2 – US8, US9, US10, US12
 
 entity "USERS" as users {
   * student_id : VARCHAR(50) <<PK>>
@@ -82,12 +82,23 @@ entity "BLACKLIST" as blacklist {
   * created_at : TIMESTAMP
 }
 
+entity "ROOM_CLOSURE" as room_closure {
+  * closure_id : BIGSERIAL <<PK>>
+  --
+  * room_id : BIGINT <<FK>>
+  * closure_date : DATE
+  reason : VARCHAR(255)
+  created_by : VARCHAR(50)
+  * created_at : TIMESTAMP
+}
+
 users ||--o{ booking : "ทำการจอง"
 room ||--o{ booking : "ถูกจอง"
 booking ||--o{ email_logs : "มีประวัติการส่งอีเมล"
 
 users ||--o{ blacklist : "ได้รับ Blacklist"
 booking ||--o| blacklist : "เป็นต้นเหตุ"
+room ||--o{ room_closure : "มีรายการปิดปรับปรุง"
 
 note bottom of users
   role:
@@ -130,6 +141,12 @@ note bottom of blacklist
   UNIQUE trigger_booking_id
   Blacklist เมื่อ No-show ครบ 3 ครั้ง
   ระยะเวลา Blacklist 30 วัน
+end note
+
+note bottom of room_closure
+  UNIQUE (room_id, closure_date)
+  ใช้เก็บวันที่ห้องถูกปิดปรับปรุง
+  และเหตุผลในการปิดห้อง
 end note
 
 @enduml
