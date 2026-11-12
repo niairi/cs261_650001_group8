@@ -73,6 +73,60 @@ function assertChangeable(booking, action, now = new Date()) {
   }
 }
 
+// ---------- Check-in (US8) ----------
+// ตาม docs/API.md: ห่างจากห้องไม่เกิน 5 เมตร และกดได้ตั้งแต่ 10 นาทีก่อน ถึง 15 นาทีหลังเวลาเริ่ม
+const CHECKIN_RADIUS_M = Number(process.env.CHECKIN_RADIUS_M || 5);
+const CHECKIN_EARLY_MIN = 10;
+const CHECKIN_LATE_MIN = Number(process.env.NO_SHOW_GRACE_MIN || 15);
+const EARTH_RADIUS_M = 6371000;
+
+// ระยะเส้นตรงระหว่าง 2 พิกัดบนผิวโลก (สูตร Haversine) หน่วยเมตร
+function distanceMeters(lat1, lon1, lat2, lon2) {
+  const rad = (d) => (d * Math.PI) / 180;
+  const dLat = rad(lat2 - lat1);
+  const dLon = rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * EARTH_RADIUS_M * Math.asin(Math.sqrt(a));
+}
+
+// ตรวจพิกัดที่หน้าเว็บส่งมา ไม่ส่ง/ไม่ใช่ตัวเลข/นอกช่วง = ถือว่าไม่ได้อนุญาตตำแหน่ง (US8 TC3)
+function parseCoordinates(body) {
+  const latitude = Number(body.latitude);
+  const longitude = Number(body.longitude);
+  const valid =
+    body.latitude !== undefined && body.latitude !== null && body.latitude !== '' &&
+    body.longitude !== undefined && body.longitude !== null && body.longitude !== '' &&
+    Number.isFinite(latitude) && Number.isFinite(longitude) &&
+    latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
+  if (!valid) throw new HttpError(400, 'กรุณาอนุญาตการเข้าถึงตำแหน่งเพื่อยืนยันการเข้าใช้งาน');
+  const accuracy = Number.isFinite(Number(body.accuracy)) ? Number(body.accuracy) : null;
+  return { latitude, longitude, accuracy };
+}
+
+// กดได้ตั้งแต่ เวลาเริ่ม − 10 นาที ถึง เวลาเริ่ม + 15 นาที
+function assertCheckinTime(booking, now = new Date()) {
+  const minsUntil = minutesUntilStart(booking.booking_date, booking.start_time, now);
+  if (minsUntil > CHECKIN_EARLY_MIN) {
+    const opens = toMinutes(booking.start_time) - CHECKIN_EARLY_MIN;
+    const hhmm = `${String(Math.floor(opens / 60)).padStart(2, '0')}:${String(opens % 60).padStart(2, '0')}`;
+    throw new HttpError(400, `ยืนยันการเข้าใช้งานได้ตั้งแต่ ${hhmm}`); // US8 TC5
+  }
+  if (minsUntil < -CHECKIN_LATE_MIN) {
+    throw new HttpError(409, 'เลยเวลายืนยันการเข้าใช้งานแล้ว'); // US8 TC4
+  }
+}
+
+// ต้องอยู่ในรัศมี 5 เมตรจากห้อง (US8 TC2)
+function assertWithinRadius(distance) {
+  if (distance > CHECKIN_RADIUS_M) {
+    throw new HttpError(400, `คุณอยู่นอกระยะ ${CHECKIN_RADIUS_M} เมตรจากห้องที่จอง`, [
+      `ระยะประมาณ ${Math.round(distance)} เมตร`,
+    ]);
+  }
+}
+
 module.exports = {
   OPEN,
   CLOSE,
@@ -82,4 +136,9 @@ module.exports = {
   validateBooking,
   minutesUntilStart,
   assertChangeable,
+  CHECKIN_RADIUS_M,
+  distanceMeters,
+  parseCoordinates,
+  assertCheckinTime,
+  assertWithinRadius,
 };

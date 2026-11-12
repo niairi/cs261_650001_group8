@@ -41,10 +41,10 @@ test('requireAdmin: student = 403 / admin = ผ่าน', () => {
 });
 
 // ---------- US7 (Task65): กรองเพิ่ม + รายงานสรุป ----------
-test('US7 TC2: ค้นหารหัส 6809650069 → WHERE student_id', () => {
-  const { sql, params } = buildBookingQuery({ student_id: '6809650069' });
+test('US7 TC2: ค้นหารหัส 6809650010 → WHERE student_id', () => {
+  const { sql, params } = buildBookingQuery({ student_id: '6809650010' });
   assert.match(sql, /b\.student_id = \$1/);
-  assert.equal(params[0], '6809650069');
+  assert.equal(params[0], '6809650010');
 });
 
 test('US7 TC3: กรองห้อง Room A (101) + วันที่ 22 ต.ค.', () => {

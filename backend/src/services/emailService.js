@@ -257,7 +257,50 @@ function sendBookingCancellation(to, booking, transport = getTransporter(), log 
 function sendBookingUpdate(to, booking, previous, transport = getTransporter(), log = defaultLog) {
   return sendBookingEmail('BOOKING_UPDATED', buildBookingUpdatedEmail(booking, previous), to, booking, transport, log);
 }
+// ===== เพิ่มใน backend/src/services/emailService.js (วางก่อน module.exports) =====
 
+// US10: อีเมลแจ้งถูกระงับสิทธิ์การจอง
+// info: { booking_id, student_id, no_show_count, days, until_text }
+function buildBlacklistEmail(info) {
+  const subject = `[CS Co-Working] แจ้งระงับสิทธิ์การจอง ${info.days} วัน`;
+  const rows = [
+    ['รหัสนักศึกษา', info.student_id],
+    ['จำนวนครั้งที่ไม่มาใช้ห้อง (No-show)', `${info.no_show_count} ครั้ง`],
+    ['ระงับสิทธิ์ถึงวันที่', info.until_text],
+  ];
+
+  const text = [
+    `คุณถูกระงับสิทธิ์การจองห้องเป็นเวลา ${info.days} วัน`,
+    '',
+    ...rows.map(([k, v]) => `${k}: ${v}`),
+    '',
+    'เนื่องจากไม่ได้ยืนยันการเข้าใช้งานห้องตามที่จองครบ 3 ครั้ง',
+    'หลังครบกำหนด คุณจะจองห้องได้ตามปกติ',
+    '',
+    'TU CS Space — ภาควิชาวิทยาการคอมพิวเตอร์ มหาวิทยาลัยธรรมศาสตร์',
+  ].join('\n');
+
+  const html = `
+<div style="font-family:sans-serif;max-width:480px">
+  <h2 style="color:#8b0016">คุณถูกระงับสิทธิ์การจองห้องเป็นเวลา ${info.days} วัน</h2>
+  <table style="border-collapse:collapse;width:100%">
+    ${rows.map(([k, v]) => `<tr><td style="padding:6px 0;color:#666">${escapeHtml(k)}</td><td style="padding:6px 0"><b>${escapeHtml(v)}</b></td></tr>`).join('')}
+  </table>
+  <p>เนื่องจากไม่ได้ยืนยันการเข้าใช้งานห้องตามที่จองครบ 3 ครั้ง<br>
+  หลังครบกำหนด คุณจะจองห้องได้ตามปกติ</p>
+  <p style="color:#999;font-size:12px">TU CS Space — ภาควิชาวิทยาการคอมพิวเตอร์ มหาวิทยาลัยธรรมศาสตร์</p>
+</div>`;
+
+  return { subject, text, html };
+}
+
+function sendBlacklistNotice(to, info, transport = getTransporter(), log = defaultLog) {
+  return sendBookingEmail('BLACKLISTED', buildBlacklistEmail(info), to, info, transport, log);
+}
+
+// แล้วเพิ่ม 2 ชื่อนี้ใน module.exports:
+//   sendBlacklistNotice,
+//   buildBlacklistEmail,
 module.exports = {
   sendBookingConfirmation,
   sendBookingCancellation,
@@ -267,4 +310,6 @@ module.exports = {
   buildBookingCancellationEmail,
   buildBookingUpdatedEmail,
   formatThaiDate,
+  sendBlacklistNotice,
+  buildBlacklistEmail,
 };

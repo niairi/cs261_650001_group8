@@ -1,9 +1,19 @@
-const { sendBookingConfirmation, sendBookingCancellation, sendBookingUpdate, emailDeliveryStatus } = require('../services/emailService');
+const { sendBookingConfirmation, sendBookingCancellation, sendBookingUpdate, emailDeliveryStatus, sendBlacklistNotice } = require('../services/emailService');
 const express = require('express');
 const pool = require('../db');
 const { requireAuth } = require('../middleware/auth');
 const { HttpError } = require('../errors');
-const { isRealDate, validateBooking, assertChangeable } = require('../services/bookingRules');
+const { createBlacklistService } = require('../services/blacklistService');
+const blacklistService = createBlacklistService({ db: pool, sendNotice: sendBlacklistNotice });
+const {
+  isRealDate,
+  validateBooking,
+  assertChangeable,
+  distanceMeters,
+  parseCoordinates,
+  assertCheckinTime,
+  assertWithinRadius,
+} = require('../services/bookingRules');
 
 const router = express.Router();
 
@@ -11,7 +21,7 @@ router.post('/', requireAuth, async (req, res, next) => {
   let client;
   try {
     const b = validateBooking(req.body || {});
-
+    await blacklistService.assertNotBlacklisted(req.user.student_id);
     client = await pool.connect();
     await client.query('BEGIN');
 
@@ -235,6 +245,7 @@ router.patch('/:id', requireAuth, async (req, res, next) => {
 
     // แก้ไขได้ก่อนเวลาเริ่ม (ของการจองเดิม) อย่างน้อย 30 นาที (US6 TC4)
     assertChangeable(old, 'แก้ไข');
+    await blacklistService.assertNotBlacklisted(req.user.student_id);
 
     // รวมค่าใหม่กับค่าเดิม แล้วตรวจกฎเดียวกับการจองใหม่ (ว่าง, ไม่เกิน 3 ชม., 09:00–16:00, ไม่เกิน 7 วัน)
     const b = validateBooking({
@@ -316,6 +327,80 @@ router.patch('/:id', requireAuth, async (req, res, next) => {
       message: 'แก้ไขการจองสำเร็จ',
       booking: { ...row, booking_id: Number(row.booking_id), room_id: Number(row.room_id) },
       previous: { ...previous, room_id: Number(previous.room_id) },
+    });
+  } catch (err) {
+    if (client) await client.query('ROLLBACK').catch(() => {});
+    next(err);
+  } finally {
+    if (client) client.release();
+  }
+});
+
+
+// POST /booking/:id/checkin — ยืนยันการเข้าใช้งานด้วยตำแหน่ง GPS (US8) ต้อง login
+// body: { latitude, longitude, accuracy? } — backend เป็นผู้คำนวณระยะเอง ไม่เชื่อค่าระยะจากหน้าเว็บ
+router.post('/:id/checkin', requireAuth, async (req, res, next) => {
+  let client;
+  try {
+    const bookingId = Number(req.params.id);
+    if (!Number.isInteger(bookingId) || bookingId <= 0) {
+      throw new HttpError(400, 'รหัสการจองไม่ถูกต้อง');
+    }
+    const position = parseCoordinates(req.body || {}); // US8 TC3
+
+    client = await pool.connect();
+    await client.query('BEGIN');
+
+    // FOR UPDATE OF b กันกดเช็กอินซ้อนกัน หรือชนกับตัวตรวจ No-show ที่เปลี่ยนเป็น EXPIRED
+    const found = await client.query(
+      `SELECT b.booking_id, b.student_id, b.status, r.latitude, r.longitude,
+              to_char(b.booking_date, 'YYYY-MM-DD') AS booking_date,
+              to_char(b.start_time, 'HH24:MI') AS start_time
+         FROM booking b
+         JOIN room r ON r.room_id = b.room_id
+        WHERE b.booking_id = $1
+        FOR UPDATE OF b`,
+      [bookingId]
+    );
+    if (found.rows.length === 0) throw new HttpError(404, 'ไม่พบการจองนี้');
+
+    const booking = found.rows[0];
+    if (booking.student_id !== req.user.student_id) {
+      throw new HttpError(403, 'ยืนยันได้เฉพาะการจองของตัวเองเท่านั้น');
+    }
+    if (booking.status === 'CANCELLED') throw new HttpError(409, 'การจองนี้ถูกยกเลิกไปแล้ว');
+    if (booking.status === 'CONFIRMED') throw new HttpError(409, 'ยืนยันการเข้าใช้งานไปแล้ว');
+    if (booking.status === 'EXPIRED') throw new HttpError(409, 'เลยเวลายืนยันการเข้าใช้งานแล้ว'); // US8 TC4
+
+    // ช่วงเวลา: 10 นาทีก่อน ถึง 15 นาทีหลังเวลาเริ่ม (US8 TC4, TC5)
+    assertCheckinTime(booking);
+
+    if (booking.latitude === null || booking.longitude === null) {
+      throw new HttpError(500, 'ยังไม่ได้ตั้งพิกัดของห้องนี้');
+    }
+
+    // ระยะไม่เกิน 5 เมตร (US8 TC1, TC2)
+    const distance = distanceMeters(
+      position.latitude, position.longitude,
+      Number(booking.latitude), Number(booking.longitude)
+    );
+    assertWithinRadius(distance);
+
+    const updated = await client.query(
+      `UPDATE booking
+          SET status = 'CONFIRMED', confirmed_at = CURRENT_TIMESTAMP
+        WHERE booking_id = $1
+        RETURNING booking_id, status, confirmed_at`,
+      [bookingId]
+    );
+
+    await client.query('COMMIT');
+
+    const row = updated.rows[0];
+    res.json({
+      message: 'ยืนยันการเข้าใช้งานสำเร็จ',
+      booking: { booking_id: Number(row.booking_id), status: row.status, confirmed_at: row.confirmed_at },
+      distance_m: Math.round(distance * 10) / 10,
     });
   } catch (err) {
     if (client) await client.query('ROLLBACK').catch(() => {});

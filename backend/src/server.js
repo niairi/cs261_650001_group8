@@ -9,7 +9,11 @@ app.listen(port, () => {
   printConfigSummary();
 });
 
-// US9: ตัวตรวจ No-show ทุก 1 นาที (Task67) — onNoShow ไว้ให้ระบบ Blacklist (Task68) ต่อเข้ามา
+// US9: ตัวตรวจ No-show ทุก 1 นาที (Task67) — onNoShow ส่งต่อให้ระบบ Blacklist (Task68 · US10)
 const pool = require('./db');
 const { startNoShowScheduler } = require('./services/noShowService');
-startNoShowScheduler(pool);
+const { createBlacklistService } = require('./services/blacklistService');
+const { sendBlacklistNotice } = require('./services/emailService');
+
+const blacklistService = createBlacklistService({ db: pool, sendNotice: sendBlacklistNotice });
+startNoShowScheduler(pool, { onNoShow: (event) => blacklistService.handleNoShow(event) });

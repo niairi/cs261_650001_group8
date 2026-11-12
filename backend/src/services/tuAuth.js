@@ -3,7 +3,7 @@
 // - ถ้าใส่ TU_API_KEY ใน .env จะเช็คกับ TU API จริง
 // - ถ้ายังไม่ใส่ จะใช้ "โหมดจำลอง" ซึ่งรับเฉพาะบัญชีทดสอบใน MOCK_USERS (US15)
 //   รูปแบบ MOCK_USERS=รหัส:รหัสผ่าน หรือ รหัส:รหัสผ่าน:สาขา คั่นหลายบัญชีด้วย ,
-//   เช่น MOCK_USERS=6809650069:test1234,6609000001:test1234:คณิตศาสตร์
+//   เช่น MOCK_USERS=6809650010:test1234,6609000001:test1234:คณิตศาสตร์
 //   ถ้าไม่ตั้ง MOCK_USERS จะ Login ไม่ได้ทุกบัญชี (เดิมรับรหัสอะไรก็ได้ ซึ่งอาจารย์พบตอน Review Sprint 1)
 //   (โหมดจำลองจะไม่ทำงานถ้าตั้ง NODE_ENV=production กันเผลอเปิดตอนใช้งานจริง)
 //
@@ -38,7 +38,7 @@ function samePassword(a, b) {
   return crypto.timingSafeEqual(ha, hb);
 }
 
-// รับได้ทั้ง "6809650069" และ "6809650069@dome.tu.ac.th"
+// รับได้ทั้ง "6809650010" และ "6809650010@dome.tu.ac.th"
 function toStudentId(username) {
   return String(username || '').trim().split('@')[0];
 }
