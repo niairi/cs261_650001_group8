@@ -24,6 +24,7 @@ const roomSelect = document.querySelector("#room-select");
 const form = document.querySelector("#booking-form");
 const formMessage = document.querySelector("#form-message");
 const bookingConfirmationDialog = document.querySelector("#booking-confirmation-dialog");
+const bookingResultDialog = document.querySelector("#booking-result-dialog");
 const bookingDialog = document.querySelector("#booking");
 const submitButton = form.querySelector(".submit-button");
 const navigationLinks = document.querySelectorAll(".main-nav .nav-link[href^='#']");
@@ -246,6 +247,84 @@ function showBookingConfirmation(booking) {
   bookingConfirmationDialog.focus({ preventScroll: true });
 }
 
+function showBookingResult({ type, status, title, message, details = "", booking = null }) {
+  if (!bookingResultDialog) return;
+  bookingResultDialog.classList.remove("is-blacklisted", "is-email-failed");
+  bookingResultDialog.classList.add(type === "blacklisted" ? "is-blacklisted" : "is-email-failed");
+  const icon = document.querySelector("#booking-result-icon-symbol");
+  icon.className = type === "blacklisted"
+    ? "fa-solid fa-ban"
+    : "fa-solid fa-triangle-exclamation";
+  document.querySelector("#booking-result-status-text").textContent = status;
+  document.querySelector("#booking-result-title").textContent = title;
+  document.querySelector("#booking-result-message").textContent = message;
+
+  const detailBox = document.querySelector("#booking-result-details");
+  detailBox.textContent = details;
+  detailBox.hidden = !details;
+  const note = document.querySelector("#booking-result-note");
+  note.hidden = true;
+  note.textContent = "";
+
+  const retryButton = document.querySelector("#booking-result-retry");
+  retryButton.hidden = type !== "email-failed";
+  retryButton.disabled = false;
+  retryButton.dataset.bookingId = booking ? String(booking.booking_id) : "";
+
+  if (bookingDialog.open) bookingDialog.close();
+  bookingResultDialog.showModal();
+  bookingResultDialog.focus({ preventScroll: true });
+}
+
+function showBlacklistPopup(errorMessage) {
+  showBookingResult({
+    type: "blacklisted",
+    status: "ถูกระงับสิทธิ์การใช้งานชั่วคราว",
+    title: "ไม่สามารถจองห้องได้ เนื่องจากถูกระงับสิทธิ์การใช้งาน",
+    message: `บัญชีของคุณติดสถานะ Blacklist เนื่องจากไม่มายืนยันการเข้าใช้งานตามเวลาที่จอง (No-show) ครบตามกำหนด ระบบจึงระงับสิทธิ์การจองชั่วคราว\n${errorMessage}`,
+    details: "กำลังโหลดประวัติ No-show และวันสิ้นสุดการระงับ..."
+  });
+
+  const token = localStorage.getItem(TOKEN_KEY);
+  fetch(`${API_URL}/users/me/status`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+    .then(async (res) => {
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `GET /users/me/status ${res.status}`);
+      const count = Number(data.no_show_count) || 0;
+      const limit = Number(data.no_show_limit) || 3;
+      const until = data.banned_until
+        ? `\nระงับสิทธิ์ถึงวันที่ ${formatConfirmationDate(data.banned_until)}`
+        : "";
+      document.querySelector("#booking-result-details").textContent =
+        `ประวัติ No-show สะสม: ${count} / ${limit} ครั้ง\nระยะเวลาที่ถูกระงับ: 30 วัน${until}`;
+    })
+    .catch((error) => {
+      console.error("โหลดสถานะ Blacklist ไม่สำเร็จ:", error);
+      document.querySelector("#booking-result-details").textContent = errorMessage;
+    });
+}
+
+function showEmailFailure(booking) {
+  const email = getUser()?.email;
+  const recipient = email ? ` ไปยัง ${email}` : "";
+  const details = [
+    `ห้องที่จอง: ${booking.room_name}`,
+    `วันที่: ${formatConfirmationDate(booking.booking_date)}`,
+    `ช่วงเวลา: ${booking.start_time} - ${booking.end_time} น.`,
+    `จำนวนผู้ใช้งาน: ${booking.people} คน`
+  ].join("\n");
+  showBookingResult({
+    type: "email-failed",
+    status: "ส่งอีเมลยืนยันไม่สำเร็จ",
+    title: "การจองสำเร็จ แต่อีเมลยืนยันไม่สำเร็จ",
+    message: `ระบบบันทึกการจองของคุณเรียบร้อยแล้ว แต่ไม่สามารถส่งอีเมลยืนยัน${recipient} ได้ในขณะนี้ การจองยังมีผลและดูรายละเอียดได้จากประวัติการจอง`,
+    details,
+    booking
+  });
+}
+
 if (bookingConfirmationDialog) {
   document.querySelector("#confirmation-home-button")?.addEventListener("click", () => {
     bookingConfirmationDialog.close();
@@ -258,6 +337,53 @@ if (bookingConfirmationDialog) {
     if (event.target === bookingConfirmationDialog) bookingConfirmationDialog.close();
   });
 }
+
+document.querySelector("#booking-result-close")?.addEventListener("click", () => bookingResultDialog.close());
+document.querySelector("#booking-result-history")?.addEventListener("click", () => {
+  window.location.href = "./booking-his.html";
+});
+bookingResultDialog?.addEventListener("click", (event) => {
+  if (event.target === bookingResultDialog) bookingResultDialog.close();
+});
+document.querySelector("#booking-result-retry")?.addEventListener("click", async (event) => {
+  const button = event.currentTarget;
+  const bookingId = button.dataset.bookingId;
+  const note = document.querySelector("#booking-result-note");
+  if (!bookingId) return;
+
+  button.disabled = true;
+  button.textContent = "กำลังส่งอีเมล...";
+  note.hidden = true;
+  try {
+    const res = await fetch(`${API_URL}/booking/${bookingId}/resend-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}`
+      }
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "ส่งอีเมลซ้ำไม่สำเร็จ");
+
+    note.textContent = data.email_status === "SENT"
+      ? "ส่งอีเมลยืนยันสำเร็จแล้ว กรุณาตรวจสอบกล่องข้อความของคุณ"
+      : "ยังส่งอีเมลไม่ได้ในขณะนี้ แต่การจองของคุณยังมีผล กรุณาตรวจสอบประวัติการจอง";
+    note.hidden = false;
+    if (data.email_status === "SENT") {
+      document.querySelector("#booking-result-status-text").textContent = "ส่งอีเมลยืนยันสำเร็จ";
+      button.hidden = true;
+    } else {
+      button.disabled = false;
+      button.textContent = "ส่งอีเมลใหม่อีกครั้ง";
+    }
+  } catch (error) {
+    console.error("ส่งอีเมลยืนยันซ้ำไม่สำเร็จ:", error);
+    note.textContent = error.message || "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองอีกครั้ง";
+    note.hidden = false;
+    button.disabled = false;
+    button.textContent = "ส่งอีเมลใหม่อีกครั้ง";
+  }
+});
 
 // ===== แสดงชื่อผู้ใช้จากผล login =====
 function renderUser() {
@@ -372,20 +498,23 @@ form.addEventListener("submit", async (event) => {
 
     if (!res.ok) {
       const details = data.details ? ` (${data.details.join(", ")})` : "";
+      if (res.status === 403 && typeof data.error === "string" && data.error.includes("ระงับสิทธิ์")) {
+        showBlacklistPopup(data.error);
+        return;
+      }
       showMessage(`${data.error || "จองไม่สำเร็จ"}${details}`, false);
       return;
     }
 
-    showMessage(
-      `จองสำเร็จ! ${data.room_name} วันที่ ${data.booking_date} เวลา ${data.start_time} - ${data.end_time} น. ` +
-        "ระบบได้ส่งรายละเอียดการจองไปยังอีเมลมหาวิทยาลัยของคุณแล้ว",
-      true
-    );
     bookingDialog.close();
-    showBookingConfirmation(data);
     form.reset();
     bookingDateInput.value = localDate(today);
     renderWeeklySchedule();
+    if (data.email_status === "SENT") {
+      showBookingConfirmation(data);
+    } else {
+      showEmailFailure(data);
+    }
   } catch {
     showMessage("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจว่า Backend รันอยู่หรือไม่", false);
   } finally {

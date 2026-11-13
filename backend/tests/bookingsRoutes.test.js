@@ -28,6 +28,10 @@ async function query(sql, p = []) {
   if (s === 'ROLLBACK') { if (snapshot) db.bookings = snapshot; snapshot = null; return { rows: [] }; }
   if (/INSERT INTO email_logs/.test(s)) { db.emailLogs.push({ booking_id: p[0], email_type: p[2], status: p[3] }); return { rows: [] }; }
   if (/FROM room_closure/.test(s)) return { rows: [] }; // US12: ไม่มีห้องปิดปรับปรุง (ทดสอบใน roomsAdmin.test.js)
+  if (/FROM booking b JOIN room r ON r\.room_id = b\.room_id WHERE b\.booking_id = \$1 AND b\.student_id = \$2/.test(s)) {
+    const b = db.bookings.find((x) => x.booking_id === Number(p[0]) && x.student_id === p[1]);
+    return { rows: b ? [{ ...b, room_name: db.rooms.get(b.room_id).room_name }] : [] };
+  }
   if (/FROM room WHERE room_id = \$1 AND is_active/.test(s)) {
     const r = db.rooms.get(Number(p[0]));
     return { rows: r && r.is_active ? [r] : [] };
@@ -122,6 +126,16 @@ test('US3 TC1: จองสำเร็จ = 201 สถานะ BOOKED แล�
   assert.equal(db.bookings.length, 1);
   await new Promise((resolve) => setTimeout(resolve, 20));
   assert.equal(db.emailLogs[0].email_type, 'BOOKING_CONFIRMED');
+});
+
+test('US3: ส่งอีเมลยืนยันการจองซ้ำได้เฉพาะเจ้าของรายการ', async () => {
+  const { body } = await book(A, '10:00', '12:00');
+  const sent = await call('POST', `/booking/${body.booking_id}/resend-email`, { token: A });
+  assert.equal(sent.status, 200);
+  assert.equal(sent.body.email_status, 'SKIPPED'); // test environment has no SMTP
+
+  const otherUser = await call('POST', `/booking/${body.booking_id}/resend-email`, { token: B });
+  assert.equal(otherUser.status, 404);
 });
 
 // Bug (Task77): เดิมตอบ "ช่วงเวลานี้มีผู้จองห้องนี้แล้ว" ไม่ตรง TC · PO เลือกใช้ข้อความเดียวกับ US6
