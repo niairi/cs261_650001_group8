@@ -48,6 +48,18 @@
       </div>
     </section>
 
+    <section class="history-account-status" aria-labelledby="blacklist-title">
+      <div class="history-account-status-copy">
+        <h2 id="blacklist-title">สถานะ Blacklist <span class="history-ban-status" id="blacklist-state">กำลังโหลด...</span></h2>
+        <p id="blacklist-message" role="status">หากไม่เข้าใช้งาน (No-show) ครบ 3 ครั้ง ระบบจะระงับสิทธิ์การจองชั่วคราว 30 วัน</p>
+      </div>
+      <div class="history-strikes" aria-label="จำนวน No-show">
+        <span>การผิดนัด (No-show)</span>
+        <strong id="no-show-count">0 / 3 ครั้ง</strong>
+        <div class="history-strike-dots" id="no-show-dots" aria-hidden="true"></div>
+      </div>
+    </section>
+
     <nav class="history-filters" aria-label="กรองประวัติการจอง">
   <button class="history-filter" type="button" data-filter="upcoming" aria-pressed="false">
     รอเข้าใช้งาน (Upcoming) (<span data-count="upcoming">0</span>)
@@ -64,16 +76,20 @@
   <button class="history-filter" type="button" data-filter="cancelled" aria-pressed="false">
     ยกเลิกแล้ว (Cancelled) (<span data-count="cancelled">0</span>)
   </button>
+
+  <button class="history-filter" type="button" data-filter="expired" aria-pressed="false">
+    เลยกำหนด (Expired) (<span data-count="expired">0</span>)
+  </button>
 </nav>
 
-    <p class="history-data-note" role="status">กำลังรอเชื่อมต่อ Backend เพื่อโหลดประวัติการจอง</p>
+    <p class="history-data-note" role="status">กำลังโหลดประวัติการจองจาก Backend</p>
     <section class="history-list" id="history-list" aria-label="รายการประวัติการจอง" hidden></section>
     <section class="history-empty panel" id="history-empty" aria-labelledby="history-empty-title">
       <div class="history-empty-icon" aria-hidden="true">
         <i class="fa-regular fa-calendar-days"></i>
       </div>
-      <h2 id="history-empty-title">รอข้อมูลประวัติการจอง</h2>
-      <p>รายการจองและสถานะจะแสดงที่นี่เมื่อเชื่อมต่อระบบ Backend แล้ว</p>
+      <h2 id="history-empty-title">กำลังโหลดประวัติการจอง</h2>
+      <p>กำลังดึงรายการจองและสถานะจากระบบ Backend</p>
     </section>
   </main>
 

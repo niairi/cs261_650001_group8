@@ -140,6 +140,41 @@ router.get('/me', requireAuth, async (req, res, next) => {
   }
 });
 
+// POST /booking/:id/resend-email — ส่งอีเมลยืนยันการจองซ้ำ (เจ้าของรายการเท่านั้น)
+router.post('/:id/resend-email', requireAuth, async (req, res, next) => {
+  try {
+    const bookingId = Number(req.params.id);
+    if (!Number.isInteger(bookingId) || bookingId <= 0) {
+      throw new HttpError(400, 'รหัสการจองไม่ถูกต้อง');
+    }
+
+    const { rows } = await pool.query(
+      `SELECT b.booking_id, b.student_id, b.status,
+              to_char(b.booking_date, 'YYYY-MM-DD') AS booking_date,
+              to_char(b.start_time, 'HH24:MI') AS start_time,
+              to_char(b.end_time, 'HH24:MI') AS end_time,
+              r.room_id, r.room_name
+         FROM booking b
+         JOIN room r ON r.room_id = b.room_id
+        WHERE b.booking_id = $1 AND b.student_id = $2`,
+      [bookingId, req.user.student_id]
+    );
+    if (rows.length === 0) throw new HttpError(404, 'ไม่พบการจองนี้');
+
+    const booking = rows[0];
+    if (!['BOOKED', 'CONFIRMED'].includes(booking.status)) {
+      throw new HttpError(409, 'ส่งอีเมลซ้ำได้เฉพาะการจองที่ยังใช้งานได้');
+    }
+
+    const email_status = await emailDeliveryStatus(
+      sendBookingConfirmation(req.user.email, booking)
+    );
+    res.json({ message: 'ตรวจสอบการส่งอีเมลเรียบร้อยแล้ว', email_status });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // PATCH /booking/:id/cancel — ยกเลิกการจอง (US4) ต้อง login
 router.patch('/:id/cancel', requireAuth, async (req, res, next) => {
   let client;

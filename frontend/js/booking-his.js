@@ -1,6 +1,8 @@
 // ===== หน้าประวัติการจอง + ยกเลิกการจอง (US4) เชื่อมกับ Backend =====
 // API ที่ใช้ (ต้อง login):
 //   GET   /booking/me            การจองทั้งหมดของผู้ใช้ที่ login อยู่
+//   POST  /booking/:id/checkin   ยืนยันการเข้าใช้งานด้วยพิกัด GPS
+//   GET   /users/me/status       จำนวน No-show และสถานะ Blacklist
 //   PATCH /booking/:id/cancel    ยกเลิกการจอง
 //   PATCH /booking/:id           แก้ไขห้อง/วัน/เวลาของการจอง
 
@@ -30,15 +32,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const historyEmptyTitle = document.querySelector("#history-empty-title");
   const historyEmptyMessage = document.querySelector("#history-empty p");
   const dataNote = document.querySelector(".history-data-note");
+  const blacklistState = document.querySelector("#blacklist-state");
+  const blacklistMessage = document.querySelector("#blacklist-message");
+  const noShowCount = document.querySelector("#no-show-count");
+  const noShowDots = document.querySelector("#no-show-dots");
 
   const statusLabels = {
-    upcoming: "กำลังจะมาถึง",
+    upcoming: "รอเข้าใช้งาน",
     completed: "เสร็จสิ้น",
-    cancelled: "ยกเลิกแล้ว"
+    cancelled: "ยกเลิกแล้ว",
+    expired: "หมดอายุ (Expired)"
   };
 
   let bookings = [];
   let currentFilter = "all";
+  let accountStatus = null;
 
   // ---------- เรียก Backend ----------
   // คืนค่า { res, data } และพาไปหน้า login ถ้า token หมดอายุ
@@ -96,9 +104,52 @@ document.addEventListener("DOMContentLoaded", () => {
     renderHistory();
   }
 
+  async function loadAccountStatus() {
+    try {
+      const { res, data } = await api("/users/me/status");
+      if (!res.ok) throw new Error(data.error || `GET /users/me/status ${res.status}`);
+      accountStatus = data;
+      renderAccountStatus();
+    } catch (error) {
+      if (error.message === "unauthorized") return;
+      console.error(error);
+      if (blacklistState) blacklistState.textContent = "โหลดสถานะไม่ได้";
+      if (blacklistMessage) blacklistMessage.textContent = "ไม่สามารถโหลดจำนวน No-show และสถานะ Blacklist ได้ กรุณาลองใหม่";
+    }
+  }
+
+  function renderAccountStatus() {
+    if (!accountStatus) return;
+    const count = Math.max(0, Number(accountStatus.no_show_count) || 0);
+    const limit = Math.max(1, Number(accountStatus.no_show_limit) || 3);
+    const banned = Boolean(accountStatus.banned);
+
+    if (blacklistState) {
+      blacklistState.textContent = banned ? "ถูกระงับ" : "ปกติ";
+      blacklistState.classList.toggle("is-banned", banned);
+    }
+    if (blacklistMessage) {
+      blacklistMessage.textContent = banned
+        ? `คุณถูกระงับสิทธิ์การจอง${accountStatus.banned_until ? ` ถึงวันที่ ${formatThaiDate(accountStatus.banned_until)}` : ""}`
+        : `หากไม่เข้าใช้งาน (No-show) ครบ ${limit} ครั้ง ระบบจะระงับสิทธิ์การจองชั่วคราว 30 วัน`;
+    }
+    if (noShowCount) noShowCount.textContent = `${count} / ${limit} ครั้ง`;
+    if (noShowDots) {
+      noShowDots.replaceChildren();
+      for (let strike = 0; strike < limit; strike++) {
+        const dot = document.createElement("span");
+        if (strike < count) dot.classList.add("is-counted");
+        noShowDots.append(dot);
+      }
+    }
+  }
+
+  async function refreshHistory() {
+    await Promise.all([loadBookings(), loadAccountStatus()]);
+  }
+
   // ---------- สถานะ ----------
   const localDate = (d) => d.toLocaleDateString("sv-SE"); // YYYY-MM-DD ตามเวลาเครื่อง
-  const nowHHMM = () => new Date().toTimeString().slice(0, 5);
 
   // ถึงเวลาเริ่มแล้วหรือยัง (Backend ไม่ให้ยกเลิกหลังถึงเวลาเริ่ม)
   // ยกเลิกได้ก่อนเวลาเริ่มอย่างน้อย 30 นาที (US4 TC4) ต้องตรงกับ backend
@@ -109,18 +160,27 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function canEdit(booking) {
-    return ["BOOKED", "CONFIRMED"].includes(booking.apiStatus) && canCancel(booking);
+    return booking.apiStatus === "BOOKED" && canCancel(booking);
   }
 
-  function hasStarted(booking) {
-    const today = localDate(new Date());
-    return booking.date < today || (booking.date === today && booking.startTime <= nowHHMM());
+  function minutesUntilStart(booking) {
+    const startAt = new Date(`${booking.date}T${booking.startTime}:00`);
+    return (startAt.getTime() - Date.now()) / 60000;
+  }
+
+  function canCheckin(booking) {
+    const minutes = minutesUntilStart(booking);
+    return booking.apiStatus === "BOOKED" && minutes <= 10 && minutes >= -15;
   }
 
   function getStatus(booking) {
     if (booking.apiStatus === "CANCELLED") return "cancelled";
-    if (booking.apiStatus === "EXPIRED") return "completed";
-    return hasStarted(booking) ? "completed" : "upcoming";
+    if (booking.apiStatus === "EXPIRED") return "expired";
+    if (booking.apiStatus === "CONFIRMED") {
+      const endAt = new Date(`${booking.date}T${booking.endTime}:00`);
+      return endAt.getTime() <= Date.now() ? "completed" : "upcoming";
+    }
+    return "upcoming";
   }
 
   // ---------- ตัวช่วยแสดงผล ----------
@@ -155,7 +215,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateCounts() {
-    const counts = { all: bookings.length, upcoming: 0, completed: 0, cancelled: 0 };
+    const counts = { all: bookings.length, upcoming: 0, completed: 0, cancelled: 0, expired: 0 };
     bookings.forEach((booking) => {
       counts[getStatus(booking)]++;
     });
@@ -189,7 +249,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const statusDot = document.createElement("span");
     statusDot.className = "history-status-dot";
     statusDot.setAttribute("aria-hidden", "true");
-    statusElement.append(statusDot, document.createTextNode(statusLabels[status] || status));
+    const visibleStatus = booking.apiStatus === "CONFIRMED" && status === "upcoming"
+      ? "ยืนยันแล้ว"
+      : statusLabels[status] || status;
+    statusElement.append(statusDot, document.createTextNode(visibleStatus));
 
     heading.append(room, statusElement);
 
@@ -209,9 +272,18 @@ document.addEventListener("DOMContentLoaded", () => {
     details.append(heading, timing);
     card.append(details);
 
-    if (status === "upcoming") {
+    if (status === "upcoming" && booking.apiStatus === "BOOKED") {
       const actions = document.createElement("div");
       actions.className = "history-card-actions";
+
+      if (canCheckin(booking)) {
+        const checkinButton = document.createElement("button");
+        checkinButton.type = "button";
+        checkinButton.className = "history-checkin-button";
+        checkinButton.textContent = "Check-in / ยืนยันการเข้าใช้งาน";
+        checkinButton.addEventListener("click", () => checkinBooking(booking, checkinButton));
+        actions.append(checkinButton);
+      }
 
       const editButton = document.createElement("button");
       editButton.type = "button";
@@ -249,6 +321,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (status === "cancelled") {
       card.append(createText("p", "history-cancelled-note", "รายการจองนี้ถูกยกเลิกแล้ว"));
+    }
+
+    if (status === "expired") {
+      card.append(createText("p", "history-expired-note", "การจองนี้หมดอายุแล้ว เนื่องจากไม่ได้ Check-in ภายในเวลาที่กำหนด"));
     }
 
     return card;
@@ -295,7 +371,7 @@ document.addEventListener("DOMContentLoaded", () => {
     backButton.addEventListener("click", closeDialog);
     actions.append(backButton);
 
-    if (!success) {
+    if (!success && typeof onConfirm === "function") {
       const confirmButton = document.createElement("button");
       confirmButton.type = "button";
       confirmButton.className = "history-dialog-button danger";
@@ -324,6 +400,80 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function showResult(title, message) {
     showDialog({ title, message, success: true });
+  }
+
+  function showError(title, message) {
+    showDialog({ title, message });
+  }
+
+  function getBrowserPosition() {
+    if (!navigator.geolocation) {
+      return Promise.reject(new Error("เบราว์เซอร์นี้ไม่รองรับการขอตำแหน่ง"));
+    }
+
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
+      });
+    });
+  }
+
+  function locationErrorMessage(error) {
+    if (error instanceof Error && !("code" in error)) return error.message;
+    if (error.code === 1) return "กรุณาอนุญาตการเข้าถึงตำแหน่งในเบราว์เซอร์ เพื่อยืนยันการเข้าใช้งาน";
+    if (error.code === 2) return "ไม่สามารถระบุตำแหน่งของคุณได้ กรุณาลองอีกครั้ง";
+    if (error.code === 3) return "การค้นหาตำแหน่งใช้เวลานานเกินไป กรุณาลองอีกครั้ง";
+    return "ไม่สามารถขอตำแหน่งจากเบราว์เซอร์ได้ กรุณาตรวจสอบการตั้งค่าตำแหน่ง";
+  }
+
+  async function checkinBooking(booking, button) {
+    button.disabled = true;
+    button.textContent = "กำลังขอตำแหน่ง...";
+
+    try {
+      const position = await getBrowserPosition();
+      button.textContent = "กำลังยืนยัน...";
+      const { res, data } = await api(`/booking/${booking.id}/checkin`, {
+        method: "POST",
+        body: JSON.stringify({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy
+        })
+      });
+
+      if (!res.ok) {
+        const details = Array.isArray(data.details) ? ` (${data.details.join(", ")})` : "";
+        const outsideRadius = typeof data.error === "string" && data.error.includes("นอกระยะ");
+        showError(
+          outsideRadius ? "ไม่อนุญาตให้ Check-in" : "Check-in ไม่สำเร็จ",
+          `${data.error || "ยืนยันการเข้าใช้งานไม่สำเร็จ"}${details}`
+        );
+        if (res.status === 409) await refreshHistory();
+        return;
+      }
+
+      const distance = Number.isFinite(Number(data.distance_m))
+        ? ` (ระยะประมาณ ${data.distance_m} เมตร)`
+        : "";
+      showResult("ยืนยันการเข้าใช้งานสำเร็จ", `${data.message || "Check-in สำเร็จ"}${distance}`);
+      await refreshHistory();
+    } catch (error) {
+      if (error.message === "unauthorized") return;
+      if (typeof error.code === "number") {
+        showError("ไม่สามารถยืนยันตำแหน่งได้", locationErrorMessage(error));
+      } else {
+        console.error(error);
+        showError("เกิดข้อผิดพลาด", error.message || "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้ง");
+      }
+    } finally {
+      if (button.isConnected) {
+        button.disabled = false;
+        button.textContent = "Check-in / ยืนยันการเข้าใช้งาน";
+      }
+    }
   }
 
   let roomOptions;
@@ -481,7 +631,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
           closeDialog();
           showResult("แก้ไขการจองสำเร็จ", data.message || "บันทึกการเปลี่ยนแปลงเรียบร้อยแล้ว");
-          await loadBookings();
+          await refreshHistory();
         } catch (error) {
           if (error.message === "unauthorized") {
             closeDialog();
@@ -528,7 +678,7 @@ document.addEventListener("DOMContentLoaded", () => {
           showResult("เกิดข้อผิดพลาด", "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจว่า Backend รันอยู่หรือไม่");
         }
         // โหลดข้อมูลล่าสุดจาก Backend ทุกครั้ง ให้สถานะตรงกับฐานข้อมูล
-        loadBookings();
+        refreshHistory();
       }
     });
   }
@@ -577,10 +727,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   renderUser();
   setNote("กำลังโหลดประวัติการจอง...");
-  loadBookings();
+  refreshHistory();
   // โหลดใหม่เป็นระยะ และเมื่อกลับมาที่แท็บนี้ (เผื่อจองเพิ่มจากอีกแท็บ)
-  setInterval(loadBookings, AUTO_REFRESH_MS);
+  setInterval(refreshHistory, AUTO_REFRESH_MS);
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") loadBookings();
+    if (document.visibilityState === "visible") refreshHistory();
   });
 });

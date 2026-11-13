@@ -561,6 +561,52 @@ h2 {
   outline: none;
 }
 
+.booking-result-dialog [hidden] {
+  display: none !important;
+}
+
+.booking-result-dialog.is-blacklisted {
+  border-color: #fecdd3;
+  border-top-color: #8b001c;
+}
+
+.booking-result-dialog.is-email-failed {
+  border-color: #fcd34d;
+  border-top-color: #f59e0b;
+}
+
+.booking-result-dialog.is-blacklisted .confirmation-icon {
+  border-color: #fee2e2;
+  color: #9f1239;
+  background: #fff1f2;
+}
+
+.booking-result-dialog.is-blacklisted .confirmation-status {
+  border-color: #fecdd3;
+  color: #9f1239;
+  background: #fff1f2;
+}
+
+.booking-result-dialog.is-blacklisted .confirmation-status > span:first-child {
+  background: #be123c;
+}
+
+.booking-result-dialog.is-email-failed .confirmation-icon {
+  border-color: #fde68a;
+  color: #d97706;
+  background: #fffbeb;
+}
+
+.booking-result-dialog.is-email-failed .confirmation-status {
+  border-color: #fcd34d;
+  color: #b45309;
+  background: #fffbeb;
+}
+
+.booking-result-dialog.is-email-failed .confirmation-status > span:first-child {
+  background: #f59e0b;
+}
+
 .confirmation-content {
   padding: 24px 28px 22px;
   text-align: center;
@@ -593,11 +639,18 @@ h2 {
   font-weight: 600;
 }
 
-.confirmation-status span {
+.confirmation-status > span:first-child {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: #10b981;
+}
+
+.confirmation-status > span:last-child:not(:first-child) {
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: transparent;
 }
 
 .booking-confirmation-dialog h2 {
@@ -661,12 +714,14 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 9px;
   margin-top: 18px;
 }
 
 .confirmation-home-button,
-.confirmation-history-button {
+.confirmation-history-button,
+.booking-result-close {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -698,6 +753,56 @@ h2 {
 .confirmation-history-button:hover {
   border-color: var(--maroon);
   background: #fbf7f8;
+}
+
+.booking-result-close {
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  background: #ffffff;
+}
+
+.booking-result-close:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.booking-result-dialog.is-email-failed .booking-result-retry {
+  background: #f59e0b;
+  box-shadow: 0 3px 7px rgba(180, 83, 9, 0.18);
+}
+
+.booking-result-dialog.is-email-failed .booking-result-retry:hover {
+  background: #d97706;
+}
+
+.booking-result-details {
+  padding: 12px 14px;
+  border: 1px solid #fcd34d;
+  border-radius: 12px;
+  color: #334155;
+  background: #fffbeb;
+  font-size: 12px;
+  line-height: 1.8;
+  text-align: left;
+  white-space: pre-line;
+}
+
+.booking-result-dialog.is-blacklisted .booking-result-details {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+}
+
+.booking-result-note {
+  margin: 12px 0 0;
+  color: #b45309;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.booking-result-dialog button:disabled {
+  cursor: wait;
+  opacity: 0.65;
 }
 
 .schedule-modal-header {
@@ -1550,7 +1655,8 @@ h2 {
   }
 
   .confirmation-home-button,
-  .confirmation-history-button {
+  .confirmation-history-button,
+  .booking-result-close {
     width: 100%;
   }
 

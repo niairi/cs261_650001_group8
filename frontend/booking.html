@@ -304,6 +304,31 @@
     </div>
   </dialog>
 
+  <dialog class="booking-confirmation-dialog booking-result-dialog" id="booking-result-dialog" tabindex="-1"
+    aria-labelledby="booking-result-title" aria-describedby="booking-result-message">
+    <div class="confirmation-content">
+      <div class="confirmation-icon" id="booking-result-icon" aria-hidden="true">
+        <i id="booking-result-icon-symbol" class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <p class="confirmation-status" id="booking-result-status">
+        <span aria-hidden="true"></span><span id="booking-result-status-text"></span>
+      </p>
+      <h2 id="booking-result-title"></h2>
+      <p class="confirmation-message" id="booking-result-message"></p>
+      <div class="booking-result-details" id="booking-result-details" hidden></div>
+      <p class="booking-result-note" id="booking-result-note" role="status" hidden></p>
+      <div class="confirmation-actions">
+        <button class="confirmation-home-button booking-result-retry" id="booking-result-retry" type="button" hidden>
+          <i class="fa-solid fa-rotate-right" aria-hidden="true"></i> ส่งอีเมลใหม่อีกครั้ง
+        </button>
+        <button class="confirmation-history-button" id="booking-result-history" type="button">
+          ดูประวัติการจอง <span aria-hidden="true">➜</span>
+        </button>
+        <button class="booking-result-close" id="booking-result-close" type="button">ปิดหน้าต่าง</button>
+      </div>
+    </div>
+  </dialog>
+
   <dialog class="logout-dialog" id="logout-dialog" aria-labelledby="logout-dialog-title">
     <button class="logout-dialog-close" type="button" aria-label="ปิดหน้าต่าง" data-cancel-logout>
       <i class="fa-solid fa-xmark" aria-hidden="true"></i>
