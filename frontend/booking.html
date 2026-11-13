@@ -316,13 +316,20 @@
       </p>
       <h2 id="booking-result-title"></h2>
       <p class="confirmation-message" id="booking-result-message"></p>
-      <div class="booking-result-details" id="booking-result-details" hidden></div>
+      <div class="booking-result-details" id="booking-result-details" hidden>
+        <div class="booking-result-details-grid" id="booking-result-details-grid"></div>
+        <div class="booking-result-details-text" id="booking-result-details-text"></div>
+        <p class="booking-result-usage-note" id="booking-result-usage-note" hidden>
+          <i class="fa-regular fa-clock" aria-hidden="true"></i>
+          สามารถเข้าใช้ห้องได้ตามปกติโดยแสดงหน้ารหัสการจองนี้ต่อเจ้าหน้าที่ผู้ดูแล
+        </p>
+      </div>
       <p class="booking-result-note" id="booking-result-note" role="status" hidden></p>
       <div class="confirmation-actions">
         <button class="confirmation-home-button booking-result-retry" id="booking-result-retry" type="button" hidden>
           <i class="fa-solid fa-rotate-right" aria-hidden="true"></i> ส่งอีเมลใหม่อีกครั้ง
         </button>
-        <button class="confirmation-history-button" id="booking-result-history" type="button">
+        <button class="confirmation-history-button booking-result-history" id="booking-result-history" type="button">
           ดูประวัติการจอง <span aria-hidden="true">➜</span>
         </button>
         <button class="booking-result-close" id="booking-result-close" type="button">ปิดหน้าต่าง</button>

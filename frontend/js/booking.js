@@ -260,8 +260,35 @@ function showBookingResult({ type, status, title, message, details = "", booking
   document.querySelector("#booking-result-message").textContent = message;
 
   const detailBox = document.querySelector("#booking-result-details");
-  detailBox.textContent = details;
-  detailBox.hidden = !details;
+  const detailGrid = document.querySelector("#booking-result-details-grid");
+  const detailText = document.querySelector("#booking-result-details-text");
+  detailGrid.replaceChildren();
+  detailText.textContent = "";
+  if (type === "email-failed" && booking) {
+    const bookingDetails = [
+      ["ห้องที่จอง", booking.room_name],
+      ["วันที่", formatConfirmationDate(booking.booking_date)],
+      ["ช่วงเวลาใช้งาน", `${booking.start_time} - ${booking.end_time} น.`],
+      ["จำนวน", `${booking.people} คน`]
+    ];
+    bookingDetails.forEach(([label, value]) => {
+      const item = document.createElement("div");
+      item.className = "booking-result-detail";
+      const itemLabel = document.createElement("span");
+      itemLabel.textContent = label;
+      const itemValue = document.createElement("strong");
+      itemValue.textContent = value;
+      item.append(itemLabel, itemValue);
+      detailGrid.append(item);
+    });
+  } else {
+    detailText.textContent = details;
+  }
+  detailBox.hidden = !(type === "email-failed" ? booking : details);
+  detailGrid.hidden = type !== "email-failed" || !booking;
+  detailText.hidden = type === "email-failed";
+  const usageNote = document.querySelector("#booking-result-usage-note");
+  usageNote.hidden = type !== "email-failed";
   const note = document.querySelector("#booking-result-note");
   note.hidden = true;
   note.textContent = "";
@@ -297,30 +324,25 @@ function showBlacklistPopup(errorMessage) {
       const until = data.banned_until
         ? `\nระงับสิทธิ์ถึงวันที่ ${formatConfirmationDate(data.banned_until)}`
         : "";
-      document.querySelector("#booking-result-details").textContent =
+      document.querySelector("#booking-result-details-text").textContent =
         `ประวัติ No-show สะสม: ${count} / ${limit} ครั้ง\nระยะเวลาที่ถูกระงับ: 30 วัน${until}`;
     })
     .catch((error) => {
       console.error("โหลดสถานะ Blacklist ไม่สำเร็จ:", error);
-      document.querySelector("#booking-result-details").textContent = errorMessage;
+      document.querySelector("#booking-result-details-text").textContent = errorMessage;
     });
 }
 
 function showEmailFailure(booking) {
   const email = getUser()?.email;
-  const recipient = email ? ` ไปยัง ${email}` : "";
-  const details = [
-    `ห้องที่จอง: ${booking.room_name}`,
-    `วันที่: ${formatConfirmationDate(booking.booking_date)}`,
-    `ช่วงเวลา: ${booking.start_time} - ${booking.end_time} น.`,
-    `จำนวนผู้ใช้งาน: ${booking.people} คน`
-  ].join("\n");
+  const message = email
+    ? `การจองห้องของคุณได้รับการบันทึกในระบบเรียบร้อยแล้ว แต่ระบบไม่สามารถส่งอีเมลยืนยันไปยัง ${email} ได้ในขณะนี้ ทั้งนี้สิทธิ์การจองยังคงมีผลสมบูรณ์ คุณสามารถตรวจสอบข้อมูลการจองได้จากหน้า 'ประวัติการจองห้อง' หรือกด 'ส่งอีเมลใหม่อีกครั้ง'`
+    : "การจองห้องของคุณได้รับการบันทึกในระบบเรียบร้อยแล้ว แต่ระบบไม่สามารถส่งอีเมลยืนยันได้ในขณะนี้ ทั้งนี้สิทธิ์การจองยังคงมีผลสมบูรณ์ คุณสามารถตรวจสอบข้อมูลการจองได้จากหน้า 'ประวัติการจองห้อง' หรือกด 'ส่งอีเมลใหม่อีกครั้ง'";
   showBookingResult({
     type: "email-failed",
-    status: "ส่งอีเมลยืนยันไม่สำเร็จ",
-    title: "การจองสำเร็จ แต่อีเมลยืนยันไม่สำเร็จ",
-    message: `ระบบบันทึกการจองของคุณเรียบร้อยแล้ว แต่ไม่สามารถส่งอีเมลยืนยัน${recipient} ได้ในขณะนี้ การจองยังมีผลและดูรายละเอียดได้จากประวัติการจอง`,
-    details,
+    status: "สถานะ: ส่งอีเมลยืนยันไม่สำเร็จ",
+    title: "การจองสำเร็จ แต่ส่งอีเมลยืนยันไม่สำเร็จ",
+    message,
     booking
   });
 }
