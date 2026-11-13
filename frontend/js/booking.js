@@ -510,7 +510,7 @@ form.addEventListener("submit", async (event) => {
     form.reset();
     bookingDateInput.value = localDate(today);
     renderWeeklySchedule();
-    if (data.email_status === "SENT") {
+    if (data.email_status !== "FAILED") {
       showBookingConfirmation(data);
     } else {
       showEmailFailure(data);
