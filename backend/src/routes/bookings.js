@@ -1,17 +1,28 @@
-const { sendBookingConfirmation, sendBookingCancellation, sendBookingUpdate } = require('../services/emailService');
+const { sendBookingConfirmation, sendBookingCancellation, sendBookingUpdate, emailDeliveryStatus, sendBlacklistNotice } = require('../services/emailService');
 const express = require('express');
 const pool = require('../db');
 const { requireAuth } = require('../middleware/auth');
 const { HttpError } = require('../errors');
-const { isRealDate, validateBooking, assertChangeable } = require('../services/bookingRules');
+const { createBlacklistService } = require('../services/blacklistService');
+const blacklistService = createBlacklistService({ db: pool, sendNotice: sendBlacklistNotice });
+const {
+  isRealDate,
+  validateBooking,
+  assertChangeable,
+  distanceMeters,
+  parseCoordinates,
+  assertCheckinTime,
+  assertWithinRadius,
+} = require('../services/bookingRules');
 
 const router = express.Router();
+const { assertRoomOpen } = require('../services/roomService'); // US12 ห้องปิดปรับปรุง
 
 router.post('/', requireAuth, async (req, res, next) => {
   let client;
   try {
     const b = validateBooking(req.body || {});
-
+    await blacklistService.assertNotBlacklisted(req.user.student_id);
     client = await pool.connect();
     await client.query('BEGIN');
 
@@ -29,6 +40,8 @@ router.post('/', requireAuth, async (req, res, next) => {
     if (b.people > room.capacity) {
       throw new HttpError(400, `ห้องนี้รองรับได้สูงสุด ${room.capacity} คน`);
     }
+    // ห้องปิดปรับปรุงวันนั้น จองไม่ได้ (US12 TC2)
+    await assertRoomOpen(client, b.roomId, b.booking_date);
 
     
     const clash = await client.query(
@@ -42,7 +55,7 @@ router.post('/', requireAuth, async (req, res, next) => {
         LIMIT 1`,
       [b.roomId, b.booking_date, b.start_time, b.end_time]
     );
-    if (clash.rows.length > 0) throw new HttpError(409, 'ช่วงเวลานี้มีผู้จองห้องนี้แล้ว');
+    if (clash.rows.length > 0) throw new HttpError(409, 'ช่วงเวลานี้ถูกจองแล้ว');
 
     const inserted = await client.query(
       `INSERT INTO booking (student_id, room_id, booking_date, start_time, end_time, people, purpose)
@@ -58,13 +71,20 @@ router.post('/', requireAuth, async (req, res, next) => {
     await client.query('COMMIT');
 
     const row = inserted.rows[0];
-    sendBookingConfirmation(req.user.email, { ...row, room_name: room.room_name })
-      .catch((err) => console.error('ส่งอีเมลยืนยันไม่สำเร็จ:', err.message));
+    // คืน connection ก่อนรออีเมล ไม่ให้ค้าง pool ระหว่างรอ SMTP
+    client.release();
+    client = null;
+
+    // การจอง COMMIT แล้ว รอผลอีเมลเพื่อบอกหน้าเว็บ (US5 TC3) ส่งไม่ได้การจองก็ยังสำเร็จ
+    const email_status = await emailDeliveryStatus(
+      sendBookingConfirmation(req.user.email, { ...row, room_name: room.room_name })
+    );
     res.status(201).json({
       ...row,
       booking_id: Number(row.booking_id),
       room_id: Number(row.room_id),
       room_name: room.room_name,
+      email_status,
     });
   } catch (err) {
     if (client) await client.query('ROLLBACK').catch(() => {});
@@ -115,6 +135,41 @@ router.get('/me', requireAuth, async (req, res, next) => {
       [req.user.student_id]
     );
     res.json(rows.map((r) => ({ ...r, booking_id: Number(r.booking_id), room_id: Number(r.room_id) })));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /booking/:id/resend-email — ส่งอีเมลยืนยันการจองซ้ำ (เจ้าของรายการเท่านั้น)
+router.post('/:id/resend-email', requireAuth, async (req, res, next) => {
+  try {
+    const bookingId = Number(req.params.id);
+    if (!Number.isInteger(bookingId) || bookingId <= 0) {
+      throw new HttpError(400, 'รหัสการจองไม่ถูกต้อง');
+    }
+
+    const { rows } = await pool.query(
+      `SELECT b.booking_id, b.student_id, b.status,
+              to_char(b.booking_date, 'YYYY-MM-DD') AS booking_date,
+              to_char(b.start_time, 'HH24:MI') AS start_time,
+              to_char(b.end_time, 'HH24:MI') AS end_time,
+              r.room_id, r.room_name
+         FROM booking b
+         JOIN room r ON r.room_id = b.room_id
+        WHERE b.booking_id = $1 AND b.student_id = $2`,
+      [bookingId, req.user.student_id]
+    );
+    if (rows.length === 0) throw new HttpError(404, 'ไม่พบการจองนี้');
+
+    const booking = rows[0];
+    if (!['BOOKED', 'CONFIRMED'].includes(booking.status)) {
+      throw new HttpError(409, 'ส่งอีเมลซ้ำได้เฉพาะการจองที่ยังใช้งานได้');
+    }
+
+    const email_status = await emailDeliveryStatus(
+      sendBookingConfirmation(req.user.email, booking)
+    );
+    res.json({ message: 'ตรวจสอบการส่งอีเมลเรียบร้อยแล้ว', email_status });
   } catch (err) {
     next(err);
   }
@@ -228,6 +283,7 @@ router.patch('/:id', requireAuth, async (req, res, next) => {
 
     // แก้ไขได้ก่อนเวลาเริ่ม (ของการจองเดิม) อย่างน้อย 30 นาที (US6 TC4)
     assertChangeable(old, 'แก้ไข');
+    await blacklistService.assertNotBlacklisted(req.user.student_id);
 
     // รวมค่าใหม่กับค่าเดิม แล้วตรวจกฎเดียวกับการจองใหม่ (ว่าง, ไม่เกิน 3 ชม., 09:00–16:00, ไม่เกิน 7 วัน)
     const b = validateBooking({
@@ -262,6 +318,8 @@ router.patch('/:id', requireAuth, async (req, res, next) => {
     if (b.people > room.capacity) {
       throw new HttpError(400, `ห้องนี้รองรับได้สูงสุด ${room.capacity} คน`);
     }
+    // ห้องปิดปรับปรุงวันนั้น จองไม่ได้ (US12 TC2)
+    await assertRoomOpen(client, b.roomId, b.booking_date);
 
     // ช่วงใหม่ต้องว่าง (ไม่นับการจองของตัวเอง ช่วงเดิมจึงว่างให้คนอื่นหลังแก้ไข — US6 TC1)
     const clash = await client.query(
@@ -309,6 +367,80 @@ router.patch('/:id', requireAuth, async (req, res, next) => {
       message: 'แก้ไขการจองสำเร็จ',
       booking: { ...row, booking_id: Number(row.booking_id), room_id: Number(row.room_id) },
       previous: { ...previous, room_id: Number(previous.room_id) },
+    });
+  } catch (err) {
+    if (client) await client.query('ROLLBACK').catch(() => {});
+    next(err);
+  } finally {
+    if (client) client.release();
+  }
+});
+
+
+// POST /booking/:id/checkin — ยืนยันการเข้าใช้งานด้วยตำแหน่ง GPS (US8) ต้อง login
+// body: { latitude, longitude, accuracy? } — backend เป็นผู้คำนวณระยะเอง ไม่เชื่อค่าระยะจากหน้าเว็บ
+router.post('/:id/checkin', requireAuth, async (req, res, next) => {
+  let client;
+  try {
+    const bookingId = Number(req.params.id);
+    if (!Number.isInteger(bookingId) || bookingId <= 0) {
+      throw new HttpError(400, 'รหัสการจองไม่ถูกต้อง');
+    }
+    const position = parseCoordinates(req.body || {}); // US8 TC3
+
+    client = await pool.connect();
+    await client.query('BEGIN');
+
+    // FOR UPDATE OF b กันกดเช็กอินซ้อนกัน หรือชนกับตัวตรวจ No-show ที่เปลี่ยนเป็น EXPIRED
+    const found = await client.query(
+      `SELECT b.booking_id, b.student_id, b.status, r.latitude, r.longitude,
+              to_char(b.booking_date, 'YYYY-MM-DD') AS booking_date,
+              to_char(b.start_time, 'HH24:MI') AS start_time
+         FROM booking b
+         JOIN room r ON r.room_id = b.room_id
+        WHERE b.booking_id = $1
+        FOR UPDATE OF b`,
+      [bookingId]
+    );
+    if (found.rows.length === 0) throw new HttpError(404, 'ไม่พบการจองนี้');
+
+    const booking = found.rows[0];
+    if (booking.student_id !== req.user.student_id) {
+      throw new HttpError(403, 'ยืนยันได้เฉพาะการจองของตัวเองเท่านั้น');
+    }
+    if (booking.status === 'CANCELLED') throw new HttpError(409, 'การจองนี้ถูกยกเลิกไปแล้ว');
+    if (booking.status === 'CONFIRMED') throw new HttpError(409, 'ยืนยันการเข้าใช้งานไปแล้ว');
+    if (booking.status === 'EXPIRED') throw new HttpError(409, 'เลยเวลายืนยันการเข้าใช้งานแล้ว'); // US8 TC4
+
+    // ช่วงเวลา: 10 นาทีก่อน ถึง 15 นาทีหลังเวลาเริ่ม (US8 TC4, TC5)
+    assertCheckinTime(booking);
+
+    if (booking.latitude === null || booking.longitude === null) {
+      throw new HttpError(500, 'ยังไม่ได้ตั้งพิกัดของห้องนี้');
+    }
+
+    // ระยะไม่เกิน 5 เมตร (US8 TC1, TC2)
+    const distance = distanceMeters(
+      position.latitude, position.longitude,
+      Number(booking.latitude), Number(booking.longitude)
+    );
+    assertWithinRadius(distance);
+
+    const updated = await client.query(
+      `UPDATE booking
+          SET status = 'CONFIRMED', confirmed_at = CURRENT_TIMESTAMP
+        WHERE booking_id = $1
+        RETURNING booking_id, status, confirmed_at`,
+      [bookingId]
+    );
+
+    await client.query('COMMIT');
+
+    const row = updated.rows[0];
+    res.json({
+      message: 'ยืนยันการเข้าใช้งานสำเร็จ',
+      booking: { booking_id: Number(row.booking_id), status: row.status, confirmed_at: row.confirmed_at },
+      distance_m: Math.round(distance * 10) / 10,
     });
   } catch (err) {
     if (client) await client.query('ROLLBACK').catch(() => {});

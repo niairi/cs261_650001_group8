@@ -18,16 +18,21 @@
       <span class="school-badge">THAMMASAT</span>
       <span class="brand-divider" aria-hidden="true"></span>
     </a>
-    <nav class="main-nav" aria-label="เมนูหลัก">
+    <nav class="main-nav" id="main-nav" aria-label="เมนูหลัก">
       <a class="nav-link" href="./booking.html#rooms">ผังห้อง</a>
       <a class="nav-link" href="./booking.html#availability">ตารางสถานะ Real-time</a>
-      <a class="nav-link" href="./booking.html#booking">ฟอร์มลงเวลาจอง</a>
       <a class="nav-link active" href="./booking-his.html" aria-current="page">ประวัติการจอง</a>
       <a class="nav-link" href="./admin.html" data-admin-menu hidden>จัดการการจอง</a>
     </nav>
+    <button class="top-nav-menu-toggle" type="button" aria-label="เปิดเมนู" aria-expanded="false" aria-controls="main-nav">
+      <span class="menu-toggle-icon" aria-hidden="true"></span>
+    </button>
     <div class="user-profile" aria-label="ผู้ใช้ username รหัสนักศึกษา id number">
       <span class="profile-avatar" aria-hidden="true">U</span>
       <span class="profile-details"><strong>username</strong><small>id number</small></span>
+      <a class="user-logout" href="./login.html" aria-label="ออกจากระบบ" title="ออกจากระบบ">
+        <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
+      </a>
     </div>
   </header>
 
@@ -36,7 +41,7 @@
       <div class="history-hero-copy">
         <p class="history-location"><span aria-hidden="true"></span> LC4 ชั้น 1 มธ.ศูนย์รังสิต · Co-Working Space</p>
         <h1 id="history-title">ประวัติการจองห้อง</h1>
-        <p class="history-intro">ตรวจสอบสถานะและยกเลิกการจองห้อง Co-Working Space (เปิดบริการ 09:00 - 16:00 น.)</p>
+        <p class="history-intro">ตรวจสอบสถานะ แก้ไขห้อง/วัน/เวลา และยกเลิกการจองห้อง Co-Working Space (เปิดบริการ 09:00 - 16:00 น.)</p>
       </div>
       <div class="history-total" id="history-total" aria-label="รายการทั้งหมด 0 รายการ">
         <span>รายการทั้งหมด</span>
@@ -44,23 +49,67 @@
       </div>
     </section>
 
-    <nav class="history-filters" aria-label="กรองประวัติการจอง">
-      <button class="history-filter active" type="button" data-filter="all" aria-pressed="true">ทั้งหมด (<span data-count="all">0</span>)</button>
-      <button class="history-filter" type="button" data-filter="upcoming" aria-pressed="false">รอเข้าใช้งาน (Upcoming) (<span data-count="upcoming">0</span>)</button>
-      <button class="history-filter" type="button" data-filter="completed" aria-pressed="false">ใช้งานเสร็จสิ้น (Completed) (<span data-count="completed">0</span>)</button>
-      <button class="history-filter" type="button" data-filter="cancelled" aria-pressed="false">ยกเลิกแล้ว (Cancelled) (<span data-count="cancelled">0</span>)</button>
-    </nav>
+    <section class="history-account-status" aria-labelledby="blacklist-title">
+      <div class="history-account-status-copy">
+        <h2 id="blacklist-title">สถานะ Blacklist <span class="history-ban-status" id="blacklist-state">กำลังโหลด...</span></h2>
+        <p id="blacklist-message" role="status">หากไม่เข้าใช้งาน (No-show) ครบ 3 ครั้ง ระบบจะระงับสิทธิ์การจองชั่วคราว 30 วัน</p>
+      </div>
+      <div class="history-strikes" aria-label="จำนวน No-show">
+        <span>การผิดนัด (No-show)</span>
+        <strong id="no-show-count">0 / 3 ครั้ง</strong>
+        <div class="history-strike-dots" id="no-show-dots" aria-hidden="true"></div>
+      </div>
+    </section>
 
-    <p class="history-data-note" role="status">กำลังรอเชื่อมต่อ Backend เพื่อโหลดประวัติการจอง</p>
+    <nav class="history-filters" aria-label="กรองประวัติการจอง">
+  <button class="history-filter" type="button" data-filter="upcoming" aria-pressed="false">
+    รอเข้าใช้งาน (Upcoming) (<span data-count="upcoming">0</span>)
+  </button>
+
+  <button class="history-filter active" type="button" data-filter="all" aria-pressed="true">
+    ทั้งหมด (<span data-count="all">0</span>)
+  </button>
+
+  <button class="history-filter" type="button" data-filter="completed" aria-pressed="false">
+    ใช้งานเสร็จสิ้น (Completed) (<span data-count="completed">0</span>)
+  </button>
+
+  <button class="history-filter" type="button" data-filter="cancelled" aria-pressed="false">
+    ยกเลิกแล้ว (Cancelled) (<span data-count="cancelled">0</span>)
+  </button>
+
+  <button class="history-filter" type="button" data-filter="expired" aria-pressed="false">
+    เลยกำหนด (Expired) (<span data-count="expired">0</span>)
+  </button>
+</nav>
+
+    <p class="history-data-note" role="status">กำลังโหลดประวัติการจองจาก Backend</p>
     <section class="history-list" id="history-list" aria-label="รายการประวัติการจอง" hidden></section>
     <section class="history-empty panel" id="history-empty" aria-labelledby="history-empty-title">
       <div class="history-empty-icon" aria-hidden="true">
         <i class="fa-regular fa-calendar-days"></i>
       </div>
-      <h2 id="history-empty-title">รอข้อมูลประวัติการจอง</h2>
-      <p>รายการจองและสถานะจะแสดงที่นี่เมื่อเชื่อมต่อระบบ Backend แล้ว</p>
+      <h2 id="history-empty-title">กำลังโหลดประวัติการจอง</h2>
+      <p>กำลังดึงรายการจองและสถานะจากระบบ Backend</p>
     </section>
   </main>
+
+  <dialog class="logout-dialog" id="logout-dialog" aria-labelledby="logout-dialog-title">
+    <button class="logout-dialog-close" type="button" aria-label="ปิดหน้าต่าง" data-cancel-logout>
+      <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+    </button>
+    <div class="logout-dialog-icon" aria-hidden="true">
+      <i class="fa-solid fa-arrow-right-from-bracket"></i>
+    </div>
+    <h2 id="logout-dialog-title">ยืนยันการออกจากระบบ</h2>
+    <p>คุณต้องการออกจากระบบใช่หรือไม่?<br />คุณจะต้องลงชื่อเข้าใช้ใหม่อีกครั้งเพื่อเข้าถึงระบบ</p>
+    <div class="logout-dialog-actions">
+      <button class="logout-cancel-button" type="button" data-cancel-logout>ยกเลิก</button>
+      <button class="logout-confirm-button" type="button" data-confirm-logout>
+        <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> ออกจากระบบ
+      </button>
+    </div>
+  </dialog>
 
   <footer class="site-footer">
     <p>© 2026 Department of Computer Science, Faculty of Science and Technology, Thammasat University.</p>
@@ -70,7 +119,9 @@
       <a href="#">ติดต่อผู้ดูแลระบบ CS</a>
     </div>
   </footer>
+  <script src="./js/nav.js"></script>
   <script src="./js/admin-menu.js"></script>
-  <script src="./js/booking-history.js"></script>
+  <script src="./js/logout.js"></script>
+  <script src="./js/booking-his.js"></script>
 </body>
 </html>

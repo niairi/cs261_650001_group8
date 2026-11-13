@@ -19,16 +19,22 @@
       <span class="school-badge">THAMMASAT</span>
       <span class="brand-divider" aria-hidden="true"></span>
     </a>
-    <nav class="main-nav" aria-label="เมนูหลัก">
+    <nav class="main-nav" id="main-nav" aria-label="เมนูหลัก">
       <a class="nav-link active" href="#rooms" aria-current="page">ผังห้อง</a>
       <a class="nav-link" href="#availability">ตารางสถานะ Real-time</a>
-      <a class="nav-link" href="#booking">ฟอร์มลงเวลาจอง</a>
       <a class="nav-link" href="./booking-his.html">ประวัติการจอง</a>
       <a class="nav-link" href="./admin.html" data-admin-menu hidden>จัดการการจอง</a>
     </nav>
-    <div class="user-profile" aria-label="ผู้ใช้ username รหัสนักศึกษา id number">
-      <span class="profile-avatar" aria-hidden="true">U</span>
-      <span class="profile-details"><strong>username</strong><small>id number</small></span>
+    <button class="top-nav-menu-toggle" type="button" aria-label="เปิดเมนู" aria-expanded="false" aria-controls="main-nav">
+      <span class="menu-toggle-icon" aria-hidden="true"></span>
+    </button>
+    <div class="user-profile" aria-label="ผู้เยี่ยมชม ยังไม่ได้เข้าสู่ระบบ">
+      <span class="profile-avatar" aria-hidden="true">G</span>
+      <span class="profile-details"><strong>ผู้เยี่ยมชม</strong><small>ยังไม่ได้เข้าสู่ระบบ</small></span>
+      <a class="login-link" id="login-link" href="./login.html">เข้าสู่ระบบ</a>
+      <a class="user-logout" href="./login.html" aria-label="ออกจากระบบ" title="ออกจากระบบ" hidden>
+        <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
+      </a>
     </div>
   </header>
 
@@ -37,7 +43,7 @@
       <div class="brand">
         <p class="eyebrow">ภาควิชาวิทยาการคอมพิวเตอร์ · DEPARTMENT OF COMPUTER SCIENCE, TU</p>
         <h1>เลือกจองเวลาและห้อง Co-Working<br class="desktop-break"> Space</h1>
-        <p class="welcome">ยินดีต้อนรับคุณ <strong id="user-name">Name Surname (id number)</strong></p>
+        <p class="welcome">ยินดีต้อนรับคุณ <strong id="user-name">ผู้เยี่ยมชม</strong></p>
       </div>
       <aside class="notice">
         <p>
@@ -53,11 +59,11 @@
     <section class="section" id="rooms">
       <div class="section-heading">
         <h2><span class="heading-mark"></span> ผังห้อง</h2>
-        <span class="muted small">คลิกเพื่อดูตารางเวลาเฉพาะห้อง</span>
+        <span class="muted small">เลือกห้องและช่วงเวลาว่างเพื่อจอง</span>
       </div>
 
       <div class="room-grid" id="room-list">
-        <button class="room-card" type="button" data-room="1" aria-pressed="false">
+        <button class="room-card selected" type="button" data-room="1" aria-pressed="true">
           <div class="room-top">
             <span class="room-tag">ห้องที่ 1</span>
             <span class="capacity">
@@ -140,98 +146,48 @@
       </div>
     </section>
 
-    <dialog class="room-schedule-dialog" id="room-schedule-dialog" aria-labelledby="schedule-modal-title">
-      <div class="schedule-modal-header">
-        <span class="schedule-modal-icon" aria-hidden="true"><i class="fa-solid fa-calendar-days"></i></span>
-        <div class="schedule-modal-heading">
-          <div class="schedule-modal-title-row">
-            <h2 id="schedule-modal-title">ตารางเวลาการใช้งานรายสัปดาห์ (จันทร์ - ศุกร์)</h2>
-            <span class="schedule-room-badge" id="schedule-room-label">ห้องที่ 1</span>
-          </div>
-          <p>ห้องเรียนและ Co-Working Space · อาคาร LC4 ชั้น 1</p>
-        </div>
-        <button class="schedule-modal-x" id="schedule-modal-x" type="button" aria-label="ปิดหน้าต่าง">×</button>
-      </div>
-      <div class="schedule-modal-body">
-        <div class="schedule-modal-legend">
-          <div class="schedule-legend-items">
-            <span><i class="legend-dot available"></i> ว่าง</span>
-            <span><i class="legend-dot booked"></i> ถูกจองแล้ว</span>
-          </div>
-          <span class="schedule-week-range" id="schedule-week-range"></span>
-        </div>
-        <div class="weekly-table-scroll">
-          <table class="weekly-schedule" aria-label="ตารางเวลารายสัปดาห์ของห้องที่เลือก">
-            <thead>
-              <tr>
-                <th scope="col">วัน / เวลา</th>
-                <th scope="col">09:00</th>
-                <th scope="col">10:00</th>
-                <th scope="col">11:00</th>
-                <th scope="col">12:00</th>
-                <th scope="col">13:00</th>
-                <th scope="col">14:00</th>
-                <th scope="col">15:00</th>
-              </tr>
-            </thead>
-            <tbody id="weekly-schedule-body"></tbody>
-          </table>
-        </div>
-      </div>
-      <div class="schedule-modal-footer">
-        <button class="schedule-modal-close" id="schedule-modal-close" type="button">ปิดหน้าต่าง</button>
-      </div>
-    </dialog>
-
     <section class="availability panel" id="availability">
       <div class="availability-heading">
-        <h2><span class="red-icon">◷</span> ตารางสถานะห้องว่างแบบ Real-time</h2>
-        <div class="table-actions">
-          <button class="date-chip active" id="today-button" type="button">วันนี้ (<span id="today-label">17 ต.ค.
-              2569</span>)</button>
-          <button class="date-chip" id="tomorrow-button" type="button">พรุ่งนี้ (<span id="tomorrow-label">18 ต.ค.
-              2569</span>)</button>
-          <button class="refresh" id="refresh-button" type="button" aria-label="รีเฟรชสถานะ">↻</button>
+        <div>
+          <h2><span class="red-icon">◷</span> ตารางสถานะห้องว่างประจำสัปดาห์</h2>
+          <p class="availability-room" id="schedule-room-label">ห้องที่ 1</p>
         </div>
+        <button class="refresh" id="refresh-button" type="button" aria-label="รีเฟรชสถานะ">↻</button>
       </div>
-      <div class="table-scroll">
-        <table class="schedule" aria-label="ตารางสถานะห้อง">
+      <div class="weekly-table-scroll">
+        <table class="weekly-schedule" id="weekly-schedule" aria-label="ตารางเวลารายสัปดาห์ของห้องที่เลือก">
           <thead>
             <tr>
-              <th>ห้อง/ช่วงเวลา (3 ห้อง)</th>
-              <th>09:00</th>
-              <th>10:00</th>
-              <th>11:00</th>
-              <th>12:00</th>
-              <th>13:00</th>
-              <th>14:00</th>
-              <th>15:00</th>
+              <th scope="col">วัน / เวลา</th>
+              <th scope="col">09:00</th>
+              <th scope="col">10:00</th>
+              <th scope="col">11:00</th>
+              <th scope="col">12:00</th>
+              <th scope="col">13:00</th>
+              <th scope="col">14:00</th>
+              <th scope="col">15:00</th>
             </tr>
           </thead>
-          <tbody id="schedule-body">
-            <tr data-room-row="1">
-              <th>ห้องที่ 1 <small>จุ 8 ที่นั่ง</small></th>
-              <td colspan="7"><span class="empty-status">รอข้อมูลจากระบบ</span></td>
-            </tr>
-            <tr data-room-row="2">
-              <th>ห้องที่ 2 <small>จุ 8 ที่นั่ง</small></th>
-              <td colspan="7"><span class="empty-status">รอข้อมูลจากระบบ</span></td>
-            </tr>
-            <tr data-room-row="3">
-              <th>ห้องที่ 3 <small>จุ 8 ที่นั่ง</small></th>
-              <td colspan="7"><span class="empty-status">รอข้อมูลจากระบบ</span></td>
+          <tbody id="weekly-schedule-body">
+            <tr>
+              <th scope="row">กำลังโหลด</th>
+              <td colspan="7"><span class="empty-status">กำลังโหลดข้อมูลห้อง</span></td>
             </tr>
           </tbody>
         </table>
       </div>
-      <div class="legend"><span class="legend-dot pending"></span> รอข้อมูลสถานะห้องจากระบบ Backend</div>
-      <p class="table-footnote">ข้อมูลสถานะจะแสดงเมื่อเชื่อมต่อ Backend แล้ว</p>
+      <div class="schedule-legend-items availability-legend">
+        <span><i class="legend-dot available"></i> ว่าง · คลิกเพื่อจอง</span>
+        <span><i class="legend-dot booked"></i> ถูกจองแล้ว</span>
+      </div>
+      <p class="table-footnote" id="schedule-week-range">ข้อมูลสถานะจะอัปเดตอัตโนมัติ</p>
     </section>
 
-    <section class="booking panel" id="booking">
+    <dialog class="booking panel" id="booking" aria-labelledby="booking-title">
       <div class="booking-title">
-        <h2><i class="fa-regular fa-calendar-plus calendar-icon" aria-hidden="true"></i> แบบฟอร์มยืนยันการจองห้อง</h2>
+        <h2 id="booking-title"><i class="fa-regular fa-calendar-plus calendar-icon" aria-hidden="true"></i> แบบฟอร์มยืนยันการจองห้อง</h2>
         <span class="service-time">เปิด 09:00 - 16:00 น.</span>
+        <button class="booking-dialog-close" id="booking-dialog-close" type="button" aria-label="ปิดแบบฟอร์ม">×</button>
       </div>
       <form id="booking-form">
         <div class="form-grid">
@@ -286,13 +242,12 @@
         </div>
         <div class="form-bottom">
           <p class="user-note"><i class="fa-regular fa-user user-icon" aria-hidden="true"></i> ผู้จอง: <strong
-              id="booking-user">Name Surname (id number)</strong></p>
+              id="booking-user">กรุณาเข้าสู่ระบบก่อนจอง</strong></p>
           <button class="submit-button" type="submit">ยืนยันการจองห้องล่วงหน้า <span>➜</span></button>
         </div>
-        <p class="backend-note" id="form-message" role="status">ระบบแสดงตัวอย่างหน้าจอเท่านั้น — รอเชื่อมต่อ Backend
-          ก่อนส่งคำขอจองจริง</p>
+        <p class="backend-note" id="form-message" role="status">สามารถดูผังและสถานะห้องได้โดยไม่ต้องเข้าสู่ระบบ แต่ต้องเข้าสู่ระบบก่อนยืนยันการจอง</p>
       </form>
-    </section>
+    </dialog>
   </main>
 
   <dialog class="booking-confirmation-dialog" id="booking-confirmation-dialog" tabindex="-1"
@@ -350,6 +305,48 @@
     </div>
   </dialog>
 
+  <dialog class="booking-confirmation-dialog booking-result-dialog" id="booking-result-dialog" tabindex="-1"
+    aria-labelledby="booking-result-title" aria-describedby="booking-result-message">
+    <div class="confirmation-content">
+      <div class="confirmation-icon" id="booking-result-icon" aria-hidden="true">
+        <i id="booking-result-icon-symbol" class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <p class="confirmation-status" id="booking-result-status">
+        <span aria-hidden="true"></span><span id="booking-result-status-text"></span>
+      </p>
+      <h2 id="booking-result-title"></h2>
+      <p class="confirmation-message" id="booking-result-message"></p>
+      <div class="booking-result-details" id="booking-result-details" hidden></div>
+      <p class="booking-result-note" id="booking-result-note" role="status" hidden></p>
+      <div class="confirmation-actions">
+        <button class="confirmation-home-button booking-result-retry" id="booking-result-retry" type="button" hidden>
+          <i class="fa-solid fa-rotate-right" aria-hidden="true"></i> ส่งอีเมลใหม่อีกครั้ง
+        </button>
+        <button class="confirmation-history-button" id="booking-result-history" type="button">
+          ดูประวัติการจอง <span aria-hidden="true">➜</span>
+        </button>
+        <button class="booking-result-close" id="booking-result-close" type="button">ปิดหน้าต่าง</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="logout-dialog" id="logout-dialog" aria-labelledby="logout-dialog-title">
+    <button class="logout-dialog-close" type="button" aria-label="ปิดหน้าต่าง" data-cancel-logout>
+      <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+    </button>
+    <div class="logout-dialog-icon" aria-hidden="true">
+      <i class="fa-solid fa-arrow-right-from-bracket"></i>
+    </div>
+    <h2 id="logout-dialog-title">ยืนยันการออกจากระบบ</h2>
+    <p>คุณต้องการออกจากระบบใช่หรือไม่?<br />คุณจะต้องลงชื่อเข้าใช้ใหม่อีกครั้งเพื่อเข้าถึงระบบ</p>
+    <div class="logout-dialog-actions">
+      <button class="logout-cancel-button" type="button" data-cancel-logout>ยกเลิก</button>
+      <button class="logout-confirm-button" type="button" data-confirm-logout>
+        <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> ออกจากระบบ
+      </button>
+    </div>
+  </dialog>
+
   <footer class="site-footer">
     <p>© 2026 Department of Computer Science, Faculty of Science and Technology, Thammasat University.</p>
     <div class="footer-links">
@@ -358,7 +355,9 @@
       <a href="#">ติดต่อผู้ดูแลระบบ CS</a>
     </div>
   </footer>
+  <script src="./js/nav.js"></script>
   <script src="./js/admin-menu.js"></script>
+  <script src="./js/logout.js"></script>
   <script src="./js/booking.js"></script>
 </body>
 
