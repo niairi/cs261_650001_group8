@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>จัดการสถานะห้อง | TU CS Space</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="./css/admin.css" />
+</head>
+<body class="staff-page">
+  <div class="staff-nav-shell">
+    <header class="staff-header">
+      <button class="staff-menu-toggle" type="button" aria-label="เปิดเมนู" aria-expanded="false" aria-controls="staff-navigation">
+        <span class="staff-menu-toggle-icon" aria-hidden="true"></span>
+      </button>
+      <a class="staff-brand" href="./admin.html" aria-label="หน้าจัดการ Co-Working Space">
+        <span class="staff-brand-icon" aria-hidden="true"><i class="fa-solid fa-shield-halved"></i></span>
+        <span class="staff-brand-copy">
+          <strong>ศูนย์จัดการและรายงานการจอง Co-Working Space</strong>
+          <small>ระบบสำหรับเจ้าหน้าที่</small>
+        </span>
+      </a>
+      <div class="staff-account">
+        <span class="staff-account-name"><span class="online-dot" aria-hidden="true"></span><span id="admin-account-name">เจ้าหน้าที่ดูแลระบบ</span></span>
+        <a class="staff-logout" href="./login.html" aria-label="ออกจากระบบ" title="ออกจากระบบ"><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i></a>
+      </div>
+    </header>
+
+    <nav class="staff-tabs" id="staff-navigation" aria-label="เมนูจัดการระบบ">
+      <a class="staff-tab" href="./admin.html"><i class="fa-regular fa-calendar-check" aria-hidden="true"></i> การจองทั้งหมด</a>
+      <a class="staff-tab is-active" href="./admin-room.html" aria-current="page"><i class="fa-solid fa-sliders" aria-hidden="true"></i> จัดการสถานะห้อง</a>
+      <a class="staff-tab staff-logout-tab staff-logout" href="./login.html"><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> ออกจากระบบ</a>
+    </nav>
+  </div>
+
+  <dialog class="logout-dialog" id="logout-dialog" aria-labelledby="logout-dialog-title">
+    <button class="logout-dialog-close" type="button" aria-label="ปิดหน้าต่าง" data-cancel-logout><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    <div class="logout-dialog-icon" aria-hidden="true"><i class="fa-solid fa-arrow-right-from-bracket"></i></div>
+    <h2 id="logout-dialog-title">ยืนยันการออกจากระบบ</h2>
+    <p>คุณต้องการออกจากระบบใช่หรือไม่?<br />คุณจะต้องลงชื่อเข้าใช้ใหม่อีกครั้งเพื่อเข้าถึงระบบ</p>
+    <div class="logout-dialog-actions">
+      <button class="logout-cancel-button" type="button" data-cancel-logout>ยกเลิก</button>
+      <button class="logout-confirm-button" type="button" data-confirm-logout><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> ออกจากระบบ</button>
+    </div>
+  </dialog>
+
+  <main class="staff-main">
+    <section class="staff-panel room-management-panel" aria-labelledby="rooms-title">
+      <div class="panel-heading">
+        <h1 id="rooms-title"><i class="fa-solid fa-sliders" aria-hidden="true"></i> จัดการสถานะห้อง Co-Working Space (เปิด/ปิด ปรับปรุง)</h1>
+        <p>ตรวจสอบสถานะห้อง และปิดปรับปรุงตามวันที่เลือกได้</p>
+      </div>
+      <p class="room-management-note" id="rooms-message" role="status" aria-live="polite">กำลังโหลดข้อมูลห้อง...</p>
+      <div class="room-status-grid" id="room-status-grid" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <dialog class="room-maintenance-dialog" id="maintenance-dialog" aria-labelledby="maintenance-title">
+    <form id="maintenance-form">
+      <div class="maintenance-dialog-header">
+        <span class="maintenance-icon" aria-hidden="true"><i class="fa-solid fa-triangle-exclamation"></i></span>
+        <div>
+          <h2 id="maintenance-title">ปรับสถานะห้องเป็น Unavailable (ปิดปรับปรุง)</h2>
+          <p>ห้อง: <strong id="maintenance-room-name">—</strong></p>
+        </div>
+        <button class="maintenance-close" type="button" aria-label="ปิดหน้าต่าง" data-close-maintenance><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      </div>
+      <div class="maintenance-warning">
+        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+        <p>การปิดปรับปรุงจะป้องกันการจองห้องในวันที่เลือก หากวันดังกล่าวมีรายการจองอยู่ ระบบจะไม่ปิดห้องให้อัตโนมัติ</p>
+      </div>
+      <fieldset>
+        <div class="maintenance-field-heading">
+          <span class="maintenance-legend">สาเหตุการปิดปรับปรุง <span>*</span></span>
+          <small>(ระบุรายละเอียดเพื่อให้ผู้ใช้งานทราบ)</small>
+          <output id="maintenance-reason-count" for="maintenance-reason">0/255 ตัวอักษร</output>
+        </div>
+        <div class="maintenance-reason-options" aria-label="ตัวอย่างสาเหตุ">
+          <button type="button" data-reason="ซ่อมบำรุงระบบปรับอากาศ">ซ่อมบำรุงระบบปรับอากาศ</button>
+          <button type="button" data-reason="ตรวจเช็คระบบไฟฟ้า/อินเทอร์เน็ต">ตรวจเช็คระบบไฟฟ้า/อินเทอร์เน็ต</button>
+          <button type="button" data-reason="ทำความสะอาดประจำสัปดาห์">ทำความสะอาดประจำสัปดาห์</button>
+          <button type="button" data-reason="จัดกิจกรรมพิเศษ/อบรมภายใน">จัดกิจกรรมพิเศษ/อบรมภายใน</button>
+        </div>
+        <label class="maintenance-textarea-label" for="maintenance-reason">รายละเอียดเหตุผล</label>
+        <textarea id="maintenance-reason" name="reason" maxlength="255" required placeholder="กรอกเหตุผลการปิดปรับปรุงห้อง"></textarea>
+      </fieldset>
+      <fieldset class="maintenance-period-field">
+        <legend>วันที่ปิดปรับปรุง</legend>
+        <div class="maintenance-datetime-grid">
+          <label class="maintenance-date-field" for="maintenance-date">เลือกวันที่
+            <input id="maintenance-date" name="date" type="date" required />
+          </label>
+        </div>
+      </fieldset>
+      <p class="room-management-note" id="maintenance-error" role="alert" hidden></p>
+      <div class="maintenance-dialog-actions">
+        <button class="maintenance-cancel" type="button" data-close-maintenance>ยกเลิก</button>
+        <button class="maintenance-confirm" id="maintenance-submit" type="submit"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> ยืนยันปิดปรับปรุงห้อง</button>
+      </div>
+    </form>
+  </dialog>
+
+  <footer class="staff-footer">ระบบบริหารจัดการและจองห้อง Co-Working Space · มหาวิทยาลัยธรรมศาสตร์ (Thammasat University)</footer>
+  <script src="./js/admin-nav.js"></script>
+  <script src="./js/admin-room.js"></script>
+</body>
+</html>
