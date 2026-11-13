@@ -99,6 +99,10 @@ button {
   display: none;
 }
 
+.main-nav .nav-link[hidden] {
+  display: none;
+}
+
 .nav-link {
   display: inline-flex;
   align-items: center;
