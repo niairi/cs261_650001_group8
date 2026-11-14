@@ -5,22 +5,22 @@
   const token = localStorage.getItem(TOKEN_KEY);
   let user;
 
-  // if (!token) {
-  //   window.location.replace("./login.html");
-  //   return;
-  // }
+  if (!token) {
+    window.location.replace("./login.html");
+    return;
+  }
 
-  // try {
-  //   user = JSON.parse(localStorage.getItem(USER_KEY) || "null");
-  // } catch (error) {
-  //   console.error("Could not read the logged-in user.", error);
-  //   localStorage.removeItem(USER_KEY);
-  // }
+  try {
+    user = JSON.parse(localStorage.getItem(USER_KEY) || "null");
+  } catch (error) {
+    console.error("Could not read the logged-in user.", error);
+    localStorage.removeItem(USER_KEY);
+  }
 
-  // if (user?.role !== "admin") {
-  //   window.location.replace("./booking.html");
-  //   return;
-  // }
+  if (user?.role !== "admin") {
+    window.location.replace("./booking.html");
+    return;
+  }
 
   const accountName = document.querySelector("#admin-account-name");
   const search = document.querySelector("#blacklist-search");
