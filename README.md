@@ -8,10 +8,25 @@
 | US | ฟีเจอร์ |
 |---|---|
 | US1 | Login ด้วย TU Account (TU REST API) |
-| US2 | ตารางสถานะห้องว่าง/ไม่ว่าง แบบ Real-time (09:00–17:00) |
+| US2 | ตารางสถานะห้องว่าง/ไม่ว่าง แบบ Real-time (09:00–16:00 ตั้งแต่ Sprint 2) |
 | US3 | จองห้องล่วงหน้า (ครั้งละไม่เกิน 3 ชม. ล่วงหน้าไม่เกิน 7 วัน) |
 | US4 | ดูรายการจองของฉัน และยกเลิกการจอง |
 | US5 | อีเมลยืนยันการจอง / การยกเลิก |
+
+## ฟีเจอร์ Sprint 2 (Release 2)
+
+| US | ฟีเจอร์ |
+|---|---|
+| US5 TC3 | แจ้งบนหน้าจอเมื่อส่งอีเมลไม่สำเร็จ |
+| US6 | แก้ไขเวลาการจองที่จองไว้แล้ว |
+| US7 | เจ้าหน้าที่ดูรายการและรายงานการจองทั้งหมด (หน้า `admin.html`) |
+| US8 | Check-in เมื่ออยู่ในระยะ 5 เมตรจากห้อง |
+| US9 | นับ No-show เมื่อไม่ Check-in ภายในเวลาที่กำหนด |
+| US10 | Blacklist 30 วันเมื่อ No-show ครบ 3 ครั้ง |
+| US11 | Logout |
+| US12 | เจ้าหน้าที่ปิดปรับปรุงห้องรายวัน |
+| US14 | ตรวจสาขาวิทยาการคอมพิวเตอร์ตอน Login |
+| US15 | ตรวจเลขทะเบียนและรหัสผ่านตอน Login |
 
 ## เทคโนโลยี
 
@@ -26,8 +41,10 @@
 
 ```
 backend/            Node.js Express API (src/routes, services, repositories, middleware)
-frontend/           หน้าเว็บ login.html, booking.html, booking-his.html
-database/           schema.sql, 002_users_and_email_logs.sql, seed.sql, ERD.md
+frontend/           หน้าเว็บ login.html, booking.html, booking-his.html, admin.html
+database/           schema.sql, 002_users_and_email_logs.sql, seed.sql,
+                    003_sprint2.sql, 003_sprint2_roomlocation_and_blacklist.sql,
+                    004_room_closure.sql, ERD.md
 docs/
   requirement/      User Stories, Use Case, Activity Diagram
   design/           Deployment, Class, DTO, ER, Sequence Diagram (DESIGN.md)
@@ -57,6 +74,32 @@ docker compose up --build
 ปิดระบบ: กด `Ctrl+C` แล้ว `docker compose down`
 ล้างฐานข้อมูลแล้วสร้างใหม่จาก seed: `docker compose down -v` แล้วรันใหม่
 
+### เครื่องที่เคยรัน Release 1 (v1.0) มาก่อน ⚠️
+
+Sprint 2 เพิ่มตารางและคอลัมน์ใหม่ (Check-in, No-show, Blacklist, ปิดปรับปรุงห้อง) ไฟล์ SQL ใน `database/` จะถูกรัน **เฉพาะตอนสร้างฐานข้อมูลครั้งแรก** เท่านั้น เครื่องที่มีฐานข้อมูลเก่าอยู่ต้องล้างแล้วสร้างใหม่ 1 ครั้ง
+
+```bash
+git checkout develop
+git pull origin develop
+docker compose down -v
+docker compose up --build
+```
+
+`down -v` จะลบข้อมูลในฐานข้อมูลของเครื่องนี้ทิ้ง แล้วสร้างใหม่จาก seed (ข้อมูลทดสอบกลับมาเอง)
+
+ไฟล์ SQL ที่ Docker รันตามลำดับ
+
+| ลำดับ | ไฟล์ | ใช้กับ |
+|---|---|---|
+| 01 | `schema.sql` | ตารางหลัก |
+| 02 | `002_users_and_email_logs.sql` | ผู้ใช้ + ประวัติอีเมล (US5) |
+| 03 | `seed.sql` | ข้อมูลทดสอบ |
+| 04 | `003_sprint2.sql` | พิกัดห้อง (US8) |
+| 05 | `003_sprint2_roomlocation_and_blacklist.sql` | พิกัดจริง + Blacklist (US8–US10) |
+| 06 | `004_room_closure.sql` | ปิดปรับปรุงห้อง (US12) |
+
+เช็คว่าตารางครบ: `docker compose exec db psql -U postgres -d room_booking -c "\dt"` ต้องเห็น `blacklist` และ `room_closure`
+
 ### โหมดจำลอง (ค่าเริ่มต้น)
 
 ถ้าไม่สร้างไฟล์ `.env` ระบบจะรันแบบจำลอง ใช้ทดสอบระหว่างพัฒนา
@@ -64,6 +107,7 @@ docker compose up --build
 - เพิ่มบัญชีทดสอบได้ใน `.env` เช่น `MOCK_USERS=6809650010:test1234,6609000001:test1234:คณิตศาสตร์` (ส่วนที่ 3 คือสาขา ใช้ทดสอบ US14) · ห้ามใช้รหัสผ่านจริงของมหาวิทยาลัย
 - **เดโมจริงให้ใส่ `TU_API_KEY`** ระบบจะตรวจกับ TU และไม่ใช้บัญชีทดสอบ
 - **อีเมล:** ไม่ส่งจริง แต่แสดงเนื้อหาใน log ของ `backend-1` ใน Terminal
+- **หน้าเจ้าหน้าที่ (US7, US12):** ใส่รหัสที่ใช้ทดสอบใน `ADMIN_IDS` ของ `.env` เช่น `ADMIN_IDS=6809650010` แล้ว `docker compose up --build` ใหม่
 
 ### ใช้ TU API และส่งอีเมลจริง
 
@@ -111,7 +155,7 @@ git commit -m "chore: อัปเดต .env ที่เข้ารหัส"
 
 ## วิธีรันแบบไม่ใช้ Docker (สำหรับพัฒนา)
 
-1. สร้างฐานข้อมูล PostgreSQL ชื่อ `room_booking` แล้วรันตามลำดับ `schema.sql` → `002_users_and_email_logs.sql` → `seed.sql`
+1. สร้างฐานข้อมูล PostgreSQL ชื่อ `room_booking` แล้วรันไฟล์ใน `database/` ตามลำดับในตารางด้านบน (01 → 06)
 2. Backend
    ```bash
    cd backend
