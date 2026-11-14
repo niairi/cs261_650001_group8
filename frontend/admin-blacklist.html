@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>จัดการ Blacklist | TU CS Space</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="./css/admin.css" />
+</head>
+<body class="staff-page">
+  <div class="staff-nav-shell">
+    <header class="staff-header">
+      <button class="staff-menu-toggle" type="button" aria-label="เปิดเมนู" aria-expanded="false" aria-controls="staff-navigation">
+        <span class="staff-menu-toggle-icon" aria-hidden="true"></span>
+      </button>
+      <a class="staff-brand" href="./admin.html" aria-label="หน้าจัดการ Co-Working Space">
+        <span class="staff-brand-icon" aria-hidden="true"><i class="fa-solid fa-shield-halved"></i></span>
+        <span class="staff-brand-copy">
+          <strong>ศูนย์จัดการและรายงานการจอง Co-Working Space</strong>
+          <small>ระบบสำหรับเจ้าหน้าที่</small>
+        </span>
+      </a>
+      <div class="staff-account">
+        <span class="staff-account-name"><span class="online-dot" aria-hidden="true"></span><span id="admin-account-name">เจ้าหน้าที่ดูแลระบบ</span></span>
+        <a class="staff-logout" href="./login.html" aria-label="ออกจากระบบ" title="ออกจากระบบ"><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i></a>
+      </div>
+    </header>
+
+    <nav class="staff-tabs" id="staff-navigation" aria-label="เมนูจัดการระบบ">
+      <a class="staff-tab" href="./admin.html"><i class="fa-regular fa-calendar-check" aria-hidden="true"></i> การจองทั้งหมด</a>
+      <a class="staff-tab" href="./admin-room.html"><i class="fa-solid fa-sliders" aria-hidden="true"></i> จัดการสถานะห้อง</a>
+      <a class="staff-tab is-active" href="./admin-blacklist.html" aria-current="page"><i class="fa-solid fa-user-slash" aria-hidden="true"></i> Blacklist</a>
+      <a class="staff-tab staff-logout-tab staff-logout" href="./login.html"><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> ออกจากระบบ</a>
+    </nav>
+  </div>
+
+  <dialog class="logout-dialog" id="logout-dialog" aria-labelledby="logout-dialog-title">
+    <button class="logout-dialog-close" type="button" aria-label="ปิดหน้าต่าง" data-cancel-logout><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    <div class="logout-dialog-icon" aria-hidden="true"><i class="fa-solid fa-arrow-right-from-bracket"></i></div>
+    <h2 id="logout-dialog-title">ยืนยันการออกจากระบบ</h2>
+    <p>คุณต้องการออกจากระบบใช่หรือไม่?<br />คุณจะต้องลงชื่อเข้าใช้ใหม่อีกครั้งเพื่อเข้าถึงระบบ</p>
+    <div class="logout-dialog-actions">
+      <button class="logout-cancel-button" type="button" data-cancel-logout>ยกเลิก</button>
+      <button class="logout-confirm-button" type="button" data-confirm-logout><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> ออกจากระบบ</button>
+    </div>
+  </dialog>
+
+  <main class="staff-main">
+    <section class="staff-panel blacklist-panel" aria-labelledby="blacklist-title">
+      <div class="blacklist-heading">
+        <h1 id="blacklist-title"><i class="fa-solid fa-user-slash" aria-hidden="true"></i> รายชื่อนักศึกษาที่ถูกระงับสิทธิ์ (Blacklist Control)</h1>
+        <label class="blacklist-search">
+          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+          <input id="blacklist-search" type="search" placeholder="ค้นหาด้วยเลขทะเบียน หรือ ชื่อนักศึกษา..." autocomplete="off" aria-label="ค้นหาด้วยเลขทะเบียนหรือชื่อนักศึกษา" />
+        </label>
+      </div>
+      <p class="blacklist-notice" id="blacklist-message" role="status" aria-live="polite">กำลังโหลดรายชื่อ...</p>
+      <div class="blacklist-table-scroll">
+        <table class="blacklist-table">
+          <thead>
+            <tr>
+              <th scope="col">นักศึกษา</th>
+              <th scope="col">เหตุผล</th>
+              <th scope="col">วันเริ่มต้น</th>
+              <th scope="col">วันสิ้นสุด</th>
+              <th scope="col">ดำเนินการ</th>
+            </tr>
+          </thead>
+          <tbody id="blacklist-rows"></tbody>
+        </table>
+        <p class="blacklist-empty" id="blacklist-empty" hidden>ไม่พบรายชื่อที่ตรงกับการค้นหา</p>
+      </div>
+    </section>
+  </main>
+
+  <dialog class="blacklist-confirm-dialog" id="blacklist-confirm-dialog" aria-labelledby="blacklist-confirm-title">
+    <button class="blacklist-confirm-close" type="button" aria-label="ปิดหน้าต่าง" data-cancel-release><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    <div class="blacklist-confirm-icon" aria-hidden="true"><i class="fa-solid fa-exclamation"></i></div>
+    <h2 id="blacklist-confirm-title">ยืนยันการปลด Blacklist</h2>
+    <p>คุณต้องการปลดการระงับสิทธิ์ของนักศึกษา<br /><strong id="blacklist-confirm-student">—</strong> ใช่หรือไม่?</p>
+    <div class="blacklist-confirm-warning">
+      <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+      <p>หลังจากปลดแล้ว นักศึกษาจะสามารถใช้สิทธิ์ในการจองห้องได้ตามปกติ</p>
+    </div>
+    <p class="blacklist-confirm-error" id="blacklist-confirm-error" role="alert" hidden></p>
+    <div class="blacklist-confirm-actions">
+      <button class="blacklist-cancel-button" type="button" data-cancel-release>ยกเลิก</button>
+      <button class="blacklist-confirm-button" id="blacklist-release-submit" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i> ยืนยันการปลด</button>
+    </div>
+  </dialog>
+
+  <footer class="staff-footer">ระบบบริหารจัดการและจองห้อง Co-Working Space · มหาวิทยาลัยธรรมศาสตร์ (Thammasat University)</footer>
+  <script src="./js/admin-nav.js"></script>
+  <script src="./js/admin-blacklist.js"></script>
+</body>
+</html>

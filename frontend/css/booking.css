@@ -1005,6 +1005,18 @@ h2 {
   background: #fff1f2;
 }
 
+.slot-status.closed {
+  border-color: #fcd34d;
+  color: #b45309;
+  background: #fffbeb;
+}
+
+.slot-status.unavailable {
+  border-color: #d0d5dd;
+  color: #667085;
+  background: #f2f4f7;
+}
+
 .slot-select-button {
   width: 100%;
   padding: 0;
