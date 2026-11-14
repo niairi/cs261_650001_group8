@@ -79,14 +79,21 @@ function isSlotPast(dateStr, slot) {
   return dateStr < todayStr || (dateStr === todayStr && slot <= now.toTimeString().slice(0, 5));
 }
 
-function createSlotCell(state, slot, onAvailableClick) {
-  const label = { available: "ว่าง", booked: "ถูกจอง", past: "หมดเวลา" }[state];
+function createSlotCell(state, slot, onAvailableClick, detail = "") {
+  const label = {
+    available: "ว่าง",
+    booked: "ถูกจอง",
+    past: "หมดเวลา",
+    closed: "ปิดปรับปรุง",
+    unavailable: "ไม่พร้อมใช้งาน"
+  }[state];
   const cell = document.createElement("td");
   const status = document.createElement("span");
   status.className = `slot-status ${state === "past" ? "booked" : state}`;
   if (state === "past") status.style.opacity = "0.45";
   status.textContent = label;
-  status.setAttribute("aria-label", `${slot} ${label}`);
+  status.setAttribute("aria-label", `${slot} ${label}${detail ? `: ${detail}` : ""}`);
+  if (detail) status.title = detail;
 
   if (state === "available" && onAvailableClick) {
     const button = document.createElement("button");
@@ -103,7 +110,8 @@ function createSlotCell(state, slot, onAvailableClick) {
   return cell;
 }
 
-function slotState(bookings, roomId, dateStr, slot) {
+function slotState(bookings, roomId, dateStr, slot, isClosed = false) {
+  if (isClosed) return "closed";
   if (isSlotBooked(bookings, roomId, slot)) return "booked";
   if (isSlotPast(dateStr, slot)) return "past";
   return "available";
@@ -113,6 +121,12 @@ function slotState(bookings, roomId, dateStr, slot) {
 async function fetchBookings(dateStr) {
   const res = await fetch(`${API_URL}/booking?date=${dateStr}`);
   if (!res.ok) throw new Error(`GET /booking ${res.status}`);
+  return res.json();
+}
+
+async function fetchRoomAvailability(dateStr) {
+  const res = await fetch(`${API_URL}/rooms?date=${dateStr}`);
+  if (!res.ok) throw new Error(`GET /rooms?date=${dateStr} ${res.status}`);
   return res.json();
 }
 
@@ -135,7 +149,20 @@ async function renderWeeklySchedule(room = selectedRoom) {
   roomScheduleRange.textContent = "กำลังโหลดสถานะห้อง...";
 
   try {
-    const perDay = await Promise.all(days.map((d) => fetchBookings(localDate(d))));
+    const perDay = await Promise.all(days.map(async (day) => {
+      const dateStr = localDate(day);
+      const [dayBookings, roomAvailability] = await Promise.all([
+        fetchBookings(dateStr),
+        fetchRoomAvailability(dateStr)
+      ]);
+      const roomStatus = roomAvailability.find((item) => Number(item.room_id) === Number(room.room_id));
+      return {
+        bookings: dayBookings,
+        closed: roomStatus?.closed === true,
+        closureReason: roomStatus?.closure_reason || "",
+        roomAvailable: Boolean(roomStatus)
+      };
+    }));
     if (requestId !== scheduleRequest) return;
 
     days.forEach((day, dayIndex) => {
@@ -146,11 +173,19 @@ async function renderWeeklySchedule(room = selectedRoom) {
       dayHeader.textContent = weekDays[dayIndex];
       row.append(dayHeader);
       timeSlots.forEach((slot) => {
-        const state = slotState(perDay[dayIndex], room.room_id, dateStr, slot);
+        const dayStatus = perDay[dayIndex];
+        const state = dayStatus.roomAvailable
+          ? slotState(dayStatus.bookings, room.room_id, dateStr, slot, dayStatus.closed)
+          : "unavailable";
         const onAvailableClick = state === "available"
           ? () => openBookingForm(room, dateStr, slot)
           : null;
-        row.append(createSlotCell(state, slot, onAvailableClick));
+        row.append(createSlotCell(
+          state,
+          slot,
+          onAvailableClick,
+          state === "closed" ? dayStatus.closureReason : ""
+        ));
       });
       weeklyScheduleBody.append(row);
     });

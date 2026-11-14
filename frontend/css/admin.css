@@ -1140,6 +1140,10 @@ button {
   font-size: 10px;
 }
 
+.maintenance-date-field {
+  grid-column: 1 / -1;
+}
+
 .maintenance-datetime-grid input {
   height: 36px;
   padding: 0 8px;
