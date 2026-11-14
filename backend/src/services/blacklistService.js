@@ -45,7 +45,7 @@ function createBlacklistService({ db, sendNotice, now = () => new Date(), semest
       const { rows } = await db.query(
         `SELECT student_id, start_date::text AS start_date, end_date::text AS end_date, trigger_booking_id
            FROM blacklist
-          WHERE student_id = $1 AND end_date >= $2::date
+          WHERE student_id = $1 AND end_date >= $2::date AND revoked_at IS NULL
           ORDER BY end_date DESC
           LIMIT 1`,
         [studentId, bangkokDate(now())]
@@ -53,6 +53,17 @@ function createBlacklistService({ db, sendNotice, now = () => new Date(), semest
       return rows[0] || null;
     } catch (err) {
       if (err.code === UNDEFINED_TABLE) return null;
+      if (err.code === '42703') {
+        const { rows } = await db.query(
+          `SELECT student_id, start_date::text AS start_date, end_date::text AS end_date, trigger_booking_id
+             FROM blacklist
+            WHERE student_id = $1 AND end_date >= $2::date
+            ORDER BY end_date DESC
+            LIMIT 1`,
+          [studentId, bangkokDate(now())]
+        );
+        return rows[0] || null;
+      }
       throw err;
     }
   }

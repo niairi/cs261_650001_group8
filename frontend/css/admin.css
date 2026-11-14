@@ -1393,6 +1393,11 @@ button {
   background: #d1fae5;
 }
 
+.blacklist-status.is-expired {
+  color: #667085;
+  background: #f2f4f7;
+}
+
 .blacklist-release-button {
   display: inline-flex;
   align-items: center;
@@ -1432,6 +1437,154 @@ button {
   margin: 14px 0 0;
   color: #8490a1;
   font-size: 10px;
+}
+
+.blacklist-notice.is-error {
+  color: #b42318;
+}
+
+.blacklist-confirm-dialog {
+  position: relative;
+  width: min(100% - 32px, 600px);
+  padding: 38px 32px 28px;
+  border: 1px solid #e4e7ec;
+  border-radius: 20px;
+  color: #172033;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(16, 24, 40, 0.3);
+  text-align: center;
+}
+
+.blacklist-confirm-dialog::backdrop {
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(2px);
+}
+
+.blacklist-confirm-close {
+  position: absolute;
+  top: 16px;
+  right: 17px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 6px;
+  color: #667085;
+  background: transparent;
+  font-size: 22px;
+}
+
+.blacklist-confirm-close:hover {
+  color: #344054;
+  background: #f2f4f7;
+}
+
+.blacklist-confirm-icon {
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  margin: 0 auto 16px;
+  border: 4px solid #fee2e2;
+  border-radius: 50%;
+  color: #dc2626;
+  background: #fff1f1;
+  font-size: 43px;
+  font-weight: 700;
+}
+
+.blacklist-confirm-dialog h2 {
+  margin: 0 0 12px;
+  color: #111827;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.blacklist-confirm-dialog > p {
+  margin: 0;
+  color: #344054;
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.blacklist-confirm-dialog > p strong {
+  color: #111827;
+  font-weight: 700;
+}
+
+.blacklist-confirm-warning {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 21px;
+  padding: 14px 17px;
+  border: 1px solid #fecaca;
+  border-radius: 13px;
+  color: #dc2626;
+  background: #fff1f1;
+  text-align: left;
+}
+
+.blacklist-confirm-warning i {
+  flex: 0 0 auto;
+  font-size: 25px;
+}
+
+.blacklist-confirm-warning p {
+  margin: 0;
+  color: #344054;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.blacklist-confirm-error {
+  margin: 14px 0 0 !important;
+  color: #b42318 !important;
+  font-size: 12px !important;
+  text-align: left;
+}
+
+.blacklist-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.blacklist-confirm-actions button {
+  min-width: 150px;
+  min-height: 44px;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.blacklist-cancel-button {
+  border: 1px solid #d0d5dd !important;
+  color: #344054;
+  background: #f8fafc;
+}
+
+.blacklist-cancel-button:hover {
+  background: #f2f4f7;
+}
+
+.blacklist-confirm-button {
+  color: #fff;
+  background: #dc2626;
+}
+
+.blacklist-confirm-button:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.blacklist-confirm-button:disabled {
+  opacity: 0.7;
+  cursor: wait;
 }
 
 @media (min-width: 1400px) {
@@ -1686,6 +1839,36 @@ button {
   .blacklist-heading h1 {
     align-items: flex-start;
     font-size: 16px;
+  }
+
+  .blacklist-confirm-dialog {
+    padding: 32px 18px 20px;
+  }
+
+  .blacklist-confirm-dialog h2 {
+    font-size: 20px;
+  }
+
+  .blacklist-confirm-dialog > p {
+    font-size: 14px;
+  }
+
+  .blacklist-confirm-warning {
+    align-items: flex-start;
+    gap: 10px;
+    padding: 11px;
+  }
+
+  .blacklist-confirm-warning p {
+    font-size: 11px;
+  }
+
+  .blacklist-confirm-actions {
+    flex-direction: column-reverse;
+  }
+
+  .blacklist-confirm-actions button {
+    width: 100%;
   }
 
   .logout-dialog {
