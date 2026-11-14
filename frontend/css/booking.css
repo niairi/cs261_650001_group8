@@ -569,6 +569,10 @@ h2 {
   display: none !important;
 }
 
+.booking-result-dialog.is-email-failed {
+  width: min(576px, calc(100vw - 32px));
+}
+
 .booking-result-dialog.is-blacklisted {
   border-color: #fecdd3;
   border-top-color: #8b001c;
@@ -596,6 +600,8 @@ h2 {
 }
 
 .booking-result-dialog.is-email-failed .confirmation-icon {
+  width: 80px;
+  height: 80px;
   border-color: #fde68a;
   color: #d97706;
   background: #fffbeb;
@@ -609,6 +615,16 @@ h2 {
 
 .booking-result-dialog.is-email-failed .confirmation-status > span:first-child {
   background: #f59e0b;
+}
+
+.booking-result-dialog.is-email-failed .confirmation-message {
+  margin: 0 0 24px;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.booking-result-dialog.is-email-failed .confirmation-content {
+  padding: 38px 28px 32px;
 }
 
 .confirmation-content {
@@ -777,6 +793,79 @@ h2 {
 
 .booking-result-dialog.is-email-failed .booking-result-retry:hover {
   background: #d97706;
+}
+
+.booking-result-dialog.is-email-failed .booking-result-details {
+  padding: 14px 16px;
+  white-space: normal;
+}
+
+.booking-result-details-text {
+  white-space: pre-line;
+}
+
+.booking-result-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+}
+
+.booking-result-detail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  color: #334155;
+  font-size: 12px;
+}
+
+.booking-result-detail strong {
+  color: #172033;
+  text-align: right;
+}
+
+.booking-result-usage-note {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 14px 0 0;
+  padding: 9px 11px;
+  border-radius: 9px;
+  color: #b45309;
+  background: #fff5d6;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.booking-result-usage-note i {
+  flex: 0 0 auto;
+}
+
+.booking-result-dialog.is-email-failed .confirmation-actions {
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 0.7fr;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.booking-result-dialog.is-email-failed .confirmation-actions button {
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.booking-result-dialog.is-email-failed .booking-result-history {
+  border-color: #8b001c;
+  color: #ffffff;
+  background: #8b001c;
+}
+
+.booking-result-dialog.is-email-failed .booking-result-history:hover {
+  border-color: var(--maroon-dark);
+  background: var(--maroon-dark);
 }
 
 .booking-result-details {
@@ -1668,6 +1757,31 @@ h2 {
   .confirmation-actions {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .booking-result-dialog.is-email-failed .booking-result-details {
+    padding: 13px 12px;
+  }
+
+  .booking-result-dialog.is-email-failed .confirmation-content {
+    padding: 24px 18px 20px;
+  }
+
+  .booking-result-dialog.is-email-failed .confirmation-message {
+    margin-bottom: 18px;
+  }
+
+  .booking-result-dialog.is-email-failed .confirmation-actions {
+    margin-top: 20px;
+  }
+
+  .booking-result-details-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .booking-result-dialog.is-email-failed .confirmation-actions {
+    grid-template-columns: 1fr;
   }
 
   .confirmation-home-button,
