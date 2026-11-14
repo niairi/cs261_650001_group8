@@ -2,22 +2,11 @@ const express = require('express');
 const pool = require('../db');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 const { listBookings, bookingSummary } = require('../services/adminService');
-const { listBlacklist, releaseBlacklist } = require('../services/adminBlacklistService');
 const {
   listRoomsForAdmin, createRoom, updateRoom, addClosure, removeClosure,
 } = require('../services/roomService');
 
 const router = express.Router();
-
-// GET /admin/blacklist — รายการระงับสิทธิ์ทั้งหมดสำหรับเจ้าหน้าที่
-router.get('/blacklist', requireAuth, requireAdmin, async (req, res) => {
-  res.json({ entries: await listBlacklist(pool) });
-});
-
-// PATCH /admin/blacklist/:id/revoke — ปลดระงับสิทธิ์และเก็บประวัติการปลด
-router.patch('/blacklist/:id/revoke', requireAuth, requireAdmin, async (req, res) => {
-  res.json(await releaseBlacklist(pool, req.params.id));
-});
 
 // GET /admin/bookings?student_id=6609651234&status=BOOKED&date=2026-10-20&room_id=101  (US7 — admin เท่านั้น)
 // ช่วงวันที่: date_from / date_to · เรียงลำดับ: order=asc|desc

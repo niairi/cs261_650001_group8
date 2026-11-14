@@ -119,43 +119,24 @@
       row.append(studentCell);
 
       appendCell(row, entry.reason, "blacklist-muted");
+      appendCell(row, displayDate(entry.start_date), "blacklist-muted");
       appendCell(row, displayDate(entry.end_date), "blacklist-muted");
 
-      const statusCell = document.createElement("td");
-      statusCell.className = "blacklist-status-cell";
-      const status = document.createElement("span");
-      status.className = `blacklist-status is-${entry.status}`;
-      const icon = document.createElement("i");
-      icon.className = `fa-solid ${entry.status === "active" ? "fa-triangle-exclamation" : "fa-circle-check"}`;
-      icon.setAttribute("aria-hidden", "true");
-      const statusText = entry.status === "active"
-        ? " ติด Blacklist"
-        : entry.status === "released"
-          ? " ปลดแบนแล้ว"
-          : " หมดอายุแล้ว";
-      status.append(icon, document.createTextNode(statusText));
-      statusCell.append(status);
-      row.append(statusCell);
-
       const actionCell = document.createElement("td");
-      if (entry.status === "active") {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "blacklist-release-button";
-        button.innerHTML = '<i class="fa-solid fa-arrow-rotate-left" aria-hidden="true"></i> ปลด Blacklist';
-        button.addEventListener("click", () => openReleaseDialog(entry));
-        actionCell.append(button);
-      } else {
-        const released = document.createElement("span");
-        released.className = "blacklist-released-label";
-        released.textContent = entry.status === "expired" ? "หมดอายุแล้ว" : "คืนสิทธิ์แล้ว";
-        actionCell.append(released);
-      }
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "blacklist-release-button";
+      button.innerHTML = '<i class="fa-solid fa-arrow-rotate-left" aria-hidden="true"></i> ปลด Blacklist';
+      button.addEventListener("click", () => openReleaseDialog(entry));
+      actionCell.append(button);
       row.append(actionCell);
       fragment.append(row);
     });
 
     rows.replaceChildren(fragment);
+    empty.textContent = entries.length === 0
+      ? "ไม่มีนักศึกษาที่ถูกระงับสิทธิ์"
+      : "ไม่พบรายชื่อที่ตรงกับการค้นหา";
     empty.hidden = filtered.length !== 0;
   }
 
@@ -163,13 +144,13 @@
     message.textContent = "กำลังโหลดรายชื่อ...";
     try {
       const data = await apiRequest("/admin/blacklist");
-      if (!Array.isArray(data.entries)) {
+      if (!Array.isArray(data.rows) || !Number.isSafeInteger(data.count) || data.count < 0) {
         throw new Error("รูปแบบข้อมูล Blacklist จาก API ไม่ถูกต้อง");
       }
-      entries = data.entries;
+      entries = data.rows;
       renderEntries();
       message.classList.remove("is-error");
-      message.textContent = `แสดงรายชื่อ ${entries.length} รายการ`;
+      message.textContent = `แสดงรายชื่อ ${data.count} รายการ`;
     } catch (error) {
       console.error("Could not load admin blacklist.", error);
       entries = [];
@@ -204,8 +185,8 @@
     confirmError.hidden = true;
     releaseButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> กำลังปลดระงับ...';
     try {
-      await apiRequest(`/admin/blacklist/${encodeURIComponent(selectedEntry.blacklist_id)}/revoke`, {
-        method: "PATCH"
+      await apiRequest(`/admin/blacklist/${encodeURIComponent(selectedEntry.blacklist_id)}/lift`, {
+        method: "POST"
       });
       confirmDialog.close();
       message.textContent = `ปลดระงับสิทธิ์ของ ${selectedEntry.student_id} แล้ว`;
