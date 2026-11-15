@@ -123,3 +123,16 @@ test('อีเมลแก้ไข: SMTP ส่งไม่สำเร็จ 
   assert.equal(log.logs[0].status, 'FAILED');
   assert.equal(log.logs[0].email_type, 'BOOKING_UPDATED');
 });
+
+// BUG-01 (Task77): แก้ไข/จองเป็นวันเสาร์–อาทิตย์ไม่ได้ · NOW = อังคาร 20 ต.ค. 2026
+test('BUG-01: แก้ไขเป็นวันเสาร์ไม่ได้', () => {
+  assert.ok(errorsOf({ ...base, booking_date: '2026-10-24' }).includes('จองได้เฉพาะวันจันทร์–ศุกร์'));
+});
+
+test('BUG-01: แก้ไขเป็นวันอาทิตย์ไม่ได้', () => {
+  assert.ok(errorsOf({ ...base, booking_date: '2026-10-25' }).includes('จองได้เฉพาะวันจันทร์–ศุกร์'));
+});
+
+test('BUG-01: วันศุกร์ยังจองได้', () => {
+  assert.ok(!errorsOf({ ...base, booking_date: '2026-10-23' }).includes('จองได้เฉพาะวันจันทร์–ศุกร์'));
+});

@@ -40,6 +40,9 @@ function validateBooking(body, now = new Date()) {
   if (start < toMinutes(OPEN) || end > toMinutes(CLOSE)) errors.push(`จองได้เฉพาะช่วง ${OPEN} - ${CLOSE} น.`);
   if (end <= start) errors.push('เวลาสิ้นสุดต้องหลังเวลาเริ่มต้น');
   if (end - start > MAX_HOURS * 60) errors.push(`จองได้ครั้งละไม่เกิน ${MAX_HOURS} ชั่วโมง`);
+  // BUG-01 (Task77): จองและแก้ไขได้เฉพาะวันจันทร์–ศุกร์ (0 = อาทิตย์, 6 = เสาร์)
+  const weekday = new Date(`${booking_date}T00:00:00Z`).getUTCDay();
+  if (weekday === 0 || weekday === 6) errors.push('จองได้เฉพาะวันจันทร์–ศุกร์');
 
   // ห้ามจองเวลาที่ผ่านมาแล้ว (ใช้เวลาของเครื่องที่รัน server)
   const today = now.toLocaleDateString('sv-SE'); // YYYY-MM-DD
