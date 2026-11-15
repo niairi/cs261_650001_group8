@@ -18,7 +18,7 @@
 - US10 – Blacklist
 - US11 – Logout / Access Control
 - US12 – Room Closure
-- US13 – UI v2
+- US13 – ดู/ปลด Blacklist (Admin)
 - US14 – Login Condition
 - US15 – Login Validation
 - UI v2
@@ -44,11 +44,9 @@
 
 ### 4.1 Unit Test
 
-อ้างอิงผลการทดสอบจาก Backend และ Release v1.0 ซึ่งระบุว่า Unit Test ผ่านทั้งหมด **40 tests**
+อ้างอิงผลการทดสอบจาก `docs/test/unit-test-sprint2.md` (Task 72) ซึ่งระบุว่า Unit Test ของ Sprint 2 ผ่านทั้งหมด **192/192 tests**
 
-Environment ปัจจุบันไม่สามารถรัน Unit Test ซ้ำได้ เนื่องจาก Docker image ของ Backend มีการ Copy เฉพาะ `src` และไม่ได้รวม Test Files และ Development Dependencies ที่จำเป็นสำหรับการรัน Test
-
-**Result: PASS (อ้างอิงผลจาก Backend / Release v1.0)**
+**Result: PASS – 192/192 tests**
 
 ---
 
@@ -178,11 +176,11 @@ Environment ปัจจุบันไม่สามารถรัน Unit Te
 
 ---
 
-### US13 – UI v2
+### US13 – ดู/ปลด Blacklist (Admin)
 
 | Test Case | Result | รายละเอียด |
 |---|---|---|
-| TC1 | PENDING | รอทดสอบหลัง PR #49 merge |
+| TC1 | PENDING | PR #49 Merge แล้ว และสามารถดำเนินการทดสอบได้ โดยรอผลการทดสอบเพื่ออัปเดตสถานะ |
 
 **Result: PENDING**
 
@@ -228,17 +226,27 @@ Environment ปัจจุบันไม่สามารถรัน Unit Te
 
 **Result: Fixed / Regression PASS**
 
+**Regression Test – Sprint 1**
+
+ดำเนินการ Regression Test สำหรับฟังก์ชันจาก Sprint 1 ตามขอบเขตของ Task 75 ได้แก่
+
+- US1 TC1–TC2
+- US2 TC1–TC2
+- US3 TC1–TC6
+- US4 TC1–TC5
+- US5 TC1–TC2
+
+**Result: PASS**
+
 ---
 
 ## 7. UAT Summary
 
-UAT ของ Sprint 2 ครอบคลุมฟังก์ชันหลักของ US5, US6, US7, US8, US9, US10, US11, US12, US13, US14 และ US15 รวมถึง UI v2 และ Regression Test
+UAT ของ Sprint 2 ยังไม่ได้ดำเนินการโดยผู้ทดลองใช้จริงในขณะจัดทำรายงานฉบับนี้
 
-ผลการ Execute Test Case ที่ดำเนินการแล้วเป็นไปตาม Expected Result และระบุเป็น PASS
+ผลการทดสอบที่ระบุในรายงานส่วน System Test เป็นผลจากการทดสอบโดยทีมพัฒนาและทีมทดสอบ ซึ่งไม่ถือเป็น UAT
 
-สำหรับ Test Case ที่ยังรอการ Execute ได้แก่ US8 TC2–TC3 และ US13 TC1 ซึ่งยังคงระบุเป็น PENDING
-
-สำหรับ US9 และ US10 ผลการทดสอบอ้างอิงจากการทดสอบของทีมด้วย Mock Test Account และผลการทดสอบเป็นไปตาม Expected Result
+สำหรับ UAT จะดำเนินการตาม Task 74 และจะอัปเดตผลการทดสอบเพิ่มเติมเมื่อได้รับผลจากผู้ทดลองใช้จริง
 
 ---
 
@@ -268,9 +276,11 @@ US8 TC1 และ TC4 สามารถ Execute และผ่านตาม 
 
 ### 8.4 TU API
 
-การทดสอบใช้ Simulation / Mock Mode จึงยังไม่ได้ทดสอบการทำงานกับ TU API จริง
+เมื่อวันที่ 10/11/2026 ได้ทดสอบการทำงานร่วมกับ TU API จริงบน Docker สำหรับ US15 TC1–TC4, US14 TC1 และ US1 TC1
 
-ดังนั้นกรณี Invalid Credentials และกรณี TU API ไม่พร้อมใช้งานจึงยังไม่สามารถยืนยันผลจากระบบจริงได้
+ผลการทดสอบอ้างอิงหลักฐานจาก Task 82 และ Task 63
+
+อย่างไรก็ตาม Environment ปัจจุบันยังมีบางกรณีที่ใช้ Simulation / Mock Mode จึงยังไม่สามารถยืนยันการทำงานกับ TU API จริงได้ครบทุกสถานการณ์
 
 ---
 
@@ -294,7 +304,7 @@ US8 TC1 และ TC4 สามารถ Execute และผ่านตาม 
 
 ผลการทดสอบของ Test Case ที่ Execute แล้วเป็นไปตาม Expected Result และถูกบันทึกเป็น PASS
 
-ปัจจุบันยังมี Test Case ที่รอการ Execute เพิ่มเติม ได้แก่ **US8 TC2–TC3 และ US13 TC1** จึงยังไม่ถือว่าการทดสอบ Sprint 2 เสร็จสมบูรณ์ทั้งหมด
+ปัจจุบันยังมี Test Case ที่รอผลการทดสอบเพิ่มเติม ได้แก่ **US8 TC2–TC3 และ US13 TC1** จึงยังไม่ถือว่าการทดสอบ Sprint 2 เสร็จสมบูรณ์ทั้งหมด
 
 US9 และ US10 สามารถยืนยันผลการทำงานตาม Test Case ที่ดำเนินการแล้วจากผลการทดสอบของทีมโดยใช้ Mock Test Account แยกสำหรับการทดสอบ Flow ดังกล่าว
 
