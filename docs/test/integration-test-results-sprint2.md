@@ -39,43 +39,46 @@
 
 ### US7 – Admin Booking Management
 
-- **US7-TC1:** PASS — สามารถค้นหา Booking ด้วย Student ID ได้
-- **US7-TC2:** PASS — สามารถค้นหา Booking ด้วย Room ได้
-- **US7-TC3:** PASS — สามารถค้นหา Booking ด้วยวันที่ได้
-- **US7-TC4:** PASS — สามารถค้นหา Booking ด้วย Student ID และ Room ร่วมกันได้
-- **US7-TC5:** PASS — สามารถแสดงข้อมูล Booking ตามเงื่อนไขที่ค้นหาได้
-- **US7-TC6:** PASS — สามารถใช้งาน Report / Filter สำหรับรายการ Booking ได้
 
-**หมายเหตุ:** US7 TC3 มีความแตกต่างระหว่างวันที่ในตัวอย่าง Test Case กับ Seed Data โดย Test Case ระบุวันที่ 22/10/2026 ขณะที่ Seed Data มีข้อมูลวันที่ 20/10/2026 จึงไม่ได้แก้ไข Seed Data โดยไม่ได้รับการยืนยันจากทีม
+- **US7-TC1:** PASS — สามารถแสดงรายการ Booking ทั้งหมดสำหรับผู้ดูแลระบบได้
+- **US7-TC2:** PASS — สามารถค้นหา Booking ด้วยรหัสนักศึกษาได้
+- **US7-TC3:** PASS — สามารถกรอง Booking ด้วย Room และวันที่ได้
+- **US7-TC4:** PASS — นักศึกษาทั่วไปไม่สามารถเข้าถึง Admin API และระบบตอบกลับ HTTP 403 Forbidden พร้อมข้อความ “เฉพาะเจ้าหน้าที่เท่านั้น”
+- **US7-TC5:** PASS — สามารถเข้าถึงและแสดงเมนูสำหรับผู้ดูแลระบบได้
+- **US7-TC6:** PASS — สามารถแสดงรายงานสรุป Booking ของ Room A วันที่ 22/10/2026 ได้ตามข้อมูล 3 รายการ โดยมี 1 CONFIRMED, 1 CANCELLED และ 1 EXPIRED (No-show)
 
 ### US8 – Check-in
 
 - **US8-TC1:** PASS — สามารถ Check-in ได้สำเร็จเมื่อผู้ใช้อยู่ภายในระยะที่กำหนด และ Booking เปลี่ยนสถานะเป็น `CONFIRMED`
-- **US8-TC2:** PENDING — ระบบสามารถ Reject Check-in เมื่ออยู่นอกระยะที่กำหนดได้ แต่ยังไม่ได้ยืนยันว่า Booking ยังคงสถานะ `BOOKED` หลังจาก Reject
-- **US8-TC3:** PENDING — ยังไม่ได้ทดสอบกรณีผู้ใช้ปฏิเสธ Location Permission
-- **US8-TC4:** PENDING — ยังไม่ได้ทดสอบกรณีไม่ Check-in ภายในเวลาที่กำหนดจน Booking เปลี่ยนเป็น `EXPIRED`
+- **US8-TC2:** PASS — ระบบ Reject Check-in เมื่อผู้ใช้อยู่นอกระยะที่กำหนด และ Booking ยังคงสถานะ `BOOKED`
+- **US8-TC3:** PASS — เมื่อผู้ใช้ปฏิเสธ Location Permission ระบบไม่อนุญาตให้ Check-in และแจ้งให้ผู้ใช้อนุญาต Location ก่อน Check-in
+- **US8-TC4:** PASS — เมื่อไม่ Check-in ภายในเวลาที่กำหนด ระบบเปลี่ยนสถานะ Booking เป็น `EXPIRED` และแสดงข้อความแจ้งว่าเลยเวลาที่สามารถ Check-in ได้
 
 ### US9 – No-show
+- จากผลการทดสอบของทีม
 
-- **US9-TC1:** PASS — Booking ที่ไม่มีการ Check-in สามารถเข้าสู่สถานะ Expired / No-show ได้
-- **US9-TC2:** PENDING — ยังไม่ได้ทดสอบว่า Booking ที่ Check-in สำเร็จจะไม่ถูกนับเป็น No-show
-- **US9-TC3:** PENDING — ยังไม่ได้ทดสอบว่า Cancelled Booking จะไม่ถูกนับเป็น No-show
+- **US9-TC1:** PASS —  พบว่า Booking ที่ไม่มีการ Check-in สามารถเข้าสู่สถานะ Expired / No-show ได้
+- **US9-TC2:** PASS —  พบว่า Booking ที่ Check-in สำเร็จจะไม่ถูกนับเป็น No-show
+- **US9-TC3:** PASS — พบว่า Cancelled Booking จะไม่ถูกนับเป็น No-show
 
 ### US10 – Blacklist
+- จากผลการทดสอบของทีม 
 
-- **US10-TC1:** PENDING — ยังไม่ได้ทดสอบกรณี No-show ครบ 3 ครั้งและการเข้าสู่ Blacklist
-- **US10-TC2:** PENDING — ยังไม่ได้ทดสอบกรณีผู้ใช้ที่อยู่ใน Blacklist ไม่สามารถจองห้องได้
-- **US10-TC3:** PENDING — ยังไม่ได้ทดสอบกรณี Blacklist หมดอายุแล้วสามารถกลับมาจองได้
-- **US10-TC4:** PENDING — ยังไม่ได้ทดสอบกรณีมี No-show 2 ครั้งและยังสามารถจองได้
+- **US10-TC1:** PASS — พบว่าเมื่อ No-show ครบ 3 ครั้ง ระบบสามารถตรวจจับและระงับสิทธิ์การจองโดยอัตโนมัติ และกำหนดระยะเวลา Blacklist 30 วัน
+- **US10-TC2:** PASS — พบว่าผู้ใช้ที่อยู่ใน Blacklist ไม่สามารถสร้าง Booking ได้ และระบบแสดงข้อความแจ้งระยะเวลาการระงับ
+- **US10-TC3:** PASS — พบว่าเมื่อ Blacklist หมดอายุ ผู้ใช้สามารถกลับมาจองห้องได้ตามปกติ
+- **US10-TC4:** PASS — พบว่าผู้ใช้ที่มี No-show 2 ครั้งยังสามารถสร้าง Booking ได้ และยังไม่ถูก Blacklist
 
 ### US11 – Logout / Authentication
 
 - **US11-TC1:** PASS — หลังจาก Logout ระบบนำผู้ใช้กลับไปยังหน้า Login และไม่อนุญาตให้เข้าถึง Protected Page โดยไม่มี Authentication
 
+
+
 ### US14 – User Authorization
 
-- **US14-TC1:** PENDING — ยังไม่ได้ทดสอบกรณีผู้ใช้ไม่ผ่านเงื่อนไขที่กำหนด
-- **US14-TC2:** PENDING — ยังไม่ได้ยืนยันผลการ Login ของผู้ใช้ที่ผ่านเงื่อนไข Student / Faculty ตาม Test Case
+- **US14-TC1:** PASS — ผู้ใช้ที่ไม่ผ่านเงื่อนไข Student / Faculty ไม่สามารถ Login เข้าสู่ระบบได้
+- **US14-TC2:** PASS — ผู้ใช้ที่ผ่านเงื่อนไข Student / Faculty สามารถ Login เข้าสู่ระบบได้สำเร็จ
 - **US14-TC3:** PASS — สามารถ Login ด้วยสิทธิ์ Admin และเข้าถึงเมนูจัดการ Booking ได้
 
 ### US15 – Login Validation
@@ -113,21 +116,18 @@
 
 ### 4.1 Location-based Test
 
-บาง Test Case จำเป็นต้องทดสอบโดยใช้ Location จริงและต้องอยู่ภายในสถานที่ตามเงื่อนไขที่กำหนด โดยเฉพาะ Test Case ที่เกี่ยวข้องกับการ Check-in และการตรวจสอบระยะห่างจากห้อง
-
-เนื่องจากการทดสอบในรอบนี้ไม่ได้ดำเนินการจากสถานที่จริง จึงไม่สามารถ Execute Test Case ที่ต้องใช้ Location จริงได้ครบทุกกรณี
-
-อย่างไรก็ตาม สามารถทดสอบ Location-based Check-in บางกรณีผ่าน Browser Location Simulation ได้ และ **US8 TC1 สามารถทดสอบได้สำเร็จ** โดยจำลองพิกัดให้อยู่ในตำแหน่งเดียวกับ Room
+บาง Test Case จำเป็นต้องใช้ Location เพื่อทดสอบเงื่อนไข Check-in เช่น การตรวจสอบระยะห่างจากห้อง และ Location Permission
+ในการทดสอบรอบนี้ ได้ใช้ Browser Location Simulation เพื่อจำลองพิกัดสำหรับการทดสอบ และสามารถ Execute US8-TC1 ถึง US8-TC4 ได้ครบตาม Expected Result
+อย่างไรก็ตาม การทดสอบในครั้งนี้เป็นการจำลอง Location ผ่าน Browser และไม่ได้ทดสอบด้วย Location จริงจากสถานที่ใช้งานจริง
 
 ### 4.2 Test Account / Mock Account
 
-พบประเด็นเกี่ยวกับ Test Account ที่ใช้สำหรับการทดสอบ โดย **Mock Test Account ใช้ Student ID เดียวกับ Student ID จริงของนักศึกษา**
+การทดสอบ No-show และ Blacklist สำหรับ US9 และ US10 อ้างอิงผลการทดสอบของทีมโดยใช้ Mock Test Account แยกสำหรับการทดสอบ Flow ดังกล่าว  
 
-ในระหว่างการทดสอบพบว่า Student ID ดังกล่าวเกิด No-show จากการทดสอบแล้ว 1 ครั้ง จึงหยุดการทดสอบ No-show / Blacklist เพิ่มเติม เพื่อป้องกันไม่ให้เกิด No-show ครบ 3 ครั้งและทำให้ Student ID ดังกล่าวถูก Blacklist
+จากผลการทดสอบของทีม สามารถยืนยันการทำงานของ No-show และ Blacklist ตาม Test Case ได้ครบถ้วน โดยผลการทดสอบถูกบันทึกเป็น PASS ในส่วนของ US9 และ US10  
 
-**เดี๋ยวจะมีการหารือกับ PO** เกี่ยวกับแนวทางการจัดการ Test Account เนื่องจากมีความกังวลว่า หาก Mock Account และ Real Student ID ใช้รหัสเดียวกัน และระบบถูกนำไปใช้งานจริง ข้อมูลที่เกิดจากการทดสอบอาจส่งผลต่อสถานะของผู้ใช้งานจริงได้
+สำหรับการทดสอบใน Environment จริง ยังคงควรแยก Test Account ออกจาก Student ID จริงของนักศึกษา เพื่อป้องกันผลกระทบต่อข้อมูลผู้ใช้งานจริง
 
-ดังนั้น Test Case ที่ต้องสร้าง No-show เพิ่มเติมหรือทดสอบ Blacklist จึงถูกกำหนดเป็น **PENDING** ไว้ก่อน จนกว่าจะมี Test Account หรือแนวทางที่เหมาะสมสำหรับการทดสอบ
 
 ### 4.3 Email Configuration
 
@@ -150,19 +150,16 @@
 - Test Case ที่ Execute แล้วและเป็นไปตาม Expected Result ระบุเป็น **PASS**
 - Test Case ที่ไม่สามารถทดสอบได้เนื่องจากข้อจำกัดของ Environment ระบุเป็น **Not Testable**
 - Test Case ที่ยังไม่ได้ Execute ระบุเป็น **PENDING**
-- ไม่มีการระบุ PASS สำหรับ Test Case ที่ยังไม่ได้ Execute จริง
-- Test Case ที่เกี่ยวข้องกับ No-show / Blacklist ถูกหยุดไว้ชั่วคราวเพื่อป้องกันผลกระทบต่อ Student ID จริงที่ใช้เป็น Mock Test Account
+- ผลการทดสอบ **US9 และ US10** อ้างอิงจากการทดสอบของทีมด้วย Mock Test Account และผลการทดสอบเป็นไปตาม Expected Result
 
 ---
 
 ## 6. Conclusion
 
-การทดสอบ Sprint 2 สามารถตรวจสอบการทำงานหลักของระบบในส่วนของ **Database Integration, Login, Booking, Edit Booking, Cancellation, Admin Booking Management, Check-in และ Authentication** ได้ในระดับที่สามารถ Execute ได้ใน Environment ปัจจุบัน
+การทดสอบ Sprint 2 สามารถตรวจสอบการทำงานหลักของระบบในส่วนของ **Database Integration, Login, Booking, Edit Booking, Cancellation, Admin Booking Management, Check-in และ Authentication** ได้ตาม Test Case ที่สามารถ Execute ใน Environment ปัจจุบัน
 
-สำหรับ Test Case ที่ยังไม่สามารถดำเนินการได้ครบ สาเหตุหลักมาจากข้อจำกัดด้าน **Location, Test Account, Email Configuration และ TU API Simulation Mode**
+สำหรับข้อจำกัดที่ยังมีอยู่ ได้แก่ **Location จริง, Email Configuration และ TU API Simulation Mode** ซึ่งอาจทำให้บางกรณีไม่สามารถยืนยันผลจากระบบจริงได้ครบทุกสถานการณ์
 
-โดยเฉพาะ Test Case ที่เกี่ยวข้องกับ **No-show และ Blacklist** ได้หยุดการทดสอบเพิ่มเติมไว้ก่อน เนื่องจากพบว่า Mock Test Account ใช้ Student ID เดียวกับ Student ID จริงของนักศึกษา และมีการเกิด No-show จากการทดสอบแล้ว จึงจำเป็นต้องป้องกันไม่ให้เกิด Blacklist กับผู้ใช้งานจริงโดยไม่ตั้งใจ
+สำหรับ **No-show และ Blacklist** ผลการทดสอบอ้างอิงจากการทดสอบของทีมโดยใช้ Mock Test Account แยกสำหรับการทดสอบ Flow ดังกล่าว และผลการทดสอบเป็นไปตาม Expected Result
 
-**เดี๋ยวจะมีการหารือกับ PO** เพื่อหาแนวทางในการจัดการ Test Account และการทดสอบในส่วนนี้ต่อไป
-
-นอกจากนี้พบ Bug ในส่วนของ **Edit Booking ที่สามารถเปลี่ยนวันที่เป็นวันเสาร์–อาทิตย์ได้** ซึ่งได้รายงานไว้สำหรับการตรวจสอบใน **Task 77**
+นอกจากนี้พบ Bug ในส่วนของ **Edit Booking ที่สามารถเปลี่ยนวันที่เป็นวันเสาร์–อาทิตย์ได้** ซึ่งได้รายงานไว้สำหรับการตรวจสอบใน **Task 77 – Bug Fixing / Regression Test**
