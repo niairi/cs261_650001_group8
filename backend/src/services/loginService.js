@@ -9,6 +9,26 @@ function roleOf(studentId) {
   return admins.includes(studentId) ? 'admin' : 'student';
 }
 
+// US14: ตรวจสาขาวิทยาการคอมพิวเตอร์ (Task63)
+// ALLOWED_DEPARTMENTS ใน .env = ชื่อสาขาที่ยอมรับ คั่นด้วย , เช่น วิทยาการคอมพิวเตอร์,Computer Science
+// เทียบแบบ "มีคำนี้อยู่ในชื่อสาขา" ไม่สนตัวพิมพ์เล็ก/ใหญ่และช่องว่าง (เช่น "สาขาวิชาวิทยาการคอมพิวเตอร์" ก็ผ่าน)
+// ⚠️ ถ้ายังไม่ตั้ง ALLOWED_DEPARTMENTS จะยังไม่ตรวจสาขา (กันทุกคน Login ไม่ได้ ถ้ายังไม่รู้ชื่อสาขาจริงจาก TU API)
+const NOT_CS_MESSAGE = 'ระบบนี้สำหรับนักศึกษาสาขาวิทยาการคอมพิวเตอร์เท่านั้น';
+
+const normalize = (s) => String(s || '').toLowerCase().replace(/\s+/g, '');
+
+function allowedDepartments() {
+  return (process.env.ALLOWED_DEPARTMENTS || '').split(',').map(normalize).filter(Boolean);
+}
+
+// คืน true ถ้าผ่าน (หรือยังไม่ได้เปิดการตรวจ)
+function isAllowedDepartment(department) {
+  const allowed = allowedDepartments();
+  if (allowed.length === 0) return true;
+  const dept = normalize(department);
+  return dept !== '' && allowed.some((a) => dept.includes(a));
+}
+
 // บันทึกผู้ใช้ลงตาราง users (Task28) — ถ้าบันทึกไม่ได้ login ยังผ่าน แค่เขียน log ไว้
 async function defaultSaveUser(user) {
   const pool = require('../db');
@@ -41,6 +61,13 @@ async function login(body, verify = verifyWithTU, saveUser = defaultSaveUser) {
 
   const role = roleOf(user.student_id);
 
+  // US14 TC1: ตรวจหลังรหัสผ่านถูกแล้วเท่านั้น · เจ้าหน้าที่ใน ADMIN_IDS ไม่ต้องตรวจสาขา (US14 TC3)
+  if (role !== 'admin' && !isAllowedDepartment(user.department)) {
+    // log ชื่อสาขาที่ได้จาก TU API ไว้ช่วยตั้ง ALLOWED_DEPARTMENTS (ไม่มีรหัสผ่าน)
+    console.warn(`[login] ปฏิเสธ ${user.student_id}: สาขาจาก TU API = "${user.department || ''}" ไม่อยู่ใน ALLOWED_DEPARTMENTS`);
+    throw new HttpError(403, NOT_CS_MESSAGE);
+  }
+
   try {
     await saveUser({ ...user, role });
   } catch (err) {
@@ -55,4 +82,4 @@ async function login(body, verify = verifyWithTU, saveUser = defaultSaveUser) {
   return { token, user: payload };
 }
 
-module.exports = { login, roleOf };
+module.exports = { login, roleOf, isAllowedDepartment, NOT_CS_MESSAGE };

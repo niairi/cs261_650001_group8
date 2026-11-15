@@ -1,0 +1,74 @@
+@startuml
+skinparam defaultFontName Loma
+skinparam defaultFontSize 12
+skinparam rectangle {
+  BackgroundColor #FDEBD0
+  BorderColor #935116
+}
+skinparam usecase {
+  BackgroundColor #D6EAF8
+  BorderColor #1F4E79
+}
+skinparam database {
+  BackgroundColor #E8F8F5
+  BorderColor #117A65
+}
+left to right direction
+title Data Flow Diagram : Level 1 — ระบบจองห้อง CS Co-Working Space (Sprint 1 + Sprint 2)
+
+rectangle "นักศึกษา" as STU
+rectangle "เจ้าหน้าที่\n(Admin)" as ADM
+rectangle "TU REST API" as TU
+rectangle "SMTP" as SMTP
+
+usecase "1.0\nยืนยันตัวตน\n(US1, US11, US14, US15)" as P1
+usecase "2.0\nดูตารางห้องว่าง\n(US2)" as P2
+usecase "3.0\nจัดการการจอง\nจอง / แก้ไข / ยกเลิก\n(US3, US4, US6)" as P3
+usecase "4.0\nยืนยันการเข้าใช้งาน\nCheck-in (US8)" as P4
+usecase "5.0\nตรวจ No-show\nและ Blacklist\n(US9, US10)" as P5
+usecase "6.0\nส่งอีเมลแจ้งเตือน\n(US5)" as P6
+usecase "7.0\nรายงานสำหรับ\nเจ้าหน้าที่ (US7)" as P7
+
+database "D1 users" as D1
+database "D2 room" as D2
+database "D3 booking" as D3
+database "D4 blacklist" as D4
+database "D5 email_logs" as D5
+
+STU --> P1 : เลขทะเบียน + รหัสผ่าน
+ADM --> P1 : เลขทะเบียน + รหัสผ่าน
+P1 --> TU : ขอยืนยันตัวตน
+TU --> P1 : ผลยืนยัน + สาขา
+P1 --> D1 : บันทึก / อัปเดตผู้ใช้
+P1 --> STU : token (JWT)
+
+STU --> P2 : วันที่ที่ต้องการดู
+D2 --> P2 : รายชื่อห้อง
+D3 --> P2 : การจองของวันนั้น
+P2 --> STU : ตารางว่าง / ไม่ว่าง
+
+STU --> P3 : คำขอจอง / แก้ไข / ยกเลิก
+D4 --> P3 : สถานะถูกระงับสิทธิ์
+D2 --> P3 : ความจุห้อง
+P3 --> D3 : เพิ่ม / แก้ไข / ยกเลิกการจอง
+P3 --> P6 : ข้อมูลการจองที่เปลี่ยน
+P3 --> STU : ผลการจอง
+
+STU --> P4 : ตำแหน่ง GPS
+D2 --> P4 : พิกัดห้อง
+P4 --> D3 : status = CONFIRMED
+P4 --> STU : ผล Check-in
+
+D3 --> P5 : การจอง BOOKED ที่เลย 15 นาที
+P5 --> D3 : status = EXPIRED
+P5 --> D4 : บันทึกแบน 30 วัน
+P5 --> P6 : แจ้งระงับสิทธิ์
+P5 --> STU : จำนวน No-show
+
+P6 --> SMTP : อีเมล
+P6 --> D5 : บันทึกผลการส่ง
+
+ADM --> P7 : เงื่อนไขค้นหา / วันที่ / ห้อง
+D3 --> P7 : การจองทั้งหมด
+P7 --> ADM : รายการ + รายงานสรุป
+@enduml

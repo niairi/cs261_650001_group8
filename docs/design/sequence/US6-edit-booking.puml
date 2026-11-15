@@ -1,0 +1,56 @@
+@startuml
+skinparam defaultFontName Loma
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+autonumber
+title US6 : แก้ไขเวลาการจองที่ได้จองไปแล้ว
+actor "นักศึกษา" as U
+participant "Frontend\nbooking-his.html\nbooking-history.js" as FE
+participant "Backend\nPATCH /booking/:id\n(routes/bookings.js)" as R
+participant "middleware\nrequireAuth" as A
+participant "bookingRules" as BR
+participant "emailService" as E
+database "PostgreSQL\nbooking, room, email_logs" as DB
+
+U -> FE : กด "แก้ไข" ที่การจอง\nเลือกวัน/เวลาใหม่
+FE -> R : PATCH /booking/:id\n{ booking_date, start_time, end_time, ... }
+R -> A : ตรวจ token
+alt ไม่มี token / หมดอายุ
+  A --> FE : 401 กรุณาเข้าสู่ระบบ
+else token ถูกต้อง
+  A -> R : req.user
+  R -> DB : BEGIN\nSELECT booking ... FOR UPDATE OF b
+  alt ไม่พบการจอง
+    R --> FE : 404 ไม่พบการจองนี้
+  else ไม่ใช่การจองของตัวเอง
+    R --> FE : 403 แก้ไขได้เฉพาะการจองของตัวเองเท่านั้น
+  else สถานะ CANCELLED / EXPIRED
+    R --> FE : 409 การจองนี้ถูกยกเลิก / หมดอายุแล้ว
+  else
+    R -> BR : assertChangeable(old, 'แก้ไข')
+    alt เหลือไม่ถึง 30 นาทีก่อนเริ่ม (TC4)
+      BR --> FE : 400 แก้ไขได้ก่อนเวลาเริ่มอย่างน้อย 30 นาที
+    else
+      R -> BR : validateBooking(ค่าใหม่ + ค่าเดิม)\n09:00–16:00, ไม่เกิน 3 ชม., ไม่เกิน 7 วัน
+      alt ไม่ผ่านเงื่อนไข เช่น เกิน 3 ชม. (TC3)
+        BR --> FE : 400 จองได้ครั้งละไม่เกิน 3 ชั่วโมง
+      else ไม่มีอะไรเปลี่ยน
+        R --> FE : 400 ไม่มีข้อมูลการจองที่เปลี่ยนแปลง
+      else ผ่าน
+        R -> DB : SELECT room ... FOR UPDATE\nตรวจเวลาทับซ้อน (ไม่นับการจองของตัวเอง)
+        alt ช่วงใหม่ถูกจองแล้ว (TC2)
+          R -> DB : ROLLBACK (การจองเดิมยังอยู่)
+          R --> FE : 409 ช่วงเวลานี้ถูกจองแล้ว
+        else ว่าง (TC1)
+          R -> DB : UPDATE booking SET เวลาใหม่\nCOMMIT
+          R ->> E : sendBookingUpdate(ใหม่, เดิม) (ไม่รอ)
+          E ->> DB : INSERT email_logs
+          R --> FE : 200 แก้ไขการจองสำเร็จ\n{ booking, previous }
+          FE --> U : แสดงเวลาใหม่\nช่วงเวลาเดิมกลับมาว่าง
+        end
+      end
+    end
+  end
+end
+@enduml

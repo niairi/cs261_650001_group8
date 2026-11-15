@@ -1,0 +1,28 @@
+@startuml
+skinparam defaultFontName Loma
+skinparam defaultFontSize 13
+skinparam rectangle {
+  BackgroundColor #FDEBD0
+  BorderColor #935116
+}
+skinparam usecase {
+  BackgroundColor #D6EAF8
+  BorderColor #1F4E79
+}
+left to right direction
+title Data Flow Diagram : Level 0 (Context Diagram) — ระบบจองห้อง CS Co-Working Space
+
+rectangle "นักศึกษา" as STU
+rectangle "เจ้าหน้าที่ (Admin)" as ADM
+usecase "0\nระบบจองห้อง\nCS Co-Working Space" as SYS
+rectangle "TU REST API\n(ตรวจบัญชี)" as TU
+rectangle "SMTP\n(ส่งอีเมล)" as SMTP
+
+STU --> SYS : ข้อมูล Login, คำขอจอง / แก้ไข / ยกเลิก,\nตำแหน่ง GPS ตอน Check-in
+SYS --> STU : ตารางห้องว่าง, ผลการจอง,\nจำนวน No-show, สถานะถูกระงับสิทธิ์
+ADM --> SYS : ข้อมูล Login, เงื่อนไขค้นหา / กรอง
+SYS --> ADM : รายการจองทั้งหมด, รายงานสรุป
+SYS --> TU : เลขทะเบียน + รหัสผ่าน
+TU --> SYS : ผลยืนยันตัวตน + ข้อมูลนักศึกษา (สาขา)
+SYS --> SMTP : อีเมลยืนยัน / ยกเลิก / แก้ไข / แจ้งระงับสิทธิ์
+@enduml

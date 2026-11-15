@@ -1,6 +1,7 @@
 -- ข้อเสนอเพิ่มตาราง (รอทีม Database ตรวจก่อนใช้จริง)
 -- ใช้กับ: Task28 บันทึกข้อมูลผู้ใช้ลงตาราง users, Task32 บันทึก email_logs
--- รันต่อจาก schema.sql:  psql room_booking -f backend/db/migrations/002_users_and_email_logs.sql
+-- รันต่อจาก schema.sql:
+--   psql room_booking -f database/002_users_and_email_logs.sql
 
 CREATE TABLE IF NOT EXISTS users (
     student_id      VARCHAR(50) PRIMARY KEY,          -- username จาก TU API (ตรงกับ booking.student_id)
@@ -24,7 +25,7 @@ CREATE TABLE IF NOT EXISTS email_logs (
     email_log_id    BIGSERIAL PRIMARY KEY,
     booking_id      BIGINT REFERENCES booking(booking_id),
     to_email        VARCHAR(255),
-    email_type      VARCHAR(30) NOT NULL,             -- BOOKING_CONFIRMED (ต่อไป: BOOKING_CANCELLED)
+    email_type      VARCHAR(30) NOT NULL,             -- BOOKING_CONFIRMED / BOOKING_UPDATED / ACCOUNT_SUSPENDED
     status          VARCHAR(20) NOT NULL CHECK (status IN ('SENT', 'FAILED', 'SKIPPED')),
     error_message   TEXT,
     created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP

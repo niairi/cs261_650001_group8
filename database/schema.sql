@@ -3,7 +3,9 @@ CREATE TABLE room (
     room_name VARCHAR(100) NOT NULL,
     capacity INTEGER NOT NULL CHECK (capacity > 0),
     location VARCHAR(255),
-    is_active BOOLEAN NOT NULL DEFAULT TRUE
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    latitude DOUBLE PRECISION,   -- US8 พิกัดห้องสำหรับ Check-in
+    longitude DOUBLE PRECISION
 );
 
 CREATE TABLE booking (
@@ -23,7 +25,7 @@ CREATE TABLE booking (
 
     CHECK (end_time > start_time),
     CHECK (end_time - start_time <= INTERVAL '3 hours'),
-    CHECK (end_time <= TIME '17:00'),
+    CHECK (end_time <= TIME '16:00'),
     CHECK (status IN ('BOOKED', 'CONFIRMED', 'CANCELLED', 'EXPIRED'))
 );
 

@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const jwt = require('jsonwebtoken');
-const { login, roleOf } = require('../src/services/loginService');
+const { login, roleOf, isAllowedDepartment, NOT_CS_MESSAGE } = require('../src/services/loginService');
 const { TuApiError } = require('../src/services/tuAuth');
 
 process.env.JWT_SECRET = 'test-secret';
@@ -62,4 +62,62 @@ test('รหัสผิด = ไม่บันทึก users', async () => {
   const saved = [];
   await assert.rejects(login({ username: 'a', password: 'x' }, async () => null, async (u) => saved.push(u)));
   assert.equal(saved.length, 0);
+});
+
+// ---------- US14: ตรวจสาขาวิทยาการคอมพิวเตอร์ (Task63) ----------
+const csUser = { ...okUser, department: 'วิทยาการคอมพิวเตอร์' };
+const mathUser = { ...okUser, student_id: '6609000001', department: 'คณิตศาสตร์' };
+
+test('US14 TC1: สาขาอื่น = 403 พร้อมข้อความ และไม่บันทึกผู้ใช้', async () => {
+  process.env.ALLOWED_DEPARTMENTS = 'วิทยาการคอมพิวเตอร์,Computer Science';
+  const saved = [];
+  await assert.rejects(
+    login({ username: 'x', password: 'x' }, async () => mathUser, async (u) => saved.push(u)),
+    { status: 403, message: NOT_CS_MESSAGE }
+  );
+  assert.equal(saved.length, 0);
+  delete process.env.ALLOWED_DEPARTMENTS;
+});
+
+test('US14 TC2: นักศึกษา CS Login ได้ตามปกติ', async () => {
+  process.env.ALLOWED_DEPARTMENTS = 'วิทยาการคอมพิวเตอร์,Computer Science';
+  const { user } = await login({ username: 'x', password: 'x' }, async () => csUser, noSave);
+  assert.equal(user.role, 'student');
+  delete process.env.ALLOWED_DEPARTMENTS;
+});
+
+test('US14 TC3: เจ้าหน้าที่ใน ADMIN_IDS Login ได้แม้ไม่ใช่สาขา CS', async () => {
+  process.env.ALLOWED_DEPARTMENTS = 'วิทยาการคอมพิวเตอร์';
+  process.env.ADMIN_IDS = '6609000001';
+  const { user } = await login({ username: 'x', password: 'x' }, async () => mathUser, noSave);
+  assert.equal(user.role, 'admin');
+  delete process.env.ALLOWED_DEPARTMENTS; delete process.env.ADMIN_IDS;
+});
+
+test('US14: รหัสผ่านผิดได้ 401 เสมอ (ไม่บอกว่าบัญชีนี้สาขาอะไร)', async () => {
+  process.env.ALLOWED_DEPARTMENTS = 'วิทยาการคอมพิวเตอร์';
+  await assert.rejects(login({ username: 'x', password: 'x' }, async () => null, noSave), { status: 401 });
+  delete process.env.ALLOWED_DEPARTMENTS;
+});
+
+test('US14: ไม่มีชื่อสาขาจาก TU API = 403', async () => {
+  process.env.ALLOWED_DEPARTMENTS = 'วิทยาการคอมพิวเตอร์';
+  await assert.rejects(login({ username: 'x', password: 'x' }, verifyOk, noSave), { status: 403 });
+  delete process.env.ALLOWED_DEPARTMENTS;
+});
+
+test('US14: ยังไม่ตั้ง ALLOWED_DEPARTMENTS = ยังไม่ตรวจสาขา (กันทุกคนเข้าไม่ได้)', async () => {
+  delete process.env.ALLOWED_DEPARTMENTS;
+  const { user } = await login({ username: 'x', password: 'x' }, async () => mathUser, noSave);
+  assert.equal(user.student_id, '6609000001');
+});
+
+test('isAllowedDepartment: เทียบแบบมีคำอยู่ในชื่อ ไม่สนตัวพิมพ์และช่องว่าง', () => {
+  process.env.ALLOWED_DEPARTMENTS = ' วิทยาการคอมพิวเตอร์ , Computer Science ';
+  assert.equal(isAllowedDepartment('สาขาวิชาวิทยาการคอมพิวเตอร์'), true);
+  assert.equal(isAllowedDepartment('Department of COMPUTER  SCIENCE'), true);
+  assert.equal(isAllowedDepartment('วิศวกรรมคอมพิวเตอร์'), false);
+  assert.equal(isAllowedDepartment('คณิตศาสตร์'), false);
+  assert.equal(isAllowedDepartment(null), false);
+  delete process.env.ALLOWED_DEPARTMENTS;
 });
