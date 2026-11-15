@@ -25,10 +25,8 @@
 
 ## 2. Integration / System Test – Task 73
 
-### US5 – Email Notification
-
-- **US5-TC3:** Not Testable — ไม่สามารถทดสอบกรณี Email Server ไม่พร้อมใช้งานจนได้สถานะ `FAILED`
-- **Email Log:** PASS — ระบบสามารถสร้าง Email Log ได้
+- **US5-TC3:** PASS — ตั้งค่า `SMTP_HOST=smtp.invalid` เพื่อจำลองกรณี Email Server ไม่พร้อมใช้งาน โดยการจองยังสำเร็จ และ `email_logs` บันทึกสถานะ `FAILED` พร้อม Error `getaddrinfo ENOTFOUND`
+- **Email Log:** PASS — ระบบสามารถสร้าง Email Log และบันทึกผลการส่ง Email ที่ล้มเหลวได้
 
 ### US6 – Edit Booking
 
@@ -50,28 +48,38 @@
 ### US8 – Check-in
 
 - **US8-TC1:** PASS — สามารถ Check-in ได้สำเร็จเมื่อผู้ใช้อยู่ภายในระยะที่กำหนด และ Booking เปลี่ยนสถานะเป็น `CONFIRMED`
-- **US8-TC2:** PASS — ระบบ Reject Check-in เมื่อผู้ใช้อยู่นอกระยะที่กำหนด และ Booking ยังคงสถานะ `BOOKED`
-- **US8-TC3:** PASS — เมื่อผู้ใช้ปฏิเสธ Location Permission ระบบไม่อนุญาตให้ Check-in และแจ้งให้ผู้ใช้อนุญาต Location ก่อน Check-in
-- **US8-TC4:** PASS — เมื่อไม่ Check-in ภายในเวลาที่กำหนด ระบบเปลี่ยนสถานะ Booking เป็น `EXPIRED` และแสดงข้อความแจ้งว่าเลยเวลาที่สามารถ Check-in ได้
+- **US8-TC2:** PENDING — รอทดสอบกรณีผู้ใช้อยู่นอกระยะที่กำหนด
+- **US8-TC3:** PENDING — รอทดสอบกรณี Location Permission ถูกปฏิเสธ
+- **US8-TC4:** PASS — Booking ที่ไม่ Check-in ภายในเวลาที่กำหนดถูกเปลี่ยนเป็น `EXPIRED` และไม่มีปุ่ม Check-in
 
 ### US9 – No-show
+
 - จากผลการทดสอบของทีม
 
-- **US9-TC1:** PASS —  พบว่า Booking ที่ไม่มีการ Check-in สามารถเข้าสู่สถานะ Expired / No-show ได้
-- **US9-TC2:** PASS —  พบว่า Booking ที่ Check-in สำเร็จจะไม่ถูกนับเป็น No-show
-- **US9-TC3:** PASS — พบว่า Cancelled Booking จะไม่ถูกนับเป็น No-show
+- **US9-TC1:** PASS — Booking ที่ไม่มีการ Check-in สามารถเข้าสู่สถานะ Expired / No-show ได้
+- **US9-TC2:** PASS — Booking ที่ Check-in สำเร็จไม่ถูกนับเป็น No-show (0/3)
+- **US9-TC3:** PASS — Cancelled Booking ไม่ถูกนับเป็น No-show (0/3)
 
 ### US10 – Blacklist
-- จากผลการทดสอบของทีม 
 
-- **US10-TC1:** PASS — พบว่าเมื่อ No-show ครบ 3 ครั้ง ระบบสามารถตรวจจับและระงับสิทธิ์การจองโดยอัตโนมัติ และกำหนดระยะเวลา Blacklist 30 วัน
-- **US10-TC2:** PASS — พบว่าผู้ใช้ที่อยู่ใน Blacklist ไม่สามารถสร้าง Booking ได้ และระบบแสดงข้อความแจ้งระยะเวลาการระงับ
-- **US10-TC3:** PASS — พบว่าเมื่อ Blacklist หมดอายุ ผู้ใช้สามารถกลับมาจองห้องได้ตามปกติ
-- **US10-TC4:** PASS — พบว่าผู้ใช้ที่มี No-show 2 ครั้งยังสามารถสร้าง Booking ได้ และยังไม่ถูก Blacklist
+- จากผลการทดสอบของทีม
+
+- **US10-TC1:** PASS — `6809650002` เมื่อ No-show ครั้งที่ 3 ระบบสร้าง Blacklist ตั้งแต่ `2026-11-15` ถึง `2026-12-15` และส่ง Email แจ้งระงับสิทธิ์
+- **US10-TC2:** PASS — ระหว่างอยู่ใน Blacklist ไม่สามารถจองได้ และระบบแสดงข้อความแจ้งว่าถูกระงับสิทธิ์ถึงวันที่ 15 ธันวาคม 2569
+- **US10-TC3:** PASS — เมื่อ Blacklist หมดอายุ ผู้ใช้สามารถกลับมาจองได้ตามปกติ
+- **US10-TC4:** PASS — ผู้ใช้ที่มี No-show 2 ครั้งยังสามารถจองได้ และยังไม่ถูก Blacklist
 
 ### US11 – Logout / Authentication
 
 - **US11-TC1:** PASS — หลังจาก Logout ระบบนำผู้ใช้กลับไปยังหน้า Login และไม่อนุญาตให้เข้าถึง Protected Page โดยไม่มี Authentication
+
+### US12 – Room Closure
+
+- **US12-TC1:** PASS — Admin ปิดปรับปรุง Room C ในวันที่ 18/11/2026 ทำให้นักศึกษาไม่สามารถจองห้องดังกล่าวได้
+
+### US13 – [ตามชื่อ User Story ใน user-stories.md]
+
+- **US13-TC1:** PENDING — รอทดสอบหลังจาก PR #49 Merge
 
 
 
@@ -105,11 +113,11 @@
 
 ### Bug ที่พบ
 
-- **BUG-01:** พบปัญหาใน Edit Booking — ระบบกำหนดให้ Booking สามารถจองได้เฉพาะวันจันทร์–ศุกร์ แต่สามารถแก้ไขวันที่ของ Booking ไปเป็นวันเสาร์–อาทิตย์และบันทึกได้สำเร็จ
-- ตัวอย่างที่พบ: แก้ไขวันที่จาก `16/11/2026` เป็น `15/11/2026`
-- **สาเหตุที่คาดว่าเกี่ยวข้อง:** Validation ในส่วนของ Edit Booking อาจไม่ได้ตรวจสอบเงื่อนไขวันจันทร์–ศุกร์เหมือนกับขั้นตอนการสร้าง Booking
-- ประเด็นนี้ได้รายงานไว้สำหรับ **Task 77 – Bug Fixing / Regression Test**
-
+- **BUG-01:** พบปัญหาใน Edit Booking — ระบบสามารถแก้ไขวันที่ Booking ไปเป็นวันเสาร์–อาทิตย์ได้
+- ปัญหานี้ได้รับการแก้ไขแล้วใน **PR #54**
+- มีการเพิ่ม Validation สำหรับวันจันทร์–ศุกร์ และเพิ่ม Test Case สำหรับวันเสาร์ / วันอาทิตย์
+- ทดสอบ `npm test` ผ่าน **192/192 tests**
+- **สถานะ: Fixed and Regression Tested**
 ---
 
 ## 4. Test Limitations
