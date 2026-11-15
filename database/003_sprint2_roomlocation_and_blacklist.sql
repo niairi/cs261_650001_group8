@@ -64,6 +64,9 @@ CREATE TABLE IF NOT EXISTS blacklist (
         CHECK (end_date >= start_date)
 );
 
+ALTER TABLE blacklist
+ADD COLUMN IF NOT EXISTS lifted_at TIMESTAMPTZ,
+ADD COLUMN IF NOT EXISTS lifted_by VARCHAR(50);
 
 -- สร้าง Index เพื่อค้นหา BLACKLIST ของผู้ใช้ได้รวดเร็วขึ้น
 CREATE INDEX IF NOT EXISTS idx_blacklist_student

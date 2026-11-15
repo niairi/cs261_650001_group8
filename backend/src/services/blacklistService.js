@@ -3,12 +3,14 @@
 // ใช้ตาราง blacklist จาก PR #26 (Task56): student_id, trigger_booking_id, start_date, end_date (DATE), reason
 // end_date = วันสุดท้ายที่ยังถูกระงับ วันถัดไปจองได้
 // ต่อกับ Task67: server.js ส่ง handleNoShow เป็น onNoShow ของ startNoShowScheduler
+// Task87 US13: admin ดูรายชื่อ / ปลดระงับก่อนกำหนด (คอลัมน์ lifted_at, lifted_by — ว่าง = ยังไม่ถูกปลด)
 const { HttpError } = require('../errors');
 const { semesterRange } = require('./noShowService');
 
 const noShowLimit = () => Number(process.env.NO_SHOW_LIMIT || 3); // ค่าเดียวกับ Task67
 const BLACKLIST_DAYS = 30;
 const UNDEFINED_TABLE = '42P01'; // ยังไม่ได้รัน migration ตาราง blacklist
+const UNDEFINED_COLUMN = '42703'; // ยังไม่ได้เพิ่มคอลัมน์ lifted_at / lifted_by
 
 // Date → "2026-11-10" ตามเวลาไทย
 function bangkokDate(date) {
@@ -38,21 +40,26 @@ function blacklistMessage(entry) {
 
 // db = pool จาก ../db, sendNotice = sendBlacklistNotice จาก emailService
 function createBlacklistService({ db, sendNotice, now = () => new Date(), semester = semesterRange() }) {
-  // ปลดแบนอัตโนมัติ: นับว่าถูกแบนเฉพาะเมื่อ end_date >= วันนี้ (ไม่ต้องมี cron)
+  // ปลดแบนอัตโนมัติ: นับว่าถูกแบนเฉพาะเมื่อ end_date >= วันนี้ และ admin ยังไม่ได้ปลด (US13)
   // ยังไม่มีตาราง = ไม่มีใครถูกแบน (แบบเดียวกับ noShowStatus.js) ระบบจองจะได้ไม่ล่ม
+  // ยังไม่มีคอลัมน์ lifted_at = ตรวจแบบเดิม (ยังไม่มีใครถูกปลดได้อยู่แล้ว)
   async function getActiveBlacklist(studentId) {
+    const sql = (liftedFilter) =>
+      `SELECT student_id, start_date::text AS start_date, end_date::text AS end_date, trigger_booking_id
+         FROM blacklist
+        WHERE student_id = $1 AND end_date >= $2::date${liftedFilter}
+        ORDER BY end_date DESC
+        LIMIT 1`;
+    const params = [studentId, bangkokDate(now())];
     try {
-      const { rows } = await db.query(
-        `SELECT student_id, start_date::text AS start_date, end_date::text AS end_date, trigger_booking_id
-           FROM blacklist
-          WHERE student_id = $1 AND end_date >= $2::date
-          ORDER BY end_date DESC
-          LIMIT 1`,
-        [studentId, bangkokDate(now())]
-      );
+      const { rows } = await db.query(sql(' AND lifted_at IS NULL'), params);
       return rows[0] || null;
     } catch (err) {
       if (err.code === UNDEFINED_TABLE) return null;
+      if (err.code === UNDEFINED_COLUMN) {
+        const { rows } = await db.query(sql(''), params);
+        return rows[0] || null;
+      }
       throw err;
     }
   }
@@ -137,7 +144,45 @@ function createBlacklistService({ db, sendNotice, now = () => new Date(), semest
     if (entry) throw new HttpError(403, blacklistMessage(entry));
   }
 
-  return { getActiveBlacklist, countNoShowsSinceLastBan, handleNoShow, assertNotBlacklisted };
+  // US13: รายชื่อผู้ถูกระงับสิทธิ์ที่ยังมีผล (ชื่อ, เลขทะเบียน, วันสิ้นสุด, เหตุผล)
+  async function listActiveBlacklist() {
+    const { rows } = await db.query(
+      `SELECT bl.blacklist_id, bl.student_id, COALESCE(u.name_th, u.name_en) AS name,
+              bl.start_date::text AS start_date, bl.end_date::text AS end_date, bl.reason
+         FROM blacklist bl
+         LEFT JOIN users u ON u.student_id = bl.student_id
+        WHERE bl.end_date >= $1::date AND bl.lifted_at IS NULL
+        ORDER BY bl.end_date ASC, bl.blacklist_id ASC`,
+      [bangkokDate(now())]
+    );
+    return rows.map((r) => ({ ...r, blacklist_id: Number(r.blacklist_id) }));
+  }
+
+  // US13: admin ปลดระงับก่อนกำหนด บันทึกว่าใครปลด เมื่อไหร่ → นักศึกษาจองได้ทันที
+  async function liftBlacklist(blacklistId, adminId) {
+    const { rows } = await db.query(
+      `UPDATE blacklist
+          SET lifted_at = $2, lifted_by = $3
+        WHERE blacklist_id = $1 AND lifted_at IS NULL AND end_date >= $4::date
+        RETURNING blacklist_id, student_id, start_date::text AS start_date, end_date::text AS end_date,
+                  reason, lifted_at, lifted_by`,
+      [blacklistId, now(), adminId, bangkokDate(now())]
+    );
+    if (rows[0]) return { ...rows[0], blacklist_id: Number(rows[0].blacklist_id) };
+
+    const { rows: found } = await db.query('SELECT blacklist_id FROM blacklist WHERE blacklist_id = $1', [blacklistId]);
+    if (!found[0]) throw new HttpError(404, 'ไม่พบรายการระงับสิทธิ์นี้');
+    throw new HttpError(409, 'รายการนี้ถูกปลดแล้วหรือหมดอายุแล้ว');
+  }
+
+  return {
+    getActiveBlacklist,
+    countNoShowsSinceLastBan,
+    handleNoShow,
+    assertNotBlacklisted,
+    listActiveBlacklist,
+    liftBlacklist,
+  };
 }
 
 module.exports = {

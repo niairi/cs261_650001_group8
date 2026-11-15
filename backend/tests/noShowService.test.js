@@ -139,3 +139,32 @@ test('ยังไม่มีตาราง blacklist (ก่อน migration 
   const s = await getUserStatus(db, '6809650010');
   assert.equal(s.banned, false);
 });
+
+test('US13 TC1: admin ปลดระงับแล้ว (lifted_at) = สถานะไม่ถูกระงับ', async () => {
+  const sqls = [];
+  const db = {
+    query: async (sql) => {
+      sqls.push(sql);
+      return /FROM blacklist/.test(sql) ? { rows: [] } : { rows: [{ count: 3 }] };
+    },
+  };
+  const s = await getUserStatus(db, '6809650010');
+  assert.equal(s.banned, false);
+  assert.ok(sqls.some((q) => /FROM blacklist/.test(q) && /lifted_at IS NULL/.test(q)));
+});
+
+test('US13: ยังไม่มีคอลัมน์ lifted_at (ก่อน migration) = ตรวจแบบเดิม ไม่ error', async () => {
+  const noColumn = Object.assign(new Error('column "lifted_at" does not exist'), { code: '42703' });
+  const db = {
+    query: async (sql) => {
+      if (/FROM blacklist/.test(sql)) {
+        if (/lifted_at/.test(sql)) throw noColumn;
+        return { rows: [{ end_date: '2026-11-21' }] };
+      }
+      return { rows: [{ count: 3 }] };
+    },
+  };
+  const s = await getUserStatus(db, '6809650010');
+  assert.equal(s.banned, true);
+  assert.equal(s.banned_until, '2026-11-21');
+});
