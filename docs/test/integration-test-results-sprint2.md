@@ -25,8 +25,9 @@
 
 ## 2. Integration / System Test – Task 73
 
-- **US5-TC3:** PASS — ตั้งค่า `SMTP_HOST=smtp.invalid` เพื่อจำลองกรณี Email Server ไม่พร้อมใช้งาน โดยการจองยังสำเร็จ และ `email_logs` บันทึกสถานะ `FAILED` พร้อม Error `getaddrinfo ENOTFOUND`
-- **Email Log:** PASS — ระบบสามารถสร้าง Email Log และบันทึกผลการส่ง Email ที่ล้มเหลวได้
+### US5 – Email Notification
+
+-  **US5-TC3:** PASS — ทดสอบกรณี Email Server ไม่พร้อมใช้งานโดยกำหนด `SMTP_HOST=smtp.invalid` ระบบสามารถสร้าง Booking ได้สำเร็จ และ Email Log ถูกบันทึกเป็น `FAILED` พร้อมข้อความ `getaddrinfo ENOTFOUND`
 
 ### US6 – Edit Booking
 
@@ -48,8 +49,8 @@
 ### US8 – Check-in
 
 - **US8-TC1:** PASS — สามารถ Check-in ได้สำเร็จเมื่อผู้ใช้อยู่ภายในระยะที่กำหนด และ Booking เปลี่ยนสถานะเป็น `CONFIRMED`
-- **US8-TC2:** PENDING — รอทดสอบกรณีผู้ใช้อยู่นอกระยะที่กำหนด
-- **US8-TC3:** PENDING — รอทดสอบกรณี Location Permission ถูกปฏิเสธ
+- **US8-TC2:** PASS — Check-in ไม่สำเร็จเมื่อผู้ใช้อยู่นอกระยะที่กำหนด
+- **US8-TC3:** PASS — ระบบไม่อนุญาตให้ Check-in เมื่อ Location Permission ถูกปฏิเสธ
 - **US8-TC4:** PASS — Booking ที่ไม่ Check-in ภายในเวลาที่กำหนดถูกเปลี่ยนเป็น `EXPIRED` และไม่มีปุ่ม Check-in
 
 ### US9 – No-show
@@ -77,9 +78,10 @@
 
 - **US12-TC1:** PASS — Admin ปิดปรับปรุง Room C ในวันที่ 18/11/2026 ทำให้นักศึกษาไม่สามารถจองห้องดังกล่าวได้
 
-### US13 – [ตามชื่อ User Story ใน user-stories.md]
 
-- **US13-TC1:** PENDING — รอทดสอบหลังจาก PR #49 Merge
+### US13 – ดู/ปลด Blacklist (Admin)
+
+- **US13-TC1:** PASS — สามารถดำเนินการดู/ปลด Blacklist ตามเงื่อนไขที่กำหนดได้
 
 
 
@@ -139,15 +141,19 @@
 
 ### 4.3 Email Configuration
 
-ไม่สามารถทดสอบการส่ง Email จริงได้ เนื่องจาก Environment ปัจจุบันยังไม่ได้ตั้งค่า SMTP
+สามารถทดสอบกรณี SMTP Server ไม่สามารถเชื่อมต่อได้โดยใช้ `SMTP_HOST=smtp.invalid`
 
-ระบบสามารถสร้าง Email Log ได้ แต่สถานะการส่ง Email ถูกบันทึกเป็น `SKIPPED` พร้อม `error_message = smtp-not-configured`
+ระบบสามารถสร้าง Booking ได้สำเร็จ แต่ไม่สามารถเชื่อมต่อ SMTP และ Email Log ถูกบันทึกเป็น `FAILED` พร้อมข้อความ `getaddrinfo ENOTFOUND`
+
+อย่างไรก็ตาม ยังไม่ได้ทดสอบการส่ง Email ผ่าน SMTP Server จริง
 
 ### 4.4 TU API
 
-การทดสอบบางกรณีของ TU API ยังไม่สามารถดำเนินการกับระบบจริงได้ เนื่องจาก Environment ปัจจุบันใช้ **Simulation Mode**
+เมื่อวันที่ 10/11/2026 ได้ทดสอบการทำงานร่วมกับ TU API จริงบน Docker สำหรับ **US15 TC1–TC4, US14 TC1 และ US1 TC1**
 
-ดังนั้นกรณี Invalid Credentials และกรณี TU API ไม่พร้อมใช้งานจึงยังไม่สามารถยืนยันผลจากระบบจริงได้
+ผลการทดสอบอ้างอิงหลักฐานจาก **Task 82 และ Task 63**
+
+อย่างไรก็ตาม Environment ปัจจุบันยังมีบางกรณีที่ใช้ **Simulation / Mock Mode** จึงยังไม่สามารถยืนยันการทำงานกับ TU API จริงได้ครบทุกสถานการณ์
 
 ---
 
@@ -159,6 +165,7 @@
 - Test Case ที่ไม่สามารถทดสอบได้เนื่องจากข้อจำกัดของ Environment ระบุเป็น **Not Testable**
 - Test Case ที่ยังไม่ได้ Execute ระบุเป็น **PENDING**
 - ผลการทดสอบ **US9 และ US10** อ้างอิงจากการทดสอบของทีมด้วย Mock Test Account และผลการทดสอบเป็นไปตาม Expected Result
+- ผลการทดสอบ **US8 TC1–TC4 และ US13 TC1** ได้รับการอัปเดตเป็น **PASS** ตามผลการทดสอบล่าสุดจาก **#58**
 
 ---
 
@@ -166,7 +173,7 @@
 
 การทดสอบ Sprint 2 สามารถตรวจสอบการทำงานหลักของระบบในส่วนของ **Database Integration, Login, Booking, Edit Booking, Cancellation, Admin Booking Management, Check-in และ Authentication** ได้ตาม Test Case ที่สามารถ Execute ใน Environment ปัจจุบัน
 
-สำหรับข้อจำกัดที่ยังมีอยู่ ได้แก่ **Location จริง, Email Configuration และ TU API Simulation Mode** ซึ่งอาจทำให้บางกรณีไม่สามารถยืนยันผลจากระบบจริงได้ครบทุกสถานการณ์
+ผลการทดสอบ **US8 TC1–TC4 และ US13 TC1** เป็น **PASS** ตามผลการทดสอบล่าสุด
 
 สำหรับ **No-show และ Blacklist** ผลการทดสอบอ้างอิงจากการทดสอบของทีมโดยใช้ Mock Test Account แยกสำหรับการทดสอบ Flow ดังกล่าว และผลการทดสอบเป็นไปตาม Expected Result
 
