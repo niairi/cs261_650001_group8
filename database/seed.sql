@@ -45,6 +45,10 @@ INSERT INTO booking (
     (1, '650001', 101, '2026-10-20', '09:00', '11:00', 3, 'Group Study', 'CONFIRMED'),
     (2, '650002', 101, '2026-10-20', '13:00', '15:00', 2, 'Meeting', 'BOOKED'),
     (3, '650003', 102, '2026-10-20', '10:00', '12:00', 4, 'Project Discussion', 'CANCELLED'),
-    (4, '650004', 103, '2026-10-20', '14:00', '16:00', 6, 'Group Study', 'EXPIRED');
+    (4, '650004', 103, '2026-10-20', '14:00', '16:00', 6, 'Group Study', 'EXPIRED'),
+    -- US7 TC3 / TC6: วันที่ 22 ต.ค. Room A (101) จอง 3 · ยกเลิก 1 · No-show 1
+    (5, '650001', 101, '2026-10-22', '09:00', '10:00', 2, 'Group Study', 'CONFIRMED'),
+    (6, '650002', 101, '2026-10-22', '11:00', '12:00', 2, 'Meeting', 'CANCELLED'),
+    (7, '650003', 101, '2026-10-22', '13:00', '14:00', 3, 'Project Discussion', 'EXPIRED');
 
 SELECT setval('booking_booking_id_seq', (SELECT MAX(booking_id) FROM booking));
