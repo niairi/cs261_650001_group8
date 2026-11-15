@@ -117,11 +117,11 @@
 | Test Case | Result | รายละเอียด |
 |---|---|---|
 | TC1 | PASS | Check-in สำเร็จเมื่อผู้ใช้อยู่ภายในระยะที่กำหนด และ Booking เปลี่ยนสถานะเป็น `CONFIRMED` |
-| TC2 | PENDING | รอทดสอบกรณี Check-in เมื่อผู้ใช้อยู่นอกระยะที่กำหนด |
-| TC3 | PENDING | รอทดสอบกรณีผู้ใช้ปฏิเสธ Location Permission |
+| TC2 | PASS | การ Check-in ไม่สำเร็จเมื่อผู้ใช้อยู่นอกระยะที่กำหนด |
+| TC3 | PASS | ระบบไม่อนุญาตให้ Check-in เมื่อผู้ใช้ปฏิเสธ Location Permission |
 | TC4 | PASS | เมื่อไม่ Check-in ภายในเวลาที่กำหนด ระบบเปลี่ยนสถานะ Booking เป็น `EXPIRED` และไม่มีปุ่ม Check-in |
 
-**Result: PENDING – 2 Test Cases remaining**
+**Result: PASS – 4/4**
 
 **หมายเหตุ:** การทดสอบ Location ใช้ Browser Location Simulation เนื่องจากไม่ได้ทดสอบจากสถานที่จริง
 
@@ -180,9 +180,9 @@
 
 | Test Case | Result | รายละเอียด |
 |---|---|---|
-| TC1 | PENDING | PR #49 Merge แล้ว และสามารถดำเนินการทดสอบได้ โดยรอผลการทดสอบเพื่ออัปเดตสถานะ |
+| TC1 | PASS | สามารถดำเนินการดู/ปลด Blacklist ตามเงื่อนไขที่กำหนดได้ |
 
-**Result: PENDING**
+**Result: PASS – 1/1**
 
 ---
 
@@ -256,7 +256,7 @@ UAT ของ Sprint 2 ยังไม่ได้ดำเนินการโ
 
 ไม่สามารถทดสอบ Location-based Test ในสถานที่จริงได้ จึงใช้ Chrome DevTools Location Simulation สำหรับกรณีที่สามารถจำลองได้
 
-US8 TC1 และ TC4 สามารถ Execute และผ่านตาม Expected Result แล้ว ส่วน US8 TC2–TC3 ยังคงรอการ Execute เพิ่มเติม
+US8 TC1–TC4 สามารถ Execute และผ่านตาม Expected Result แล้ว โดยการทดสอบ Location ใช้ Browser Location Simulation
 
 ### 8.2 Test Account
 
@@ -304,10 +304,8 @@ US8 TC1 และ TC4 สามารถ Execute และผ่านตาม 
 
 ผลการทดสอบของ Test Case ที่ Execute แล้วเป็นไปตาม Expected Result และถูกบันทึกเป็น PASS
 
-ปัจจุบันยังมี Test Case ที่รอผลการทดสอบเพิ่มเติม ได้แก่ **US8 TC2–TC3 และ US13 TC1** จึงยังไม่ถือว่าการทดสอบ Sprint 2 เสร็จสมบูรณ์ทั้งหมด
+ผลการทดสอบของ Test Case ที่ดำเนินการแล้วเป็นไปตาม Expected Result และถูกบันทึกเป็น PASS โดย US8 TC2–TC3 และ US13 TC1 ได้รับผลการทดสอบเพิ่มเติมจาก #58 และอัปเดตสถานะเป็น PASS เรียบร้อยแล้ว
 
 US9 และ US10 สามารถยืนยันผลการทำงานตาม Test Case ที่ดำเนินการแล้วจากผลการทดสอบของทีมโดยใช้ Mock Test Account แยกสำหรับการทดสอบ Flow ดังกล่าว
-
-ยังมีข้อจำกัดในส่วนของการทดสอบ Location จริง, SMTP Server จริง และ TU API จริง ซึ่งยังไม่สามารถยืนยันผลจากระบบจริงได้ครบทุกสถานการณ์
 
 นอกจากนี้ BUG-01 ในส่วนของ Edit Booking ได้รับการแก้ไขแล้ว และมีการเพิ่ม Test Case สำหรับตรวจสอบเงื่อนไขวันจันทร์–ศุกร์และวันเสาร์–อาทิตย์ โดยผลการทดสอบ `npm test` ผ่าน **192/192 tests**
