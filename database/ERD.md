@@ -1,6 +1,6 @@
 # Database ER Diagram
 
-## Sprint 2 – US8, US9, US10
+## Sprint 2 – US8, US9, US10, US12
 
 ```mermaid
 erDiagram
@@ -11,6 +11,7 @@ erDiagram
 
     USERS ||--o{ BLACKLIST : receives
     BOOKING ||--o| BLACKLIST : triggers
+    ROOM ||--o{ ROOM_CLOSURE : has
 
     USERS {
         varchar student_id PK
@@ -68,6 +69,16 @@ erDiagram
         varchar reason "NOT NULL"
         timestamp created_at "NOT NULL"
     }
+        
+    ROOM_CLOSURE {
+        bigint closure_id PK
+        bigint room_id FK "NOT NULL"
+        date closure_date "NOT NULL"
+        varchar reason
+        varchar created_by
+        timestamp created_at "NOT NULL"
+    }
+
 ```
 
 > **Note:**  เดิมใช้  * เพื่อแทน NOT NULL แต่ Mermaid ไม่รองรับ * ใน ER Diagram เลยเปลี่ยนเป็น "NOT NULL" แทน
@@ -112,7 +123,7 @@ erDiagram
 | `BOOKING_UPDATED` | อีเมลแจ้งการเปลี่ยนแปลง Booking |
 | `ACCOUNT_SUSPENDED` | อีเมลแจ้งการระงับสิทธิ์การจอง |
 
-สถานะการส่ง Email:
+**สถานะการส่ง Email:**
 
 | Status | ความหมาย |
 | -------- | -------- |
@@ -124,6 +135,12 @@ erDiagram
 
 เก็บประวัติการระงับสิทธิ์การจองของผู้ใช้ โดยบันทึกผู้ใช้ Booking ที่เป็นต้นเหตุ วันที่เริ่ม–สิ้นสุด และเหตุผล (US10)
 
+### ROOM_CLOSURE
+
+เก็บข้อมูลวันที่ห้องถูกปิดปรับปรุง โดยระบุห้อง วันที่ปิดปรับปรุง เหตุผล และผู้ดำเนินการบันทึกข้อมูล
+
+**Constraint:** `UNIQUE (room_id, closure_date)` เพื่อไม่ให้ห้องเดียวกันถูกปิดซ้ำในวันเดียวกัน
+
 ## Relationships
 
 | Relationship | Description |
@@ -133,3 +150,4 @@ erDiagram
 | BOOKING 1 EMAIL_LOGS | รายการจองหนึ่งรายการมีประวัติการส่งอีเมลได้หลายรายการ |
 | USERS 1 BLACKLIST | ผู้ใช้หนึ่งคนมีประวัติ Blacklist ได้หลายรายการ |
 | BOOKING 1:0..1 BLACKLIST | Booking หนึ่งรายการสามารถเป็นต้นเหตุของ Blacklist ได้สูงสุดหนึ่งรายการ |
+| ROOM 1 ROOM_CLOSURE | ห้องหนึ่งห้องสามารถมีรายการปิดปรับปรุงได้หลายวัน |
