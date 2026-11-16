@@ -1,0 +1,38 @@
+@startuml
+skinparam defaultFontName Loma
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+autonumber
+title US11 : Logout ออกจากระบบ
+actor "ผู้ใช้\n(นักศึกษา / เจ้าหน้าที่)" as U
+participant "Frontend\nlogout.js (นักศึกษา)\nadmin-nav.js (เจ้าหน้าที่)" as FE
+participant "localStorage\n(เบราว์เซอร์)" as LS
+participant "หน้าที่ต้อง Login\nbooking-his.js, admin*.js" as P
+participant "Backend\nrequireAuth" as BE
+
+U -> FE : กดปุ่ม "ออกจากระบบ"
+FE --> U : หน้าต่าง "ยืนยันการออกจากระบบ"
+alt กด "ยกเลิก" หรือคลิกนอกหน้าต่าง
+  FE -> FE : logoutDialog.close()
+  FE --> U : อยู่หน้าเดิม ยัง Login อยู่
+else กด "ออกจากระบบ"
+  FE -> LS : removeItem("token")
+  FE -> LS : removeItem("user")
+  FE --> U : ไปหน้า login.html
+end
+== หลัง Logout: กด Back หรือเปิด URL หน้าที่ต้อง Login โดยตรง (TC1) ==
+U -> P : เปิด booking-his.html / admin*.html
+P -> LS : getItem("token")
+LS --> P : null
+P --> U : window.location ไปหน้า login.html
+note over P, BE
+  ถ้ายังมี token ที่หมดอายุหรือไม่ถูกต้องค้างอยู่
+  Backend ตอบ 401 แล้วหน้าเว็บลบ token แล้วพากลับ login.html
+  (Backend ใช้ JWT ไม่มี session ฝั่งเซิร์ฟเวอร์ จึงไม่ต้องเรียก API ตอน Logout)
+end note
+note over U, FE
+  หน้า booking.html (ตารางห้อง) เปิดดูได้โดยไม่ Login
+  แต่ไม่แสดงชื่อผู้ใช้ และกดจองแล้วขึ้น "กรุณาเข้าสู่ระบบก่อนจองห้อง"
+end note
+@enduml

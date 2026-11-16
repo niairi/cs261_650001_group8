@@ -1,0 +1,48 @@
+@startuml
+skinparam defaultFontName Loma
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+autonumber
+title US13 : เจ้าหน้าที่ดูและปลดรายชื่อ Blacklist
+actor "เจ้าหน้าที่\n(Admin)" as A
+participant "Frontend\nadmin-blacklist.html\nadmin-blacklist.js" as AF
+participant "Backend\n/admin/blacklist\n(routes/admin.js)" as AR
+participant "blacklistService" as BS
+database "PostgreSQL\nblacklist, users" as DB
+actor "นักศึกษา\n(เคยถูกระงับสิทธิ์)" as S
+participant "Backend\nPOST /booking" as BR
+
+== ดูรายชื่อผู้ถูกระงับสิทธิ์ ==
+A -> AF : เปิดหน้ารายชื่อ Blacklist
+AF -> AR : GET /admin/blacklist (requireAuth + requireAdmin)
+AR -> BS : listActiveBlacklist()
+BS -> DB : SELECT blacklist JOIN users\nWHERE end_date >= วันนี้ AND lifted_at IS NULL
+AR --> AF : 200 {rows[ {blacklist_id, student_id, name, start_date, end_date, reason} ], count}
+AF --> A : ตารางรายชื่อ + ปุ่ม "ปลดระงับ"
+
+== ปลดระงับ (TC1) ==
+A -> AF : กด "ปลดระงับ" ของ 6809650010
+AF --> A : หน้าต่างยืนยัน (ชื่อ + รหัสนักศึกษา)
+A -> AF : กดยืนยัน
+AF -> AR : POST /admin/blacklist/:id/lift
+AR -> AR : ตรวจ id เป็นจำนวนเต็มบวก (ไม่ใช่ = 400)
+AR -> BS : liftBlacklist(id, adminId)
+BS -> DB : UPDATE blacklist SET lifted_at = now, lifted_by = adminId\nWHERE blacklist_id = id AND lifted_at IS NULL AND end_date >= วันนี้
+alt ปลดสำเร็จ
+  AR --> AF : 200 {blacklist_id, student_id, lifted_at, lifted_by}
+  AF -> AR : GET /admin/blacklist (โหลดรายชื่อใหม่)
+  AF --> A : "ปลดระงับสิทธิ์ของ 6809650010 แล้ว"
+else ไม่พบรายการ
+  AR --> AF : 404 "ไม่พบรายการระงับสิทธิ์นี้"
+else ปลดไปแล้ว / หมดอายุแล้ว
+  AR --> AF : 409 "รายการนี้ถูกปลดแล้วหรือหมดอายุแล้ว"
+end
+
+== นักศึกษาจองได้ทันที ==
+S -> BR : POST /booking {...}
+BR -> BS : assertNotBlacklisted(student_id)
+BS -> DB : SELECT blacklist ... AND lifted_at IS NULL
+DB --> BS : ไม่พบ
+BR --> S : 201 จองสำเร็จ
+@enduml

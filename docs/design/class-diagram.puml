@@ -14,13 +14,14 @@ package "routes (Express Router)" {
     + POST /login
   }
   class RoomsRouter <<router>> {
-    + GET /rooms
+    + GET /rooms?date=  (closed ของ US12)
   }
   class BookingsRouter <<router>> {
     + POST /booking
     + GET /booking?date=
     + GET /booking/me
     + PATCH /booking/:id/cancel
+    + POST /booking/:id/resend-email  (US5 TC3)
     + PATCH /booking/:id  (US6)
     + POST /booking/:id/checkin  (US8)
   }
@@ -30,6 +31,13 @@ package "routes (Express Router)" {
   class AdminRouter <<router>> {
     + GET /admin/bookings
     + GET /admin/reports/summary  (US7)
+    + GET /admin/rooms  (US12)
+    + POST /admin/rooms  (US12)
+    + PATCH /admin/rooms/:id  (US12)
+    + POST /admin/rooms/:id/closures  (US12)
+    + DELETE /admin/rooms/:id/closures/:date  (US12)
+    + GET /admin/blacklist  (US13)
+    + POST /admin/blacklist/:id/lift  (US13)
   }
 }
 
@@ -44,10 +52,12 @@ package "services" {
   class LoginService <<module>> {
     + login(body) : LoginResponse
     + roleOf(studentId) : string
+    + isAllowedDepartment(department) : boolean  (US14)
   }
   class TuAuth <<module>> {
     + verifyWithTU(username, password) : TuUser
     + isMockMode() : boolean
+    + parseMockUsers(raw) : Map  (US15)
     - mockVerify(username, password)
   }
   class BookingRules <<Sprint 2>> {
@@ -55,15 +65,19 @@ package "services" {
     + CLOSE = '16:00'
     + MAX_HOURS = 3
     + CHANGE_BEFORE_MIN = 30
-    + validateBooking(body, now)
+    + validateBooking(body, now)  (จันทร์–ศุกร์ BUG-01)
     + assertChangeable(booking, action, now)
     + minutesUntilStart(date, time, now)
+    + distanceMeters(lat1, lon1, lat2, lon2)  (US8)
+    + assertCheckinTime(booking, now)  (US8)
+    + assertWithinRadius(distance)  (US8)
   }
   class EmailService <<module>> {
     + sendBookingConfirmation(to, booking)
     + sendBookingCancellation(to, booking)
     + sendBookingUpdate(to, booking, previous)  (US6)
-    + sendBanNotice(to, until)  (US10)
+    + sendBlacklistNotice(to, info)  (US10)
+    + emailDeliveryStatus(sending, timeoutMs)  (US5 TC3)
     + formatThaiDate(date) : string
   }
   class AdminService <<module>> {
@@ -87,6 +101,17 @@ package "services" {
     + getActiveBlacklist(studentId)
     + countNoShowsSinceLastBan(studentId)
     + assertNotBlacklisted(studentId)
+    + listActiveBlacklist()  (US13)
+    + liftBlacklist(blacklistId, adminId)  (US13)
+  }
+  class RoomService <<Sprint 2>> {
+    + listRoomsForDate(db, date)  (US12 TC1)
+    + listRoomsForAdmin(db)
+    + createRoom(db, body)
+    + updateRoom(db, roomId, body)
+    + addClosure(db, roomId, body, adminId)
+    + removeClosure(db, roomId, date)
+    + assertRoomOpen(db, roomId, date)
   }
 }
 
@@ -120,7 +145,11 @@ BookingsRouter --> BookingRules
 BookingsRouter --> BlacklistService
 BookingsRouter --> EmailService
 BookingsRouter --> Db
-RoomsRouter --> Db
+RoomsRouter --> RoomService
+BookingsRouter --> RoomService
+AdminRouter --> RoomService
+AdminRouter --> BlacklistService
+RoomService --> Db
 AdminRouter --> Auth
 AdminRouter --> AdminService
 AdminService --> Db
@@ -138,8 +167,6 @@ HttpError -[hidden]- TuApiError
 
 legend right
   สีเขียว = เพิ่มใน Sprint 2
-  ตามโค้ดใน develop (9 พ.ย. 2569)
-  POST /booking/:id/checkin (US8) และ BlacklistService (US10)
-  ตามโค้ดใน PR #23 และ #30 ที่รอ merge
+  ตามโค้ด Release v2.0 (tag v2.0, commit 82751ab · 15 พ.ย. 2569)
 endlegend
 @enduml

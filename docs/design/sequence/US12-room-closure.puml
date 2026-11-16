@@ -1,0 +1,58 @@
+@startuml
+skinparam defaultFontName Loma
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+autonumber
+title US12 : เจ้าหน้าที่จัดการข้อมูลห้อง / ปิดปรับปรุงห้อง
+actor "เจ้าหน้าที่\n(Admin)" as A
+participant "Frontend\nadmin-room.html\nadmin-room.js" as AF
+participant "Backend\n/admin/rooms\n(routes/admin.js)" as AR
+participant "roomService" as RS
+database "PostgreSQL\nroom, room_closure,\nbooking" as DB
+actor "นักศึกษา" as S
+participant "Frontend\nbooking.html\nbooking.js" as SF
+participant "Backend\nGET /rooms, POST /booking" as BR
+
+== เจ้าหน้าที่ปิดปรับปรุงห้อง ==
+A -> AF : เปิดหน้าจัดการห้อง
+AF -> AR : GET /admin/rooms (requireAuth + requireAdmin)
+AR -> RS : listRoomsForAdmin(db)
+RS -> DB : SELECT room + room_closure (ตั้งแต่วันนี้)
+AR --> AF : 200 {rooms[ {..., is_active, closures[]} ]}
+A -> AF : เลือก Room B (102) วันที่ 25 ต.ค. + สาเหตุ แล้วกดยืนยัน
+AF -> AR : POST /admin/rooms/102/closures {date, reason}
+AR -> RS : addClosure(db, 102, body, adminId)
+RS -> RS : validateClosureInput()\n(วันที่ถูกต้อง, ไม่ย้อนหลัง)
+RS -> DB : SELECT booking ของห้องนี้วันนั้น\n(BOOKED / CONFIRMED)
+alt มีการจองค้างอยู่
+  RS --> AR : HttpError 409
+  AR --> AF : 409 "วันนี้มีการจองห้องนี้อยู่ n รายการ ต้องยกเลิกก่อนปิดปรับปรุง"
+else ไม่มีการจอง
+  RS -> DB : INSERT INTO room_closure (room_id, closure_date, reason, created_by)
+  alt ปิดวันนี้ไว้แล้ว
+    RS --> AR : HttpError 409 "ห้องนี้ปิดปรับปรุงวันนี้อยู่แล้ว"
+  else สำเร็จ
+    AR --> AF : 201 {closure}
+    AF --> A : "บันทึกสถานะปิดปรับปรุงแล้ว"
+  end
+end
+note over A, AR
+  เพิ่ม / แก้ไขห้อง: POST /admin/rooms, PATCH /admin/rooms/:id
+  ยกเลิกการปิดปรับปรุง: DELETE /admin/rooms/:id/closures/:date
+end note
+
+== นักศึกษาเปิดตาราง (TC1) ==
+S -> SF : เปิดตารางวันที่ 25 ต.ค.
+SF -> BR : GET /rooms?date=2026-10-25
+BR -> RS : listRoomsForDate(db, date)
+RS -> DB : SELECT room (is_active) + room_closure วันนั้น
+BR --> SF : [{room_id: 102, closed: true, closure_reason}, ...]
+SF --> S : Room B (102) แสดง "ปิดปรับปรุง" กดจองไม่ได้
+opt ยิง API จองตรง
+  S -> BR : POST /booking {room_id: 102, booking_date: 2026-10-25, ...}
+  BR -> RS : assertRoomOpen(client, 102, date)
+  RS --> BR : HttpError 409
+  BR --> S : 409 "ห้องนี้ปิดปรับปรุงในวันที่เลือก" (ROLLBACK)
+end
+@enduml

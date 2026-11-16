@@ -1,0 +1,48 @@
+@startuml
+skinparam defaultFontName Loma
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+autonumber
+title US14 + US15 : ตรวจเลขทะเบียน รหัสผ่าน และสาขาตอน Login (Sprint 2)
+actor "ผู้ใช้" as U
+participant "Frontend\nlogin.html / login.js" as FE
+participant "Backend\nPOST /login" as R
+participant "loginService\nlogin()" as S
+participant "tuAuth\nverifyWithTU()" as T
+participant "TU REST API" as TU
+database "PostgreSQL\nusers" as DB
+
+U -> FE : กรอกเลขทะเบียน + รหัสผ่าน
+FE -> R : POST /login {username, password, remember}
+R -> S : login(body)
+S -> T : verifyWithTU(username, password)
+alt มี TU_API_KEY
+  T -> TU : POST /auth/Ad/verify (Application-Key)
+  TU --> T : {status, department, ...}
+else ไม่มี TU_API_KEY (โหมดจำลอง · US15)
+  T -> T : mockVerify()\nรับเฉพาะบัญชีใน MOCK_USERS\nเทียบรหัสผ่านด้วย timingSafeEqual
+  note right of T : NODE_ENV=production\nห้ามใช้โหมดจำลอง (ตอบ 502)
+end
+alt เลขทะเบียนหรือรหัสผ่านผิด (US15 TC1–TC3)
+  T --> S : null
+  S --> R : HttpError 401
+  R --> FE : 401 "เลขทะเบียนนักศึกษาหรือรหัสผ่านไม่ถูกต้อง"
+  note right of FE : ข้อความเดียวกันทุกกรณี\nไม่บอกว่าผิดช่องไหน
+else รหัสถูกต้อง
+  T --> S : ข้อมูลผู้ใช้ (รวม department)
+  S -> S : roleOf(student_id)\n(อยู่ใน ADMIN_IDS = admin)
+  alt ไม่ใช่ admin และสาขาไม่อยู่ใน ALLOWED_DEPARTMENTS (US14 TC1)
+    S -> S : console.warn(ชื่อสาขาจาก TU API)\n(ไม่ log รหัสผ่าน)
+    S --> R : HttpError 403
+    R --> FE : 403 "ระบบนี้สำหรับนักศึกษาสาขาวิทยาการคอมพิวเตอร์เท่านั้น"
+    note right of S : ไม่ออก token และไม่บันทึกผู้ใช้
+  else สาขา CS (US14 TC2) หรือ admin (US14 TC3)
+    S -> DB : upsertUser(user)
+    S -> S : jwt.sign(payload)
+    S --> R : {token, user}
+    R --> FE : 200 {token, user}
+    FE --> U : เข้าหน้าตารางห้อง (US15 TC4)\nadmin เห็นเมนู "จัดการการจอง"
+  end
+end
+@enduml

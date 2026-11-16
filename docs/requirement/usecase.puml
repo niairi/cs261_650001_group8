@@ -18,10 +18,11 @@ actor "เจ้าหน้าที่ภาควิชาฯ\n(Admin)" as Ad
 
 rectangle "ระบบจองห้อง CS Co-Working Space" {
   usecase "UC1 Login ด้วย TU Account" as UC1 #D6EAF8
+  usecase "ตรวจรหัสผ่าน (US15)\nและสาขาวิทยาการคอมพิวเตอร์ (US14)" as LCHK
   usecase "UC1 Logout" as UC1b
   usecase "UC2 ดูตารางห้องว่าง\nแบบ Real-time" as UC2a #D6EAF8
   usecase "UC2 จองห้องล่วงหน้า" as UC2b #D6EAF8
-  usecase "ตรวจเวลา 09:00–17:00\nครั้งละไม่เกิน 3 ชม.\nและจองล่วงหน้าไม่เกิน 7 วัน" as CHK
+  usecase "ตรวจเงื่อนไขการจอง\nวันจันทร์–ศุกร์ เวลา 09:00–16:00\nครั้งละไม่เกิน 3 ชม. จองล่วงหน้าไม่เกิน 7 วัน\nห้องไม่ปิดปรับปรุง และไม่ถูกระงับสิทธิ์" as CHK
   usecase "UC3 ดูรายการจองของฉัน\n/ ยกเลิกการจอง" as UC3a #D6EAF8
   usecase "UC3 แก้ไขเวลาการจอง" as UC3b
   usecase "UC4 แจ้งเตือนทางอีเมล" as UC4 #D6EAF8
@@ -55,12 +56,14 @@ UC3b ..> CHK : <<include>>
 UC2b ..> UC4 : <<include>>
 UC3a ..> UC4 : <<include>>
 
+UC1 ..> LCHK : <<include>>
 UC1 --> TUAPI
 UC4 --> MAIL
 SCH --> UC5b
 
 legend right
   สีฟ้า = Use Case ที่ทำใน Sprint 1 (US1–US5)
-  สีขาว = Sprint 2 / Product Backlog
+  สีขาว = Sprint 2 (US6–US15)
+  อัปเดตตาม Release v2.0 (16 พ.ย. 2569)
 endlegend
 @enduml
