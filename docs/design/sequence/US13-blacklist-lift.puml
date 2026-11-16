@@ -19,12 +19,12 @@ AF -> AR : GET /admin/blacklist (requireAuth + requireAdmin)
 AR -> BS : listActiveBlacklist()
 BS -> DB : SELECT blacklist JOIN users\nWHERE end_date >= วันนี้ AND lifted_at IS NULL
 AR --> AF : 200 {rows[ {blacklist_id, student_id, name, start_date, end_date, reason} ], count}
-AF --> A : ตารางรายชื่อ + ปุ่ม "ปลดระงับ"
+AF --> A : ตารางรายชื่อ + ปุ่ม "ปลด Blacklist"
 
 == ปลดระงับ (TC1) ==
-A -> AF : กด "ปลดระงับ" ของ 6809650010
-AF --> A : หน้าต่างยืนยัน (ชื่อ + รหัสนักศึกษา)
-A -> AF : กดยืนยัน
+A -> AF : กด "ปลด Blacklist" ของ 6809650010
+AF --> A : หน้าต่าง "ยืนยันการปลด Blacklist" (ชื่อ + รหัสนักศึกษา)
+A -> AF : กด "ยืนยันการปลด"
 AF -> AR : POST /admin/blacklist/:id/lift
 AR -> AR : ตรวจ id เป็นจำนวนเต็มบวก (ไม่ใช่ = 400)
 AR -> BS : liftBlacklist(id, adminId)
