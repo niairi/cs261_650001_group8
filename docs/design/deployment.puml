@@ -12,7 +12,7 @@ skinparam component {
 title Deployment Diagram : ระบบจองห้อง CS Co-Working Space (กลุ่ม 8)
 
 node "เครื่องผู้ใช้\n(คอมพิวเตอร์ / สมาร์ทโฟน)" as client {
-  component "Web Browser\n(login.html / booking.html /\nbooking-his.html)" as browser
+  component "Web Browser\n(login.html / booking.html /\nbooking-his.html / admin*.html)" as browser
 }
 
 node "Docker Host (เครื่อง Lab / เครื่องนักพัฒนา)\nรันด้วย docker compose" as host {
@@ -20,10 +20,10 @@ node "Docker Host (เครื่อง Lab / เครื่องนักพ
     component "Nginx\nเสิร์ฟ HTML / CSS / JavaScript\n:5500" as feapp
   }
   node "<<container>>\nbackend" as be {
-    component "Node.js (Express)\nREST API :3000\nroutes: /login /rooms /booking /admin\nJWT (jsonwebtoken)" as beapp
+    component "Node.js (Express)\nREST API :3000\nroutes: /login /rooms /booking /users /admin\nตัวตรวจ No-show ทุก 1 นาที\nJWT (jsonwebtoken)" as beapp
   }
   node "<<container>>\ndb" as dbn {
-    database "PostgreSQL :5432\n(เปิดออกเครื่องที่ :5433)\n(volume: db_data)\nschema.sql\n002_users_and_email_logs.sql\nseed.sql" as db
+    database "PostgreSQL 16 :5432\n(เปิดออกเครื่องที่ :5433)\n(volume: db_data)\nรัน SQL ตามลำดับครั้งแรก:\n01 schema.sql\n02 002_users_and_email_logs.sql\n03 seed.sql\n04 003_sprint2.sql\n05 003_sprint2_roomlocation_and_blacklist.sql\n06 004_room_closure.sql" as db
   }
 }
 
@@ -37,4 +37,7 @@ browser --> beapp : HTTP / JSON (fetch) :3000\nAuthorization: Bearer token
 beapp --> db : SQL (pg)
 beapp --> tuapi : HTTPS (Application-Key)
 beapp --> smtp : SMTP (nodemailer)
+legend right
+  อัปเดตตาม Release v2.0 (16 พ.ย. 2569)
+endlegend
 @enduml

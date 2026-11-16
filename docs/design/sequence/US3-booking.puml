@@ -4,13 +4,14 @@ skinparam defaultFontSize 13
 skinparam sequenceMessageAlign center
 skinparam responseMessageBelowArrow true
 autonumber
-title US3 : กดจองพื้นที่และระบุช่วงเวลาล่วงหน้า
+title US3 : กดจองพื้นที่และระบุช่วงเวลาล่วงหน้า (v2.0)
 actor "นักศึกษา" as U
 participant "Frontend\nbooking.js" as FE
 participant "Backend\nPOST /booking\n(routes/bookings.js)" as R
 participant "middleware\nrequireAuth" as A
+participant "bookingRules /\nblacklistService /\nroomService" as S
 participant "emailService" as E
-database "PostgreSQL\nroom, booking" as DB
+database "PostgreSQL\nroom, booking,\nblacklist, room_closure" as DB
 
 U -> FE : เลือกห้อง วันที่ (ไม่เกิน 7 วัน)\nเวลาเริ่ม-สิ้นสุด จำนวนคน วัตถุประสงค์
 FE -> FE : ตรวจข้อมูลในฟอร์ม
@@ -19,27 +20,34 @@ R -> A : ตรวจ token
 alt ไม่มี token / หมดอายุ
   A --> FE : 401 กรุณาเข้าสู่ระบบ
 else token ถูกต้อง
-  A -> R : req.user
-  R -> R : validateBooking()\n09:00–16:00, ไม่เกิน 3 ชม.,\nไม่ใช่เวลาที่ผ่านมา, ไม่เกิน 7 วัน
+  R -> S : validateBooking()\nจันทร์–ศุกร์, 09:00–16:00, ไม่เกิน 3 ชม.,\nไม่ใช่เวลาที่ผ่านมา, ไม่เกิน 7 วัน
   alt ไม่ผ่านเงื่อนไข
     R --> FE : 400 ข้อมูลการจองไม่ถูกต้อง + details
   else ผ่าน
-    R -> DB : BEGIN\nSELECT room ... FOR UPDATE
-    alt ไม่พบห้อง / ปิดใช้งาน
-      R --> FE : 404
-    else จำนวนคนเกินความจุ
-      R --> FE : 400 ห้องรองรับได้สูงสุด N คน
-    else
-      R -> DB : ตรวจเวลาทับซ้อน\n(BOOKED / CONFIRMED)
-      alt ทับซ้อน
-        R -> DB : ROLLBACK
-        R --> FE : 409 ช่วงเวลานี้มีผู้จองแล้ว
-      else ว่าง
-        R -> DB : INSERT booking (status = BOOKED)\nCOMMIT
-        DB --> R : booking
-        R ->> E : sendBookingConfirmation() (ไม่รอ)
-        R --> FE : 201 booking
-        FE --> U : Pop-up ยืนยันการจอง
+    R -> S : assertNotBlacklisted(student_id)
+    alt ถูกระงับสิทธิ์ (US10)
+      R --> FE : 403 ถูกระงับสิทธิ์ (หน้าเว็บแสดง Pop-up Blacklist)
+    else ไม่ถูกระงับ
+      R -> DB : BEGIN\nSELECT room ... FOR UPDATE
+      alt ไม่พบห้อง / ปิดใช้งาน
+        R --> FE : 404
+      else จำนวนคนเกินความจุ
+        R --> FE : 400 ห้องรองรับได้สูงสุด N คน
+      else ห้องปิดปรับปรุงวันนั้น (US12)
+        R -> S : assertRoomOpen()
+        R --> FE : 409 ห้องนี้ปิดปรับปรุงในวันที่เลือก
+      else
+        R -> DB : ตรวจเวลาทับซ้อน\n(BOOKED / CONFIRMED)
+        alt ทับซ้อน
+          R -> DB : ROLLBACK
+          R --> FE : 409 ช่วงเวลานี้ถูกจองแล้ว
+        else ว่าง
+          R -> DB : INSERT booking (status = BOOKED)\nCOMMIT
+          R -> E : emailDeliveryStatus(sendBookingConfirmation())\nรอผลไม่เกิน 10 วินาที
+          E --> R : SENT / FAILED / SKIPPED
+          R --> FE : 201 booking + email_status
+          FE --> U : Pop-up ยืนยันการจอง\n(ถ้า FAILED แสดง "จองสำเร็จ แต่ส่งอีเมลยืนยันไม่สำเร็จ")
+        end
       end
     end
   end
