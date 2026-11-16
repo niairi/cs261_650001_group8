@@ -1,0 +1,54 @@
+@startuml
+skinparam defaultFontName Loma
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+autonumber
+title US5 TC3 : ข้อความบนหน้าจอเมื่อส่งอีเมลไม่สำเร็จ (Sprint 2 · Task70)
+actor "นักศึกษา" as U
+participant "Frontend\nbooking.html / booking.js" as FE
+participant "Backend\nPOST /booking\n(routes/bookings.js)" as R
+database "PostgreSQL\nbooking" as DB
+participant "emailService\nemailDeliveryStatus()" as E
+participant "SMTP Server" as SMTP
+participant "emailLogRepo" as L
+database "PostgreSQL\nemail_logs" as DBL
+
+U -> FE : กรอกฟอร์มจองแล้วกดยืนยัน
+FE -> R : POST /booking {room_id, booking_date, start_time, end_time, people, purpose}\nAuthorization: Bearer token
+R -> DB : BEGIN … ตรวจกฎ / ห้อง / เวลาทับซ้อน … INSERT
+R -> DB : COMMIT
+note right of R : การจองถูกบันทึกแล้ว (BOOKED)\nคืน connection ก่อนรออีเมล
+R -> E : emailDeliveryStatus(sendBookingConfirmation(...))\nรอผลไม่เกิน EMAIL_WAIT_MS (10 วินาที)
+alt ส่งสำเร็จ
+  E -> SMTP : sendMail(...)
+  SMTP --> E : ok
+  E -> L : insertEmailLog(SENT)
+  E --> R : "SENT"
+else SMTP ใช้งานไม่ได้ หรือรอเกิน 10 วินาที
+  E -> SMTP : sendMail(...)
+  SMTP --> E : error / ไม่ตอบ
+  E -> L : insertEmailLog(FAILED)
+  E --> R : "FAILED"
+else ไม่ได้ตั้ง SMTP (โหมดทดสอบ)
+  E -> L : insertEmailLog(SKIPPED)
+  E --> R : "SKIPPED"
+end
+L -> DBL : INSERT INTO email_logs
+R --> FE : 201 {booking, room_name, email_status}
+alt email_status = "FAILED" (TC3)
+  FE -> FE : showEmailFailure(data)
+  FE --> U : "การจองสำเร็จ แต่ส่งอีเมลยืนยันไม่สำเร็จ"\n+ ปุ่ม "ส่งอีเมลใหม่อีกครั้ง"
+  opt กดส่งอีเมลใหม่อีกครั้ง
+    U -> FE : กดปุ่ม
+    FE -> R : POST /booking/:id/resend-email
+    R -> E : emailDeliveryStatus(sendBookingConfirmation(...))
+    E --> R : SENT / FAILED
+    R --> FE : 200 {email_status}
+    FE --> U : "ส่งอีเมลยืนยันสำเร็จแล้ว" หรือ\n"ยังส่งอีเมลไม่ได้ในขณะนี้ แต่การจองของคุณยังมีผล"
+  end
+else SENT / SKIPPED (ทดสอบซ้ำ TC1)
+  FE -> FE : showBookingConfirmation(data)
+  FE --> U : "จองสำเร็จ" (ไม่แสดงข้อความอีเมลไม่สำเร็จ)
+end
+@enduml
